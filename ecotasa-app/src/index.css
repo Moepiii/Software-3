@@ -1,1 +1,13 @@
 /* src/index.css */
+@font-face {
+  font-family: 'CallingFont';
+  src: url('/fonts/CallingFont.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  /* Esto aplicará la fuente a todo el proyecto automáticamente */
+  font-family: 'CallingFont', sans-serif;
+}
