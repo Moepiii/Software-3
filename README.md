@@ -1,7 +1,7 @@
 # aqui pondre instrucciones
 descarga o clona esto.
 
-luego en visual o en la terminal ve a la carpeta ecotasa....
+luego en visual o en la terminal ve a la carpeta Frontend....
 
 escribe: npm install
 
