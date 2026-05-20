@@ -1,11 +1,8 @@
 # aqui pondre instrucciones
 descarga o clona esto.
 
-luego en visual o en la terminal ve a la carpeta Frontend....
-
-
 # Solo por seguridad
-luego en visual o en la terminal
+luego en visual o en la terminal ve a la carpeta
 
 pones: npm install -g pnpm
 
