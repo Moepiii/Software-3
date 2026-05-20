@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator db {
+  provider = "go run github.com/steebchen/prisma-client-go"
+}
+
+model Personas {
+  cedula        String   @id
+  email         String   @unique
+  password_hash String
+  nombres       String
+  apellidos     String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("personas")
+}
+
+model Empresas {
+  rif           String   @id
+  email         String   @unique
+  password_hash String
+  nombre_empresa String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("empresas")
+}
