@@ -3,7 +3,7 @@ descarga o clona esto.
 
 luego en visual o en la terminal ve a la carpeta Frontend....
 
-escribe: npm install
+
 # Solo por seguridad
 luego en visual o en la terminal
 
