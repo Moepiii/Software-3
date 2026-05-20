@@ -31,6 +31,10 @@ function App(): React.JSX.Element {
   const [rif, setRif] = useState('');
   const [nombreEmpresa, setNombreEmpresa] = useState('');
 
+  // Mostrar/ocultar contraseñas
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   // Fondo rotatorio
   const backgrounds = ['/bg1.png', '/bg2.png', '/bg3.png', '/bg4.png'];
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -175,8 +179,31 @@ function App(): React.JSX.Element {
               <input type="text" placeholder="Nombres" required value={nombres} onChange={e => setNombres(e.target.value)} style={inputStyle} />
               <input type="text" placeholder="Apellidos" required value={apellidos} onChange={e => setApellidos(e.target.value)} style={inputStyle} />
               <input type="email" placeholder="Correo Electrónico" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-              <input type="password" placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-              <input type="password" placeholder="Confirmar Contraseña" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={inputStyle} />
+
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyleWithIcon} />
+                <button type="button" onClick={() => setShowPassword(s => !s)} style={eyeButtonStyle} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showPassword ? (
+                    // eye with slash
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7 1.1-2.36 2.9-4.25 5.25-5.41"/><path d="M1 1l22 22"/></svg>
+                  ) : (
+                    // eye
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirmar Contraseña" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={inputStyleWithIcon} />
+                <button type="button" onClick={() => setShowConfirmPassword(s => !s)} style={eyeButtonStyle} aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showConfirmPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7 1.1-2.36 2.9-4.25 5.25-5.41"/><path d="M1 1l22 22"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+
               {errorMsg && <p style={{ color: '#f87171', margin: '0' }}>{errorMsg}</p>}
               <button type="submit" style={buttonStyle('#10b981', '#ffffff', 'none', '100%')}>Completar Registro</button>
             </form>
@@ -191,8 +218,29 @@ function App(): React.JSX.Element {
               <input type="text" placeholder="RIF" required value={rif} onChange={e => setRif(e.target.value)} style={inputStyle} />
               <input type="text" placeholder="Nombre de la empresa" required value={nombreEmpresa} onChange={e => setNombreEmpresa(e.target.value)} style={inputStyle} />
               <input type="email" placeholder="Correo Electrónico" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-              <input type="password" placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-              <input type="password" placeholder="Confirmar Contraseña" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={inputStyle} />
+
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyleWithIcon} />
+                <button type="button" onClick={() => setShowPassword(s => !s)} style={eyeButtonStyle} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7 1.1-2.36 2.9-4.25 5.25-5.41"/><path d="M1 1l22 22"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirmar Contraseña" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={inputStyleWithIcon} />
+                <button type="button" onClick={() => setShowConfirmPassword(s => !s)} style={eyeButtonStyle} aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showConfirmPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7 1.1-2.36 2.9-4.25 5.25-5.41"/><path d="M1 1l22 22"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+
               {errorMsg && <p style={{ color: '#f87171', margin: '0' }}>{errorMsg}</p>}
               <button type="submit" style={buttonStyle('#10b981', '#ffffff', 'none', '100%')}>Registrar Empresa</button>
             </form>
@@ -205,7 +253,18 @@ function App(): React.JSX.Element {
             <h2 style={h2Style}>Iniciar Sesión</h2>
             <form style={formGridStyle} onSubmit={handleLogin}>
               <input type="email" placeholder="Correo Electrónico" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-              <input type="password" placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
+
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input type={showPassword ? 'text' : 'password'} placeholder="Contraseña" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyleWithIcon} />
+                <button type="button" onClick={() => setShowPassword(s => !s)} style={eyeButtonStyle} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7 1.1-2.36 2.9-4.25 5.25-5.41"/><path d="M1 1l22 22"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
+
               {errorMsg && <p style={{ color: '#f87171', margin: '0' }}>{errorMsg}</p>}
               <button type="submit" style={buttonStyle('#10b981', '#ffffff', 'none', '100%')}>Entrar</button>
             </form>
@@ -226,6 +285,8 @@ const titleStyle: React.CSSProperties = { fontSize: '3.5rem', fontWeight: 'bold'
 const subtitleStyle: React.CSSProperties = { color: '#cbd5e1', marginBottom: '30px' };
 const formGridStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '14px 20px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(15, 23, 42, 0.5)', color: '#ffffff', boxSizing: 'border-box', fontSize: '1rem' };
+const inputStyleWithIcon: React.CSSProperties = { ...inputStyle, paddingRight: '44px' } as React.CSSProperties;
+const eyeButtonStyle: React.CSSProperties = { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 };
 const buttonStyle = (bgColor: string, color: string, border: string, width = '220px') => ({ backgroundColor: bgColor, color: color, padding: '14px 0', width: width, borderRadius: '9999px', border: border, fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase' as any });
 const backButtonStyle: React.CSSProperties = { background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', textDecoration: 'underline', cursor: 'pointer' };
 

@@ -7,7 +7,14 @@
   font-display: swap;
 }
 
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
 body {
   /* Esto aplicará la fuente a todo el proyecto automáticamente */
   font-family: 'Qontra', sans-serif;
+  background-color: #0f172a; /* fondo oscuro por defecto detrás de las imágenes */
+  color: #ffffff;
 }
