@@ -1,8 +1,16 @@
+/*
+Autor: Baudilio Velasquez
+
+Este archivo implementa el repositorio de personas. Su responsabilidad es
+traducir operaciones de negocio sobre personas a consultas Prisma, manteniendo
+la base de datos aislada de los servicios.
+*/
 package repositories
 
 import (
 	"Backend/internal/database"
 	"Backend/internal/domain"
+	"Backend/prisma/db"
 	"context"
 )
 
@@ -11,87 +19,111 @@ type PersonaRepository interface {
 	FindByEmail(ctx context.Context, email string) (*domain.Persona, error)
 	EmailExists(ctx context.Context, email string) (bool, error)
 	CedulaExists(ctx context.Context, cedula string) (bool, error)
-	ListAll(ctx context.Context) ([]domain.Persona, error)
+	ListAdmins(ctx context.Context) ([]domain.Persona, error)
 	Delete(ctx context.Context, cedula string) error
 }
 
-type personaRepo struct{}
+type personaRepo struct {
+	client *db.PrismaClient
+}
 
-func NewPersonaRepository() PersonaRepository {
-	return &personaRepo{}
+func NewPersonaRepository(client *db.PrismaClient) PersonaRepository {
+	return &personaRepo{client: client}
 }
 
 func (r *personaRepo) Create(ctx context.Context, p domain.Persona) error {
-	_, err := database.Client.Personas.CreateOne(
+	role := p.Role
+	if role == "" {
+		role = domain.RoleUser
+	}
+
+	_, err := r.client.Personas.CreateOne(
 		database.Personas.Cedula.Set(p.Cedula),
 		database.Personas.Email.Set(p.Email),
 		database.Personas.PasswordHash.Set(p.PasswordHash),
 		database.Personas.Nombres.Set(p.Nombres),
 		database.Personas.Apellidos.Set(p.Apellidos),
+		database.Personas.Role.Set(role),
 	).Exec(ctx)
 	return err
 }
 
 func (r *personaRepo) FindByEmail(ctx context.Context, email string) (*domain.Persona, error) {
-	m, err := database.Client.Personas.FindUnique(
+	m, err := r.client.Personas.FindUnique(
 		database.Personas.Email.Equals(email),
 	).Exec(ctx)
 	if err != nil {
+		if err == database.ErrNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if m == nil {
 		return nil, nil
 	}
+	return personaFromModel(m), nil
+}
+
+func (r *personaRepo) EmailExists(ctx context.Context, email string) (bool, error) {
+	m, err := r.client.Personas.FindUnique(
+		database.Personas.Email.Equals(email),
+	).Exec(ctx)
+	if err != nil {
+		if err == database.ErrNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return m != nil, nil
+}
+
+func (r *personaRepo) CedulaExists(ctx context.Context, cedula string) (bool, error) {
+	m, err := r.client.Personas.FindUnique(
+		database.Personas.Cedula.Equals(cedula),
+	).Exec(ctx)
+	if err != nil {
+		if err == database.ErrNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return m != nil, nil
+}
+
+func (r *personaRepo) ListAdmins(ctx context.Context) ([]domain.Persona, error) {
+	models, err := r.client.Personas.FindMany(
+		database.Personas.Role.Equals(domain.RoleAdmin),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	personas := make([]domain.Persona, 0, len(models))
+	for _, m := range models {
+		personas = append(personas, *personaFromModel(&m))
+	}
+	return personas, nil
+}
+
+func (r *personaRepo) Delete(ctx context.Context, cedula string) error {
+	_, err := r.client.Personas.FindUnique(
+		database.Personas.Cedula.Equals(cedula),
+	).Delete().Exec(ctx)
+	if err != nil && err == database.ErrNotFound {
+		return domain.ErrUserNotFound
+	}
+	return err
+}
+
+func personaFromModel(m *db.PersonasModel) *domain.Persona {
 	return &domain.Persona{
 		Cedula:       m.Cedula,
 		Email:        m.Email,
 		PasswordHash: m.PasswordHash,
 		Nombres:      m.Nombres,
 		Apellidos:    m.Apellidos,
-	}, nil
-}
-
-func (r *personaRepo) EmailExists(ctx context.Context, email string) (bool, error) {
-	m, err := database.Client.Personas.FindUnique(
-		database.Personas.Email.Equals(email),
-	).Exec(ctx)
-	if err != nil {
-		return false, nil
+		Role:         m.Role,
+		CreatedAt:    m.CreatedAt.String(),
+		UpdatedAt:    m.UpdatedAt.String(),
 	}
-	return m != nil, nil
-}
-
-func (r *personaRepo) CedulaExists(ctx context.Context, cedula string) (bool, error) {
-	m, err := database.Client.Personas.FindUnique(
-		database.Personas.Cedula.Equals(cedula),
-	).Exec(ctx)
-	if err != nil {
-		return false, nil
-	}
-	return m != nil, nil
-}
-
-// ListAll obtiene todas las personas registradas en Prisma
-func (r *personaRepo) ListAll(ctx context.Context) ([]domain.Persona, error) {
-	models, err := database.Client.Personas.FindMany().Exec(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var personas []domain.Persona
-	for _, m := range models {
-		personas = append(personas, domain.Persona{
-			Cedula:       m.Cedula,
-			Email:        m.Email,
-			PasswordHash: m.PasswordHash,
-			Nombres:      m.Nombres,
-			Apellidos:    m.Apellidos,
-		})
-	}
-	return personas, nil
-}
-
-// Delete elimina de forma permanente el registro en la base de datos por su cédula
-func (r *personaRepo) Delete(ctx context.Context, cedula string) error {
-	_, err := database.Client.Personas.FindUnique(
-		database.Personas.Cedula.Equals(cedula),
-	).Delete().Exec(ctx)
-	return err
 }

@@ -1,13 +1,7 @@
 // Frontend/src/components/Admin.tsx
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-
-interface AdminUser {
-    id: string; // Representa la cédula en el backend
-    nombres: string;
-    apellidos: string;
-    email: string;
-}
+import { ApiError, createAdmin, deleteUser, listAdmins, type AdminUser } from '../api';
 
 export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
     // Estado para almacenar los administradores reales traídos de la base de datos
@@ -24,27 +18,18 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
     // 1. CARGAR ADMINISTRADORES EN TIEMPO REAL DESDE GO
     const cargarAdministradores = async () => {
         try {
-            const res = await fetch('/api/admins');
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    // Mapeamos los campos que nos envía el LoginUser de Go
-                    const mapeados: AdminUser[] = data.map((u: any) => ({
-                        id: u.id,
-                        nombres: u.nombres || 'Admin',
-                        apellidos: u.apellidos || '',
-                        email: u.email
-                    }));
-                    setAdmins(mapeados);
-                }
-            }
+            const data = await listAdmins();
+            setAdmins(data);
         } catch (err) {
             console.error("Error conectando al endpoint /api/admins:", err);
+            setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
         }
     };
 
     useEffect(() => {
-        cargarAdministradores();
+        queueMicrotask(() => {
+            void cargarAdministradores();
+        });
     }, []);
 
     // 2. CREAR ADMINISTRADOR REAL EN LA BASE DE DATOS
@@ -64,24 +49,13 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
         }
 
         try {
-            const res = await fetch('/api/register/persona', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cedula: `ADM-${Date.now().toString().slice(-6)}`, // Cédula única aleatoria para el registro en Prisma
-                    email: nuevoEmail,
-                    password: nuevaPassword,
-                    nombres: nuevoNombre,
-                    apellidos: nuevoApellido
-                }),
+            await createAdmin({
+                cedula: `ADM-${Date.now().toString().slice(-6)}`,
+                email: nuevoEmail,
+                password: nuevaPassword,
+                nombres: nuevoNombre,
+                apellidos: nuevoApellido
             });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setErrorMsg(data.error || 'Error al guardar en la base de datos');
-                return;
-            }
 
             setSuccessMsg('¡Administrador creado con éxito en la BD!');
 
@@ -94,7 +68,7 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
             // Refrescamos la lista llamando de nuevo al servidor para ver el cambio reflejado al instante
             await cargarAdministradores();
         } catch (err) {
-            setErrorMsg('Error de conexión con el servidor');
+            setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
         }
     };
 
@@ -102,20 +76,14 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
     const handleDeleteAdmin = async (admin: AdminUser) => {
         if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${admin.nombres} de la base de datos?`)) {
             try {
-                const res = await fetch(`/api/users/${admin.id}`, {
-                    method: 'DELETE'
-                });
-
-                if (res.ok) {
-                    // Lo removemos de la tabla visual filtrando la lista por id
-                    setAdmins(prev => prev.filter(a => a.id !== admin.id));
-                    alert("Administrador eliminado correctamente.");
-                } else {
-                    const data = await res.json();
-                    alert(data.error || "No se pudo eliminar el usuario.");
-                }
+                await deleteUser(admin.id);
+                setAdmins(prev => prev.filter(a => a.id !== admin.id));
+                alert("Administrador eliminado correctamente.");
             } catch (err) {
-                alert("Error de red al intentar conectar con el servidor.");
+                const message = err instanceof ApiError || err instanceof Error
+                    ? err.message
+                    : "Error de red al intentar conectar con el servidor.";
+                alert(message);
             }
         }
     };

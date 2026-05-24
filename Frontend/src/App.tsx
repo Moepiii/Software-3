@@ -3,17 +3,20 @@ import React, { useState, useEffect } from 'react';
 import LobbyPersona from './components/LobbyPersona';
 import LobbyEmpresa from './components/LobbyEmpresa';
 import Admin from './components/Admin';
+import {
+  clearToken,
+  decodeSession,
+  getToken,
+  login,
+  registerEmpresa,
+  registerPersona,
+  saveToken,
+  type LoginUser,
+} from './api';
 
 type FormStep = 'LANDING' | 'CHOICE' | 'FORM_PERSONA' | 'FORM_EMPRESA' | 'LOGIN';
 
-type User = {
-  nombres?: string;
-  apellidos?: string;
-  nombre_empresa?: string;
-  userType: 'persona' | 'empresa';
-  id: string;
-  email: string;
-} | null;
+type User = LoginUser | null;
 
 function App(): React.JSX.Element {
   const [step, setStep] = useState<FormStep>('LANDING');
@@ -59,20 +62,11 @@ function App(): React.JSX.Element {
       return;
     }
     try {
-      const res = await fetch('/api/register/persona', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cedula, email, password, nombres, apellidos }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Error en el registro');
-        return;
-      }
+      await registerPersona({ cedula, email, password, nombres, apellidos });
       setStep('LOGIN');
       setCedula(''); setNombres(''); setApellidos(''); setEmail(''); setPassword(''); setConfirmPassword('');
     } catch (err) {
-      setErrorMsg('Error de conexión con el servidor');
+      setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
     }
   };
 
@@ -84,20 +78,11 @@ function App(): React.JSX.Element {
       return;
     }
     try {
-      const res = await fetch('/api/register/empresa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rif, email, password, nombre_empresa: nombreEmpresa }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Error en el registro');
-        return;
-      }
+      await registerEmpresa({ rif, email, password, nombre_empresa: nombreEmpresa });
       setStep('LOGIN');
       setRif(''); setNombreEmpresa(''); setEmail(''); setPassword(''); setConfirmPassword('');
     } catch (err) {
-      setErrorMsg('Error de conexión con el servidor');
+      setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
     }
   };
 
@@ -105,26 +90,17 @@ function App(): React.JSX.Element {
     e.preventDefault();
     setErrorMsg('');
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Credenciales inválidas');
-        return;
-      }
-      localStorage.setItem('token', data.token);
+      const data = await login({ email, password });
+      saveToken(data.token);
       setUser(data.user);
       setIsAuthenticated(true);
     } catch (err) {
-      setErrorMsg('Error de conexión con el servidor');
+      setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    clearToken();
     setIsAuthenticated(false);
     setUser(null);
     setStep('LANDING');
@@ -134,7 +110,7 @@ function App(): React.JSX.Element {
 
   // --- MODIFICACIÓN DE PAGINA TOTALMENTE LIMPIA AL ENTRAR ---
   if (isAuthenticated && user) {
-    if (user.email.endsWith('@admin.com')) {
+    if (decodeSession(getToken())?.role === 'admin') {
       return <Admin onLogout={handleLogout} />;
     }
     if (user.userType === 'persona') {
@@ -287,7 +263,7 @@ const formGridStyle: React.CSSProperties = { display: 'flex', flexDirection: 'co
 const inputStyle: React.CSSProperties = { width: '100%', padding: '14px 20px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', backgroundColor: 'rgba(15, 23, 42, 0.5)', color: '#ffffff', boxSizing: 'border-box', fontSize: '1rem' };
 const inputStyleWithIcon: React.CSSProperties = { ...inputStyle, paddingRight: '44px' } as React.CSSProperties;
 const eyeButtonStyle: React.CSSProperties = { position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 };
-const buttonStyle = (bgColor: string, color: string, border: string, width = '220px') => ({ backgroundColor: bgColor, color: color, padding: '14px 0', width: width, borderRadius: '9999px', border: border, fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase' as any });
+const buttonStyle = (bgColor: string, color: string, border: string, width = '220px'): React.CSSProperties => ({ backgroundColor: bgColor, color: color, padding: '14px 0', width: width, borderRadius: '9999px', border: border, fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase' });
 const backButtonStyle: React.CSSProperties = { background: 'none', border: 'none', color: '#94a3b8', marginTop: '20px', textDecoration: 'underline', cursor: 'pointer' };
 
 export default App;
