@@ -41,20 +41,6 @@ func (h *AuthHandler) RegisterPersona(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Persona registrada exitosamente"})
 }
 
-func (h *AuthHandler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
-	var req services.CreateAdminRequest
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.authService.CreateAdmin(r.Context(), req); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Administrador registrado exitosamente"})
-}
-
 func (h *AuthHandler) RegisterEmpresa(w http.ResponseWriter, r *http.Request) {
 	var req services.RegisterEmpresaRequest
 	if !decodeJSON(w, r, &req) {
@@ -67,6 +53,20 @@ func (h *AuthHandler) RegisterEmpresa(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Empresa registrada exitosamente"})
+}
+
+func (h *AuthHandler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
+	var req services.CreateAdminRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := h.authService.CreateAdmin(r.Context(), req); err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Administrador registrado exitosamente"})
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
