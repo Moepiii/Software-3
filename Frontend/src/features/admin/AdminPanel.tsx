@@ -1,13 +1,9 @@
-// Frontend/src/components/Admin.tsx
 import { useState, useEffect } from 'react';
-import type { FormEvent } from 'react';
-import { ApiError, createAdmin, deleteUser, listAdmins, type AdminUser } from '../api';
+import type { FormEvent, CSSProperties } from 'react';
+import { ApiError, createAdmin, deleteUser, listAdmins, type AdminUser } from '../../api';
 
-export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
-    // Estado para almacenar los administradores reales traídos de la base de datos
+export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
     const [admins, setAdmins] = useState<AdminUser[]>([]);
-
-    // Estados para controlar el formulario de creación
     const [nuevoNombre, setNuevoNombre] = useState('');
     const [nuevoApellido, setNuevoApellido] = useState('');
     const [nuevoEmail, setNuevoEmail] = useState('');
@@ -15,7 +11,6 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    // 1. CARGAR ADMINISTRADORES EN TIEMPO REAL DESDE GO
     const cargarAdministradores = async () => {
         try {
             const data = await listAdmins();
@@ -32,7 +27,6 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
         });
     }, []);
 
-    // 2. CREAR ADMINISTRADOR REAL EN LA BASE DE DATOS
     const handleCreateAdmin = async (e: FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
@@ -58,21 +52,16 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
             });
 
             setSuccessMsg('¡Administrador creado con éxito en la BD!');
-
-            // Limpiamos los campos del formulario
             setNuevoNombre('');
             setNuevoApellido('');
             setNuevoEmail('');
             setNuevaPassword('');
-
-            // Refrescamos la lista llamando de nuevo al servidor para ver el cambio reflejado al instante
             await cargarAdministradores();
         } catch (err) {
             setErrorMsg(err instanceof Error ? err.message : 'Error de conexión con el servidor');
         }
     };
 
-    // 3. ELIMINAR ADMINISTRADOR REAL DE LA BASE DE DATOS
     const handleDeleteAdmin = async (admin: AdminUser) => {
         if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${admin.nombres} de la base de datos?`)) {
             try {
@@ -105,7 +94,6 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
             left: 0,
             zIndex: 999
         }}>
-            {/* Cabecera superior del Panel */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', width: '100%' }}>
                 <div style={{ textAlign: 'left' }}>
                     <h1 style={{ fontSize: '2.2rem', margin: 0, color: '#1e293b', fontWeight: 'bold' }}>Panel de Control Interno</h1>
@@ -129,8 +117,6 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
             </div>
 
             <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', width: '100%' }}>
-
-                {/* Bloque Izquierdo: Formulario */}
                 <div style={{
                     flex: '1',
                     minWidth: '320px',
@@ -168,11 +154,8 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
                     </form>
                 </div>
 
-                {/* Bloque Derecho: Tabla Dinámica */}
                 <div style={{ flex: '2', minWidth: '450px' }}>
-                    <div style={{
-                        ...tabContainerStyle
-                    }}>
+                    <div style={tabContainerStyle}>
                         <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e40af' }}>Total de Administradores Activos:</span>
                         <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e40af' }}>{admins.length}</span>
                     </div>
@@ -214,13 +197,12 @@ export default function LobbyAdmin({ onLogout }: { onLogout: () => void }) {
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     );
 }
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
     width: '100%',
     padding: '10px 14px',
     borderRadius: '8px',
@@ -231,12 +213,12 @@ const inputStyle: React.CSSProperties = {
     boxSizing: 'border-box'
 };
 
-const cellStyle: React.CSSProperties = {
+const cellStyle: CSSProperties = {
     padding: '14px 16px',
     color: '#334155'
 };
 
-const tabContainerStyle: React.CSSProperties = {
+const tabContainerStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',

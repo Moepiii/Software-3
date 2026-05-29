@@ -1,11 +1,9 @@
-// src/components/LobbyEmpresa.tsx
-
 export default function LobbyEmpresa({ onLogout }: { onLogout: () => void }) {
     return (
         <div style={{
             width: '100vw',
             height: '100vh',
-            backgroundColor: '#ffffff', // Tu página en blanco dedicada
+            backgroundColor: '#ffffff',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
