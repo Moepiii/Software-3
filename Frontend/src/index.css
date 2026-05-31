@@ -7,14 +7,41 @@
   font-display: swap;
 }
 
+:root {
+  --bg-main: #f8fafc;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  
+  --primary-dark: #103f2b; /* Dark green from the UI */
+  --primary-light: #84cc16; /* Light green from buttons */
+  --highlight-light: #eefce8; /* Very light green background for active state */
+  --border-color: #e2e8f0;
+  --card-bg: #ffffff;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
 }
 
 body {
-  /* Esto aplicará la fuente a todo el proyecto automáticamente */
-  font-family: 'Qontra', sans-serif;
-  background-color: #0f172a; /* fondo oscuro por defecto detrás de las imágenes */
-  color: #ffffff;
+  font-family: 'Qontra', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Base Utility Classes */
+.text-dark { color: var(--text-main); }
+.text-muted { color: var(--text-muted); }
+.text-primary-dark { color: var(--primary-dark); }
+.text-primary-light { color: var(--primary-light); }
+.bg-primary-dark { background-color: var(--primary-dark); color: #fff; }
+.bg-primary-light { background-color: var(--primary-light); color: var(--primary-dark); }
+.bg-highlight { background-color: var(--highlight-light); border: 1px solid #dcfce7; }
