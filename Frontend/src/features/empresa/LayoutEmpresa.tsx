@@ -4,9 +4,10 @@ import type { ReactNode } from 'react';
 interface LayoutEmpresaProps {
     children: ReactNode;
     onLogout?: () => void;
+    onNavigateSettings?: () => void;
 }
 
-export default function LayoutEmpresa({ children, onLogout }: LayoutEmpresaProps) {
+export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }: LayoutEmpresaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -157,6 +158,13 @@ export default function LayoutEmpresa({ children, onLogout }: LayoutEmpresaProps
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>📈 Estadísticas</button>
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>💰 Facturación</button>
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>👥 Empleados</button>
+                    <button
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            if (onNavigateSettings) onNavigateSettings();
+                        }}
+                        style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}
+                    >⚙️ Configuración</button>
                     <button onClick={handleLogoutClick} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', color: '#ef4444' }}>🚪 Cerrar sesión</button>
                 </div>
                 <div style={{ fontSize: '0.6rem', textAlign: 'center', color: isDarkMode ? '#64748b' : '#9ca3af', paddingTop: '16px', borderTop: `1px solid ${isDarkMode ? '#334155' : '#e5e7eb'}` }}>Versión Empresarial 1.0.0</div>

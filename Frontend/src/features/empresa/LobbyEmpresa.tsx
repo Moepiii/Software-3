@@ -7,7 +7,7 @@ interface LobbyEmpresaProps {
     isDarkMode?: boolean;
 }
 
-export default function LobbyEmpresa({ onLogout, isDarkMode = false }: LobbyEmpresaProps) {
+export default function LobbyEmpresa({ onLogout: _onLogout, isDarkMode = false }: LobbyEmpresaProps) {
     return (
         <div style={containerStyle}>
             <div style={headerSectionStyle}>

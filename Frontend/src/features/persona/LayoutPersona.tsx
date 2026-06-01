@@ -5,9 +5,10 @@ import logo from '../../assets/logo.png'; // ← Ajusta la ruta
 interface LayoutPersonaProps {
     children: ReactNode;
     onLogout?: () => void;
+    onNavigateSettings?: () => void;
 }
 
-export default function LayoutPersona({ children, onLogout }: LayoutPersonaProps) {
+export default function LayoutPersona({ children, onLogout, onNavigateSettings }: LayoutPersonaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -122,7 +123,15 @@ export default function LayoutPersona({ children, onLogout }: LayoutPersonaProps
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <button style={menuOptionStyle(isDarkMode)}>⚙️ Configuración</button>
+                    <button 
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            if (onNavigateSettings) onNavigateSettings();
+                        }}
+                        style={menuOptionStyle(isDarkMode)}
+                    >
+                        ⚙️ Configuración
+                    </button>
                     <button style={menuOptionStyle(isDarkMode)}>📊 Mis estadísticas</button>
                     <button onClick={handleLogoutClick} style={{ ...menuOptionStyle(isDarkMode), color: '#ef4444' }}>
                         🚪 Cerrar sesión
@@ -153,7 +162,6 @@ export default function LayoutPersona({ children, onLogout }: LayoutPersonaProps
 // ========== ESTILOS ==========
 const layoutStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden' };
 const headerContentStyle: React.CSSProperties = { maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' };
-const logoStyle: React.CSSProperties = { fontSize: '1.5rem', fontWeight: 'bold', color: '#ffffff' };
 const navStyle: React.CSSProperties = { display: 'flex', gap: '2rem' };
 const navLinkStyle: React.CSSProperties = { color: '#d1d5db', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 };
 const mainStyle: React.CSSProperties = { flex: 1, padding: '2rem' };
@@ -176,5 +184,5 @@ const menuHeaderStyle = (isDark: boolean): React.CSSProperties => ({ display: 'f
 const closeButtonStyle: React.CSSProperties = { background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' };
 const userInfoStyle = (isDark: boolean): React.CSSProperties => ({ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: isDark ? '#0f172a' : '#f3f4f6', borderRadius: '12px' });
 const avatarStyle: React.CSSProperties = { width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' };
-const menuOptionStyle = (isDark: boolean): React.CSSProperties => ({ width: '100%', padding: '12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' });
+const menuOptionStyle = (_isDark: boolean): React.CSSProperties => ({ width: '100%', padding: '12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' });
 const versionStyle = (isDark: boolean): React.CSSProperties => ({ fontSize: '0.6rem', textAlign: 'center', color: isDark ? '#64748b' : '#9ca3af', paddingTop: '16px', borderTop: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` });

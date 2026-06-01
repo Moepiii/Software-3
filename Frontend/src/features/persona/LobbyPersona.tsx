@@ -7,10 +7,10 @@ interface LobbyPersonaProps {
     isDarkMode?: boolean;
 }
 
-export default function LobbyPersona({ onLogout, isDarkMode = false }: LobbyPersonaProps) {
+export default function LobbyPersona({ onLogout: _onLogout, isDarkMode = false }: LobbyPersonaProps) {
     const [estado, setEstado] = useState('caracas');
-    const [porcentaje, setPorcentaje] = useState('5');
-    const [descuento, setDescuento] = useState('10');
+    const [porcentaje] = useState('5');
+    const [descuento] = useState('10');
 
     const estadosVenezuela = [
         "amazonas", "anzóategui", "apure", "aragua", "barinas",

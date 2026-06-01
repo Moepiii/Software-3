@@ -87,6 +87,15 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
     }
   };
 
+  if (step === 'LANDING') {
+    return (
+      <LandingView
+        onRegister={() => setStep('CHOICE')}
+        onLogin={() => setStep('LOGIN')}
+      />
+    );
+  }
+
   return (
     <main style={mainContainerStyle}>
       {backgrounds.map((bgUrl, index) => (
@@ -96,12 +105,6 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
         />
       ))}
       <div style={wrapperStyle}>
-        {step === 'LANDING' && (
-          <LandingView
-            onRegister={() => setStep('CHOICE')}
-            onLogin={() => setStep('LOGIN')}
-          />
-        )}
         {step === 'CHOICE' && (
           <ChoiceView
             onPersona={() => setStep('FORM_PERSONA')}
