@@ -19,6 +19,7 @@ model Personas {
   password_hash String
   nombres       String
   apellidos     String
+  role          String   @default("user")
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 

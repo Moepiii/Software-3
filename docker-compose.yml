@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecologic-postgres
+    environment:
+      POSTGRES_USER: ecouser
+      POSTGRES_PASSWORD: ecopass
+      POSTGRES_DB: ecologic_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecouser -d ecologic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./Backend
+    container_name: ecologic-backend
+    environment:
+      DATABASE_URL: postgresql://ecouser:ecopass@postgres:5432/ecologic_db?schema=public
+      JWT_SECRET: ecopass
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "go run github.com/steebchen/prisma-client-go migrate deploy && go run cmd/server/main.go"
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: ecologic-frontend
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8080
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:

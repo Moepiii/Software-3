@@ -1,3 +1,10 @@
+/*
+Autor: Baudilio Velasquez
+
+Este archivo contiene el servicio de autenticacion y usuarios. Coordina reglas
+de negocio como registro, login, roles de administrador y eliminacion sin
+conocer detalles HTTP ni consultas Prisma concretas.
+*/
 package services
 
 import (
@@ -5,6 +12,12 @@ import (
 	"Backend/internal/repositories"
 	"Backend/internal/utils"
 	"context"
+	"strings"
+)
+
+const (
+	UserTypePersona = "persona"
+	UserTypeEmpresa = "empresa"
 )
 
 type AuthService struct {
@@ -29,28 +42,102 @@ type RegisterPersonaRequest struct {
 	Apellidos string `json:"apellidos"`
 }
 
+type CreateAdminRequest struct {
+	Cedula    string `json:"cedula"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Nombres   string `json:"nombres"`
+	Apellidos string `json:"apellidos"`
+}
+
 func (s *AuthService) RegisterPersona(ctx context.Context, req RegisterPersonaRequest) error {
-	existsPersona, _ := s.personaRepo.EmailExists(ctx, req.Email)
-	existsEmpresa, _ := s.empresaRepo.EmailExists(ctx, req.Email)
+	req.Cedula = strings.TrimSpace(req.Cedula)
+	req.Email = normalizeEmail(req.Email)
+	req.Password = strings.TrimSpace(req.Password)
+	req.Nombres = strings.TrimSpace(req.Nombres)
+	req.Apellidos = strings.TrimSpace(req.Apellidos)
+	if req.Cedula == "" || req.Email == "" || req.Password == "" || req.Nombres == "" || req.Apellidos == "" {
+		return domain.ErrInvalidInput
+	}
+
+	existsPersona, err := s.personaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	existsEmpresa, err := s.empresaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
 	if existsPersona || existsEmpresa {
 		return domain.ErrEmailAlreadyExists
 	}
-	cedulaExists, _ := s.personaRepo.CedulaExists(ctx, req.Cedula)
+
+	cedulaExists, err := s.personaRepo.CedulaExists(ctx, req.Cedula)
+	if err != nil {
+		return err
+	}
 	if cedulaExists {
 		return domain.ErrCedulaAlreadyExists
 	}
+
 	hashed, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return err
 	}
-	p := domain.Persona{
+
+	return s.personaRepo.Create(ctx, domain.Persona{
 		Cedula:       req.Cedula,
 		Email:        req.Email,
 		PasswordHash: hashed,
 		Nombres:      req.Nombres,
 		Apellidos:    req.Apellidos,
+		Role:         domain.RoleUser,
+	})
+}
+
+func (s *AuthService) CreateAdmin(ctx context.Context, req CreateAdminRequest) error {
+	req.Cedula = strings.TrimSpace(req.Cedula)
+	req.Email = normalizeEmail(req.Email)
+	req.Password = strings.TrimSpace(req.Password)
+	req.Nombres = strings.TrimSpace(req.Nombres)
+	req.Apellidos = strings.TrimSpace(req.Apellidos)
+	if req.Cedula == "" || req.Email == "" || req.Password == "" || req.Nombres == "" || req.Apellidos == "" {
+		return domain.ErrInvalidInput
 	}
-	return s.personaRepo.Create(ctx, p)
+
+	existsPersona, err := s.personaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	existsEmpresa, err := s.empresaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if existsPersona || existsEmpresa {
+		return domain.ErrEmailAlreadyExists
+	}
+
+	cedulaExists, err := s.personaRepo.CedulaExists(ctx, req.Cedula)
+	if err != nil {
+		return err
+	}
+	if cedulaExists {
+		return domain.ErrCedulaAlreadyExists
+	}
+
+	hashed, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return err
+	}
+
+	return s.personaRepo.Create(ctx, domain.Persona{
+		Cedula:       req.Cedula,
+		Email:        req.Email,
+		PasswordHash: hashed,
+		Nombres:      req.Nombres,
+		Apellidos:    req.Apellidos,
+		Role:         domain.RoleAdmin,
+	})
 }
 
 type RegisterEmpresaRequest struct {
@@ -61,26 +148,45 @@ type RegisterEmpresaRequest struct {
 }
 
 func (s *AuthService) RegisterEmpresa(ctx context.Context, req RegisterEmpresaRequest) error {
-	existsPersona, _ := s.personaRepo.EmailExists(ctx, req.Email)
-	existsEmpresa, _ := s.empresaRepo.EmailExists(ctx, req.Email)
+	req.Rif = strings.TrimSpace(req.Rif)
+	req.Email = normalizeEmail(req.Email)
+	req.Password = strings.TrimSpace(req.Password)
+	req.NombreEmpresa = strings.TrimSpace(req.NombreEmpresa)
+	if req.Rif == "" || req.Email == "" || req.Password == "" || req.NombreEmpresa == "" {
+		return domain.ErrInvalidInput
+	}
+
+	existsPersona, err := s.personaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	existsEmpresa, err := s.empresaRepo.EmailExists(ctx, req.Email)
+	if err != nil {
+		return err
+	}
 	if existsPersona || existsEmpresa {
 		return domain.ErrEmailAlreadyExists
 	}
-	rifExists, _ := s.empresaRepo.RifExists(ctx, req.Rif)
+
+	rifExists, err := s.empresaRepo.RifExists(ctx, req.Rif)
+	if err != nil {
+		return err
+	}
 	if rifExists {
 		return domain.ErrRifAlreadyExists
 	}
+
 	hashed, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return err
 	}
-	e := domain.Empresa{
+
+	return s.empresaRepo.Create(ctx, domain.Empresa{
 		Rif:           req.Rif,
 		Email:         req.Email,
 		PasswordHash:  hashed,
 		NombreEmpresa: req.NombreEmpresa,
-	}
-	return s.empresaRepo.Create(ctx, e)
+	})
 }
 
 type LoginRequest struct {
@@ -103,6 +209,12 @@ type LoginUser struct {
 }
 
 func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+	req.Email = normalizeEmail(req.Email)
+	req.Password = strings.TrimSpace(req.Password)
+	if req.Email == "" || req.Password == "" {
+		return nil, domain.ErrInvalidCredentials
+	}
+
 	persona, err := s.personaRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, err
@@ -111,7 +223,11 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 		if !utils.CheckPasswordHash(req.Password, persona.PasswordHash) {
 			return nil, domain.ErrInvalidCredentials
 		}
-		token, err := utils.GenerateJWT(persona.Email, "persona", persona.Cedula, s.jwtSecret)
+		role := persona.Role
+		if role == "" {
+			role = domain.RoleUser
+		}
+		token, err := utils.GenerateJWT(persona.Email, UserTypePersona, persona.Cedula, role, s.jwtSecret)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +236,7 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 			User: LoginUser{
 				ID:        persona.Cedula,
 				Email:     persona.Email,
-				UserType:  "persona",
+				UserType:  UserTypePersona,
 				Nombres:   persona.Nombres,
 				Apellidos: persona.Apellidos,
 			},
@@ -135,7 +251,7 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 		if !utils.CheckPasswordHash(req.Password, empresa.PasswordHash) {
 			return nil, domain.ErrInvalidCredentials
 		}
-		token, err := utils.GenerateJWT(empresa.Email, "empresa", empresa.Rif, s.jwtSecret)
+		token, err := utils.GenerateJWT(empresa.Email, UserTypeEmpresa, empresa.Rif, domain.RoleUser, s.jwtSecret)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +260,7 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 			User: LoginUser{
 				ID:            empresa.Rif,
 				Email:         empresa.Email,
-				UserType:      "empresa",
+				UserType:      UserTypeEmpresa,
 				NombreEmpresa: empresa.NombreEmpresa,
 			},
 		}, nil
@@ -153,31 +269,33 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	return nil, domain.ErrInvalidCredentials
 }
 
-// ListAllAdmins busca en el repositorio de personas todas las que tengan correo @admin.com
 func (s *AuthService) ListAllAdmins(ctx context.Context) ([]LoginUser, error) {
-	// Usamos el método de tu repositorio para listar las personas
-	personas, err := s.personaRepo.ListAll(ctx)
+	personas, err := s.personaRepo.ListAdmins(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var admins []LoginUser
+	admins := make([]LoginUser, 0, len(personas))
 	for _, p := range personas {
-		// Si contiene @admin.com lo metemos en la lista de administradores
-		if len(p.Email) >= 10 && p.Email[len(p.Email)-10:] == "@admin.com" {
-			admins = append(admins, LoginUser{
-				ID:        p.Cedula,
-				Email:     p.Email,
-				UserType:  "persona",
-				Nombres:   p.Nombres,
-				Apellidos: p.Apellidos,
-			})
-		}
+		admins = append(admins, LoginUser{
+			ID:        p.Cedula,
+			Email:     p.Email,
+			UserType:  UserTypePersona,
+			Nombres:   p.Nombres,
+			Apellidos: p.Apellidos,
+		})
 	}
 	return admins, nil
 }
 
-// DeleteUserByID elimina un usuario usando su ID/Cédula mediante el repositorio
 func (s *AuthService) DeleteUserByID(ctx context.Context, id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return domain.ErrInvalidInput
+	}
 	return s.personaRepo.Delete(ctx, id)
+}
+
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }

@@ -1,56 +1,47 @@
+/*
+Autor: Baudilio Velasquez
+
+Este archivo es el punto de entrada del servidor. Carga configuracion, conecta
+Prisma, arma las dependencias principales y arranca el servidor HTTP.
+*/
 package main
 
 import (
 	"Backend/internal/config"
 	"Backend/internal/database"
 	"Backend/internal/handlers"
+	"Backend/internal/middleware"
 	"Backend/internal/repositories"
+	"Backend/internal/routes"
 	"Backend/internal/services"
+	"context"
 	"log"
 	"net/http"
 )
 
 func main() {
-	// 1. Cargar configuración básica
-	cfg := config.Config{}
-	port := "8080"
+	cfg := config.Load()
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("Configuracion invalida: %v", err)
+	}
 
-	// Usamos cfg para darle un valor al JWTSecret y que Go no proteste por variable no usada
-	jwtSecret := "tu_super_secreto_jwt"
-	_ = cfg // Esto le dice a Go de forma explícita que sabemos que cfg está ahí, silenciando el error
-
-	// 2. Conectar Cliente de Base de Datos Prisma
-	if err := database.Connect(); err != nil {
+	client, err := database.Connect()
+	if err != nil {
 		log.Fatalf("Error inicializando base de datos: %v", err)
 	}
-	// Quitamos la llamada diferida que fallaba para que no cause problemas de compilación
-	// Prisma manejará las conexiones persistentes de manera interna automáticamente
+	defer database.Close(client)
 
-	// 3. Inicializar Capa de Repositorios
-	personaRepo := repositories.NewPersonaRepository()
-	empresaRepo := repositories.NewEmpresaRepository()
+	database.SeedAdmin(context.Background(), client)
 
-	// 4. Inicializar Capa de Servicios
-	authService := services.NewAuthService(personaRepo, empresaRepo, jwtSecret)
-
-	// 5. Inicializar Capa de Handlers
+	personaRepo := repositories.NewPersonaRepository(client)
+	empresaRepo := repositories.NewEmpresaRepository(client)
+	authService := services.NewAuthService(personaRepo, empresaRepo, cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(authService)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
+	router := routes.NewRouter(authHandler, authMiddleware)
 
-	// 6. Configurar enrutador multiplexor nativo de Go
-	mux := http.NewServeMux()
-
-	// Rutas de Registro e Inicio de sesión
-	mux.HandleFunc("POST /api/register/persona", authHandler.RegisterPersona)
-	mux.HandleFunc("POST /api/register/empresa", authHandler.RegisterEmpresa)
-	mux.HandleFunc("POST /api/login", authHandler.Login)
-
-	// NUEVAS RUTAS DE GESTIÓN DE ADMINISTRADORES
-	mux.HandleFunc("GET /api/admins", authHandler.ListAdmins)
-	mux.HandleFunc("DELETE /api/users/", authHandler.DeleteUser)
-
-	// 7. Iniciar servidor HTTP
-	log.Printf("Servidor corriendo perfectamente en el puerto :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	log.Printf("Servidor corriendo en el puerto :%s", cfg.Port)
+	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {
 		log.Fatal(err)
 	}
 }
