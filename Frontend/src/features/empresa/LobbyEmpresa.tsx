@@ -2,15 +2,20 @@ import React from 'react';
 import Card from '../../shared/Card';
 import Button from '../../shared/Button';
 
-export default function LobbyEmpresa() {
+interface LobbyEmpresaProps {
+    onLogout?: () => void;
+    isDarkMode?: boolean;
+}
+
+export default function LobbyEmpresa({ onLogout: _onLogout, isDarkMode = false }: LobbyEmpresaProps) {
     return (
         <div style={containerStyle}>
             <div style={headerSectionStyle}>
                 <div>
-                    <h1 style={titleStyle}>Corporate Tax Dashboard</h1>
-                    <p style={subtitleStyle}>Manage your organization's environmental contributions and waste tracking.</p>
+                    <h1 style={{ ...titleStyle, color: isDarkMode ? '#f8fafc' : 'var(--primary-dark)' }}>Corporate Tax Dashboard</h1>
+                    <p style={{ ...subtitleStyle, color: isDarkMode ? '#94a3b8' : 'var(--text-muted)' }}>Manage your organization's environmental contributions and waste tracking.</p>
                 </div>
-                
+
                 <div style={roleToggleStyle}>
                     <div style={roleInactiveStyle}>Particular</div>
                     <div style={roleActiveStyle}>Empresa</div>
@@ -54,7 +59,7 @@ export default function LobbyEmpresa() {
                     <Card variant="highlight" title="ESTADO DE CUENTA">
                         <p style={{ margin: '0 0 5px 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Impuesto Corporativo Mensual</p>
                         <h2 style={{ margin: '0 0 20px 0', fontSize: '3.5rem', color: 'var(--primary-dark)' }}>4,250.00€</h2>
-                        
+
                         <div style={priceBoxStyle}>
                             <div style={iconBoxStyle}>🏭</div>
                             <div>
@@ -84,13 +89,11 @@ const headerSectionStyle: React.CSSProperties = {
 
 const titleStyle: React.CSSProperties = {
     margin: 0,
-    fontSize: '2rem',
-    color: 'var(--primary-dark)'
+    fontSize: '2rem'
 };
 
 const subtitleStyle: React.CSSProperties = {
-    margin: '5px 0 0 0',
-    color: 'var(--text-muted)'
+    margin: '5px 0 0 0'
 };
 
 const roleToggleStyle: React.CSSProperties = {
