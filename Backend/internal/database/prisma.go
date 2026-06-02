@@ -197,4 +197,64 @@ func SeedData(ctx context.Context, client *db.PrismaClient) {
 			log.Println("Deuda de prueba de 10000.0 bs sembrada para persona@persona.com")
 		}
 	}
+
+	// 5. Seed default empresa user + estado
+	empresaEmail := "empresa@empresa.com"
+	existsEmpresa, err := client.Empresas.FindUnique(
+		db.Empresas.Email.Equals(empresaEmail),
+	).Exec(ctx)
+	var eRif string = "J123456789"
+	if err != nil || existsEmpresa == nil {
+		hashed, err := utils.HashPassword("123456")
+		if err != nil {
+			log.Printf("Error generando clave de empresa de prueba: %v", err)
+			return
+		}
+
+		caracasState, err := client.Estado.FindUnique(
+			db.Estado.Nombre.Equals("caracas"),
+		).Exec(ctx)
+
+		var options []db.EmpresasSetParam
+		if err == nil && caracasState != nil {
+			options = append(options, db.Empresas.Estado.Link(
+				db.Estado.ID.Equals(caracasState.ID),
+			))
+		}
+
+		_, err = client.Empresas.CreateOne(
+			db.Empresas.Rif.Set(eRif),
+			db.Empresas.Email.Set(empresaEmail),
+			db.Empresas.PasswordHash.Set(hashed),
+			db.Empresas.NombreEmpresa.Set("EcoCorp"),
+			options...,
+		).Exec(ctx)
+		if err != nil {
+			log.Printf("Error creando empresa de prueba: %v", err)
+			return
+		}
+		log.Println("Empresa de prueba creada: empresa@empresa.com / 123456")
+	} else {
+		eRif = existsEmpresa.Rif
+	}
+
+	// 6. Seed initial debt for empresa user
+	activeDebtsEmpresa, err := client.DeudaEmpresa.FindMany(
+		db.DeudaEmpresa.EmpresaRif.Equals(eRif),
+		db.DeudaEmpresa.Vigente.Equals(true),
+	).Exec(ctx)
+	if err == nil && len(activeDebtsEmpresa) == 0 {
+		_, err = client.DeudaEmpresa.CreateOne(
+			db.DeudaEmpresa.Monto.Set(25000.0),
+			db.DeudaEmpresa.Empresa.Link(
+				db.Empresas.Rif.Equals(eRif),
+			),
+			db.DeudaEmpresa.Vigente.Set(true),
+		).Exec(ctx)
+		if err != nil {
+			log.Printf("Error sembrando deuda de empresa de prueba: %v", err)
+		} else {
+			log.Println("Deuda de empresa de 25000.0 bs sembrada para empresa@empresa.com")
+		}
+	}
 }

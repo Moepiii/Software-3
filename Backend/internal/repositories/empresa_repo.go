@@ -20,6 +20,7 @@ type EmpresaRepository interface {
 	FindByRif(ctx context.Context, rif string) (*domain.Empresa, error)
 	EmailExists(ctx context.Context, email string) (bool, error)
 	RifExists(ctx context.Context, rif string) (bool, error)
+	UpdateEstado(ctx context.Context, rif string, estadoID string) error
 }
 
 type empresaRepo struct {
@@ -43,6 +44,8 @@ func (r *empresaRepo) Create(ctx context.Context, e domain.Empresa) error {
 func (r *empresaRepo) FindByEmail(ctx context.Context, email string) (*domain.Empresa, error) {
 	model, err := r.client.Empresas.FindUnique(
 		database.Empresas.Email.Equals(email),
+	).With(
+		db.Empresas.Estado.Fetch(),
 	).Exec(ctx)
 	if err != nil {
 		if err == database.ErrNotFound {
@@ -59,6 +62,8 @@ func (r *empresaRepo) FindByEmail(ctx context.Context, email string) (*domain.Em
 func (r *empresaRepo) FindByRif(ctx context.Context, rif string) (*domain.Empresa, error) {
 	model, err := r.client.Empresas.FindUnique(
 		database.Empresas.Rif.Equals(rif),
+	).With(
+		db.Empresas.Estado.Fetch(),
 	).Exec(ctx)
 	if err != nil {
 		if err == database.ErrNotFound {
@@ -98,8 +103,28 @@ func (r *empresaRepo) RifExists(ctx context.Context, rif string) (bool, error) {
 	return model != nil, nil
 }
 
+func (r *empresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID string) error {
+	var err error
+	if estadoID == "" {
+		_, err = r.client.Empresas.FindUnique(
+			database.Empresas.Rif.Equals(rif),
+		).Update(
+			db.Empresas.Estado.Unlink(),
+		).Exec(ctx)
+	} else {
+		_, err = r.client.Empresas.FindUnique(
+			database.Empresas.Rif.Equals(rif),
+		).Update(
+			db.Empresas.Estado.Link(
+				db.Estado.ID.Equals(estadoID),
+			),
+		).Exec(ctx)
+	}
+	return err
+}
+
 func empresaFromModel(model *db.EmpresasModel) *domain.Empresa {
-	return &domain.Empresa{
+	e := &domain.Empresa{
 		Rif:           model.Rif,
 		Email:         model.Email,
 		PasswordHash:  model.PasswordHash,
@@ -107,4 +132,12 @@ func empresaFromModel(model *db.EmpresasModel) *domain.Empresa {
 		CreatedAt:     model.CreatedAt.String(),
 		UpdatedAt:     model.UpdatedAt.String(),
 	}
+
+	if val, ok := model.EstadoID(); ok {
+		e.EstadoID = &val
+	}
+	if est, ok := model.Estado(); ok && est != nil {
+		e.EstadoNombre = &est.Nombre
+	}
+	return e
 }

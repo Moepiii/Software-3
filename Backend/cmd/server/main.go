@@ -36,16 +36,19 @@ func main() {
 	personaRepo := repositories.NewPersonaRepository(client)
 	empresaRepo := repositories.NewEmpresaRepository(client)
 	deudaRepo := repositories.NewDeudaRepository(client)
+	deudaEmpresaRepo := repositories.NewDeudaEmpresaRepository(client)
 	estadoRepo := repositories.NewEstadoRepository(client)
 
 	authService := services.NewAuthService(personaRepo, empresaRepo, cfg.JWTSecret)
 	personaService := services.NewPersonaService(personaRepo, deudaRepo, estadoRepo)
+	empresaService := services.NewEmpresaService(empresaRepo, deudaEmpresaRepo, estadoRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	personaHandler := handlers.NewPersonaHandler(personaService)
+	empresaHandler := handlers.NewEmpresaHandler(empresaService)
 
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
-	router := routes.NewRouter(authHandler, personaHandler, authMiddleware)
+	router := routes.NewRouter(authHandler, personaHandler, empresaHandler, authMiddleware)
 
 	log.Printf("Servidor corriendo en el puerto :%s", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {

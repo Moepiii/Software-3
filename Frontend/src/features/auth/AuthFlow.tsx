@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
+import { useState } from 'react';
 import { login, registerEmpresa, registerPersona, type LoginUser } from '../../api';
 import { LandingView } from './LandingView';
 import { ChoiceView } from './ChoiceView';
 import { FormPersonaView } from './FormPersonaView';
 import { FormEmpresaView } from './FormEmpresaView';
 import { LoginView } from './LoginView';
-import { mainContainerStyle, bgBaseStyle, wrapperStyle } from './authStyles';
+import { mainContainerStyle, bgFixedStyle, wrapperStyle } from './authStyles';
 
 type FormStep = 'LANDING' | 'CHOICE' | 'FORM_PERSONA' | 'FORM_EMPRESA' | 'LOGIN';
 
@@ -29,22 +30,13 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const backgrounds = ['/bg1.png', '/bg2.png', '/bg3.png', '/bg4.png'];
-  const [currentBgIndex, setCurrentBgIndex] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBgIndex((prev) => (prev === backgrounds.length - 1 ? 0 : prev + 1));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [backgrounds.length]);
-
   const handleBack = () => {
     setErrorMsg('');
     if (step === 'CHOICE' || step === 'LOGIN') setStep('LANDING');
     if (step === 'FORM_PERSONA' || step === 'FORM_EMPRESA') setStep('CHOICE');
   };
 
-  const handleRegisterPersona = async (e: React.FormEvent) => {
+  const handleRegisterPersona = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     if (password !== confirmPassword) {
@@ -60,7 +52,7 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
     }
   };
 
-  const handleRegisterEmpresa = async (e: React.FormEvent) => {
+  const handleRegisterEmpresa = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     if (password !== confirmPassword) {
@@ -76,7 +68,7 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     try {
@@ -98,12 +90,7 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
 
   return (
     <main style={mainContainerStyle}>
-      {backgrounds.map((bgUrl, index) => (
-        <div
-          key={bgUrl}
-          style={{ ...bgBaseStyle, backgroundImage: `url('${bgUrl}')`, opacity: index === currentBgIndex ? 1 : 0 }}
-        />
-      ))}
+      <div style={bgFixedStyle} />
       <div style={wrapperStyle}>
         {step === 'CHOICE' && (
           <ChoiceView

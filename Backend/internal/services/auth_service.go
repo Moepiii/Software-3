@@ -206,6 +206,8 @@ type LoginUser struct {
 	Nombres       string `json:"nombres,omitempty"`
 	Apellidos     string `json:"apellidos,omitempty"`
 	NombreEmpresa string `json:"nombre_empresa,omitempty"`
+	EstadoID      *string `json:"estado_id,omitempty"`
+	EstadoNombre  *string `json:"estado_nombre,omitempty"`
 }
 
 func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
@@ -239,6 +241,8 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 				UserType:  UserTypePersona,
 				Nombres:   persona.Nombres,
 				Apellidos: persona.Apellidos,
+				EstadoID:  persona.EstadoID,
+				EstadoNombre: persona.EstadoNombre,
 			},
 		}, nil
 	}
@@ -262,6 +266,8 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 				Email:         empresa.Email,
 				UserType:      UserTypeEmpresa,
 				NombreEmpresa: empresa.NombreEmpresa,
+				EstadoID:      empresa.EstadoID,
+				EstadoNombre:  empresa.EstadoNombre,
 			},
 		}, nil
 	}

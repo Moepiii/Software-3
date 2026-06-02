@@ -86,10 +86,13 @@ export default function LobbyPersona({
         } finally {
             setLoadingData(false);
         }
-    }, [user?.estado_id]);
+    }, [user]);
 
     useEffect(() => {
-        fetchData();
+        const t = setTimeout(() => {
+            void fetchData();
+        }, 0);
+        return () => clearTimeout(t);
     }, [fetchData]);
 
     // ─── Tasa del estado seleccionado ─────────────────────────────────────────

@@ -58,12 +58,13 @@ const layoutStyle: React.CSSProperties = {
 };
 
 const headerStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
+  backgroundColor: 'rgba(255, 255, 255, 0.85)',
   borderBottom: '1px solid var(--border-color)',
   padding: '1rem 2rem',
   position: 'sticky',
   top: 0,
-  zIndex: 100
+  zIndex: 100,
+  backdropFilter: 'blur(10px)',
 };
 
 const headerContentStyle: React.CSSProperties = {
@@ -77,7 +78,9 @@ const headerContentStyle: React.CSSProperties = {
 const logoStyle: React.CSSProperties = {
   fontSize: '1.5rem',
   fontWeight: 'bold',
-  color: 'var(--primary-dark)',
+  color: 'var(--primary-900)',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.02em',
 };
 
 const navStyle: React.CSSProperties = {
@@ -94,7 +97,7 @@ const navLinkStyle: React.CSSProperties = {
 };
 
 const logoutBtnStyle: React.CSSProperties = {
-  backgroundColor: 'var(--primary-dark)',
+  backgroundColor: 'var(--primary-900)',
   color: '#ffffff',
   border: 'none',
   padding: '0.5rem 1.5rem',
@@ -102,6 +105,7 @@ const logoutBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontWeight: 'bold',
   fontSize: '0.9rem',
+  boxShadow: 'var(--shadow-sm)',
 };
 
 const mainStyle: React.CSSProperties = {
@@ -116,7 +120,7 @@ const mainContentStyle: React.CSSProperties = {
 };
 
 const footerStyle: React.CSSProperties = {
-  backgroundColor: 'var(--primary-dark)',
+  backgroundColor: 'var(--primary-900)',
   color: '#ffffff',
   padding: '2rem',
   marginTop: 'auto'

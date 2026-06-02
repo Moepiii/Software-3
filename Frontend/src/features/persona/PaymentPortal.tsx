@@ -13,6 +13,56 @@ interface PaymentPortalProps {
 type PayStep = 'method' | 'details' | 'confirm' | 'processing' | 'success' | 'error';
 type PayMethod = 'card' | 'transfer' | 'wallet';
 
+function MethodPill({
+    id,
+    label,
+    icon,
+    active,
+    onClick,
+    cardBg,
+    border,
+    green,
+    isDarkMode,
+    textSecondary,
+}: {
+    id: PayMethod;
+    label: string;
+    icon: string;
+    active: boolean;
+    onClick: () => void;
+    cardBg: string;
+    border: string;
+    green: string;
+    isDarkMode: boolean;
+    textSecondary: string;
+}) {
+    return (
+        <button
+            id={`pay-method-${id}`}
+            onClick={onClick}
+            style={{
+                flex: 1,
+                padding: '12px 8px',
+                borderRadius: '12px',
+                border: active ? `2px solid ${green}` : `2px solid ${border}`,
+                backgroundColor: active ? (isDarkMode ? '#064e3b' : '#ecfdf5') : cardBg,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s',
+                color: active ? green : textSecondary,
+                fontWeight: active ? '700' : '500',
+                fontSize: '0.8rem',
+            }}
+        >
+            <span style={{ fontSize: '1.6rem' }}>{icon}</span>
+            {label}
+        </button>
+    );
+}
+
 const CARD_ICONS: Record<string, string> = {
     visa: '💳',
     mastercard: '💳',
@@ -80,14 +130,14 @@ export default function PaymentPortal({
     // Progress animation while processing
     useEffect(() => {
         if (step !== 'processing') return;
-        setProgress(0);
+        const reset = setTimeout(() => setProgress(0), 0);
         const interval = setInterval(() => {
             setProgress((p) => {
                 if (p >= 90) { clearInterval(interval); return 90; }
                 return p + Math.random() * 15;
             });
         }, 300);
-        return () => clearInterval(interval);
+        return () => { clearTimeout(reset); clearInterval(interval); };
     }, [step]);
 
     const validateMonto = () => {
@@ -171,33 +221,6 @@ export default function PaymentPortal({
         color: '#ef4444',
         marginTop: '4px',
     };
-
-    // ─── Método selector pill ──────────────────────────────────────────────────
-    const MethodPill = ({ id, label, icon, active, onClick }: { id: PayMethod; label: string; icon: string; active: boolean; onClick: () => void }) => (
-        <button
-            id={`pay-method-${id}`}
-            onClick={onClick}
-            style={{
-                flex: 1,
-                padding: '12px 8px',
-                borderRadius: '12px',
-                border: active ? `2px solid ${green}` : `2px solid ${border}`,
-                backgroundColor: active ? (isDarkMode ? '#064e3b' : '#ecfdf5') : cardBg,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s',
-                color: active ? green : textSecondary,
-                fontWeight: active ? '700' : '500',
-                fontSize: '0.8rem',
-            }}
-        >
-            <span style={{ fontSize: '1.6rem' }}>{icon}</span>
-            {label}
-        </button>
-    );
 
     // ─── Overlay y contenedor ─────────────────────────────────────────────────
     return (
@@ -304,9 +327,9 @@ export default function PaymentPortal({
                             <div>
                                 <label style={labelStyle}>Método de pago</label>
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <MethodPill id="card" label="Tarjeta" icon="💳" active={method === 'card'} onClick={() => setMethod('card')} />
-                                    <MethodPill id="transfer" label="Transferencia" icon="🏦" active={method === 'transfer'} onClick={() => setMethod('transfer')} />
-                                    <MethodPill id="wallet" label="Pago Móvil" icon="📱" active={method === 'wallet'} onClick={() => setMethod('wallet')} />
+                                    <MethodPill id="card" label="Tarjeta" icon="💳" active={method === 'card'} onClick={() => setMethod('card')} cardBg={cardBg} border={border} green={green} isDarkMode={!!isDarkMode} textSecondary={textSecondary} />
+                                    <MethodPill id="transfer" label="Transferencia" icon="🏦" active={method === 'transfer'} onClick={() => setMethod('transfer')} cardBg={cardBg} border={border} green={green} isDarkMode={!!isDarkMode} textSecondary={textSecondary} />
+                                    <MethodPill id="wallet" label="Pago Móvil" icon="📱" active={method === 'wallet'} onClick={() => setMethod('wallet')} cardBg={cardBg} border={border} green={green} isDarkMode={!!isDarkMode} textSecondary={textSecondary} />
                                 </div>
                             </div>
 

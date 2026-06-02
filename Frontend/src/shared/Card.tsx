@@ -11,20 +11,20 @@ interface CardProps {
 
 export default function Card({ children, title, className = '', style = {}, variant = 'default' }: CardProps) {
   let cardStyle: React.CSSProperties = {
-    borderRadius: '16px',
+    borderRadius: 'var(--radius-lg)',
     padding: '24px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+    boxShadow: 'var(--shadow-md)',
     display: 'flex',
     flexDirection: 'column',
     ...style
   };
 
   if (variant === 'default') {
-    cardStyle = { ...cardStyle, backgroundColor: '#ffffff', border: '1px solid var(--border-color)' };
+    cardStyle = { ...cardStyle, backgroundColor: 'var(--surface)', border: '1px solid var(--border-color)' };
   } else if (variant === 'highlight') {
-    cardStyle = { ...cardStyle, backgroundColor: '#f0fdf4', border: '1px solid #dcfce7' };
+    cardStyle = { ...cardStyle, backgroundColor: '#ecfdf5', border: '1px solid #d1fae5' };
   } else if (variant === 'dark') {
-    cardStyle = { ...cardStyle, backgroundColor: 'var(--primary-dark)', color: '#ffffff' };
+    cardStyle = { ...cardStyle, backgroundColor: 'var(--primary-900)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.08)' };
   }
 
   return (

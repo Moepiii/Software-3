@@ -88,6 +88,9 @@ func (r *handlerEmpresaRepo) EmailExists(ctx context.Context, email string) (boo
 func (r *handlerEmpresaRepo) RifExists(ctx context.Context, rif string) (bool, error) {
 	return false, nil
 }
+func (r *handlerEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID string) error {
+	return nil
+}
 
 func newTestHandler() *AuthHandler {
 	service := services.NewAuthService(&handlerPersonaRepo{}, &handlerEmpresaRepo{}, "secret")

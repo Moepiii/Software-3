@@ -104,6 +104,13 @@ func (r *fakeEmpresaRepo) RifExists(ctx context.Context, rif string) (bool, erro
 	return ok, nil
 }
 
+func (r *fakeEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID string) error {
+	if e, ok := r.byRif[rif]; ok {
+		e.EstadoID = &estadoID
+	}
+	return nil
+}
+
 func TestRegisterPersonaCreatesUserRoleAndHash(t *testing.T) {
 	personas := newFakePersonaRepo()
 	empresas := newFakeEmpresaRepo()

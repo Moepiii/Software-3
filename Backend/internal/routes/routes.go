@@ -16,6 +16,7 @@ import (
 func NewRouter(
 	authHandler *handlers.AuthHandler,
 	personaHandler *handlers.PersonaHandler,
+	empresaHandler *handlers.EmpresaHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) http.Handler {
 	mux := http.NewServeMux()
@@ -32,6 +33,12 @@ func NewRouter(
 	mux.HandleFunc("GET /api/estados", authMiddleware.RequireAuth(personaHandler.GetEstados))
 	mux.HandleFunc("PUT /api/persona/estado", authMiddleware.RequireAuth(personaHandler.UpdateEstadoPersona))
 	mux.HandleFunc("POST /api/persona/pagar", authMiddleware.RequireAuth(personaHandler.PayDeuda))
+
+	// Empresa specific routes (paridad con persona)
+	mux.HandleFunc("GET /api/empresa/deuda", authMiddleware.RequireAuth(empresaHandler.GetDeudaActual))
+	mux.HandleFunc("GET /api/empresa/estados", authMiddleware.RequireAuth(empresaHandler.GetEstados))
+	mux.HandleFunc("PUT /api/empresa/estado", authMiddleware.RequireAuth(empresaHandler.UpdateEstadoEmpresa))
+	mux.HandleFunc("POST /api/empresa/pagar", authMiddleware.RequireAuth(empresaHandler.PayDeuda))
 
 	return mux
 }

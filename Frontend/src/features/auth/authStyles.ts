@@ -10,6 +10,15 @@ export const mainContainerStyle: CSSProperties = {
   justifyContent: 'center',
 };
 
+export const bgFixedStyle: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  background:
+    `radial-gradient(900px 500px at 20% 0%, rgba(34, 197, 94, 0.18), transparent 55%),
+     radial-gradient(700px 420px at 100% 10%, rgba(15, 81, 54, 0.18), transparent 55%),
+     linear-gradient(180deg, var(--bg-main), #ffffff)`,
+};
+
 export const bgBaseStyle: CSSProperties = {
   position: 'absolute',
   inset: 0,
@@ -27,7 +36,7 @@ export const wrapperStyle: CSSProperties = {
 };
 
 export const cardStyle: CSSProperties = {
-  backgroundColor: 'rgba(30, 41, 59, 0.65)',
+  backgroundColor: 'rgba(15, 23, 42, 0.62)',
   padding: '40px',
   borderRadius: '28px',
   backdropFilter: 'blur(12px)',
@@ -37,6 +46,8 @@ export const cardStyle: CSSProperties = {
   textAlign: 'center',
   width: '100%',
   boxSizing: 'border-box',
+  boxShadow: 'var(--shadow-md)',
+  border: '1px solid rgba(255,255,255,0.10)',
 };
 
 export const h2Style: CSSProperties = {
@@ -50,6 +61,8 @@ export const titleStyle: CSSProperties = {
   fontWeight: 'bold',
   color: '#ffffff',
   marginBottom: '10px',
+  fontFamily: 'var(--font-display)',
+  letterSpacing: '0.02em',
 };
 
 export const subtitleStyle: CSSProperties = {
@@ -68,8 +81,8 @@ export const inputStyle: CSSProperties = {
   width: '100%',
   padding: '14px 20px',
   borderRadius: '12px',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  backgroundColor: 'rgba(15, 23, 42, 0.5)',
+  border: '1px solid rgba(255, 255, 255, 0.14)',
+  backgroundColor: 'rgba(2, 6, 23, 0.35)',
   color: '#ffffff',
   boxSizing: 'border-box',
   fontSize: '1rem',
@@ -97,8 +110,10 @@ export function buttonStyle(
     width,
     borderRadius: '9999px',
     border,
-    fontWeight: 'bold',
+    fontWeight: 700,
     cursor: 'pointer',
     textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    boxShadow: 'var(--shadow-sm)',
   };
 }

@@ -8,15 +8,36 @@
 }
 
 :root {
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-display: 'Qontra', var(--font-sans);
+
+  /* Surfaces */
   --bg-main: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+
+  /* Text */
   --text-main: #0f172a;
   --text-muted: #64748b;
-  
-  --primary-dark: #103f2b; /* Dark green from the UI */
-  --primary-light: #84cc16; /* Light green from buttons */
-  --highlight-light: #eefce8; /* Very light green background for active state */
+
+  /* Brand (green) */
+  --primary-900: #0b3d2a;
+  --primary-700: #0f5136;
+  --primary-600: #16a34a;
+  --primary-500: #22c55e;
+  --primary-200: #bbf7d0;
+
+  /* UI */
   --border-color: #e2e8f0;
-  --card-bg: #ffffff;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.08);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(34, 197, 94, 0.28);
 }
 
 html, body, #root {
@@ -31,17 +52,37 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Qontra', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg-main);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* Base Utility Classes */
 .text-dark { color: var(--text-main); }
 .text-muted { color: var(--text-muted); }
-.text-primary-dark { color: var(--primary-dark); }
-.text-primary-light { color: var(--primary-light); }
-.bg-primary-dark { background-color: var(--primary-dark); color: #fff; }
-.bg-primary-light { background-color: var(--primary-light); color: var(--primary-dark); }
-.bg-highlight { background-color: var(--highlight-light); border: 1px solid #dcfce7; }
+.text-primary-dark { color: var(--primary-900); }
+.text-primary-light { color: var(--primary-500); }
+.bg-primary-dark { background-color: var(--primary-900); color: #fff; }
+.bg-primary-light { background-color: var(--primary-500); color: #052e1c; }
+.bg-highlight { background-color: #ecfdf5; border: 1px solid #d1fae5; }
+
+/* Elements */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-700);
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

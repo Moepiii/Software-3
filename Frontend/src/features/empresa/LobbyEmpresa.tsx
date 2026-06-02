@@ -1,19 +1,121 @@
-import React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Card from '../../shared/Card';
 import Button from '../../shared/Button';
+import {
+    getDeudaActualEmpresa,
+    getEstadosEmpresa,
+    realizarPagoEmpresa,
+    updateEstadoEmpresa,
+    type EmpresaDeudaResponse,
+    type EstadoResponse,
+} from '../../api/empresa';
 
 interface LobbyEmpresaProps {
     onLogout?: () => void;
     isDarkMode?: boolean;
 }
 
-export default function LobbyEmpresa({ onLogout: _onLogout, isDarkMode = false }: LobbyEmpresaProps) {
+export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) {
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [deuda, setDeuda] = useState<EmpresaDeudaResponse | null>(null);
+    const [estados, setEstados] = useState<EstadoResponse[]>([]);
+    const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
+    const [statusMsg, setStatusMsg] = useState('');
+    const [statusKind, setStatusKind] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setErrorMsg('');
+        try {
+            const [deudaData, estadosData] = await Promise.all([
+                getDeudaActualEmpresa(),
+                getEstadosEmpresa(),
+            ]);
+            setDeuda(deudaData);
+            setEstados(estadosData);
+            if (!estadoSeleccionado && estadosData.length > 0) {
+                setEstadoSeleccionado(estadosData[0].id);
+            }
+        } catch (e: unknown) {
+            setErrorMsg(e instanceof Error ? e.message : 'Error al cargar datos');
+        } finally {
+            setLoading(false);
+        }
+    }, [estadoSeleccionado]);
+
+    useEffect(() => {
+        const t = setTimeout(() => { void fetchData(); }, 0);
+        return () => clearTimeout(t);
+    }, [fetchData]);
+
+    const estadoActual = useMemo(
+        () => estados.find((e) => e.id === estadoSeleccionado),
+        [estados, estadoSeleccionado],
+    );
+
+    const tasaActual = Number(estadoActual?.tasa_actual ?? 0);
+    const montoDeuda = Number(deuda?.monto ?? 0);
+    const totalAPagar = isNaN(montoDeuda) || isNaN(tasaActual) ? 0 : montoDeuda * (1 + tasaActual / 100);
+
+    const handleGuardarEstado = async () => {
+        if (!estadoSeleccionado) return;
+        setStatusKind('loading');
+        setStatusMsg('');
+        try {
+            await updateEstadoEmpresa({ estado_id: estadoSeleccionado });
+            setStatusKind('success');
+            setStatusMsg('Estado actualizado correctamente.');
+        } catch (e: unknown) {
+            setStatusKind('error');
+            setStatusMsg(e instanceof Error ? e.message : 'Error al actualizar estado');
+        }
+    };
+
+    const handlePagar = async () => {
+        setStatusKind('loading');
+        setStatusMsg('');
+        try {
+            await realizarPagoEmpresa();
+            await fetchData();
+            setStatusKind('success');
+            setStatusMsg('Pago registrado. Deuda actualizada.');
+        } catch (e: unknown) {
+            setStatusKind('error');
+            setStatusMsg(e instanceof Error ? e.message : 'Error al procesar el pago');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '260px' }}>
+                <div style={{ textAlign: 'center', color: isDarkMode ? 'rgba(255,255,255,0.72)' : 'var(--text-muted)' }}>
+                    Cargando...
+                </div>
+            </div>
+        );
+    }
+
+    if (errorMsg) {
+        return (
+            <Card style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>⚠️</div>
+                <div style={{ color: '#ef4444', marginBottom: '12px' }}>{errorMsg}</div>
+                <Button variant="secondary" onClick={() => void fetchData()}>
+                    Reintentar
+                </Button>
+            </Card>
+        );
+    }
+
     return (
         <div style={containerStyle}>
             <div style={headerSectionStyle}>
                 <div>
-                    <h1 style={{ ...titleStyle, color: isDarkMode ? '#f8fafc' : 'var(--primary-dark)' }}>Corporate Tax Dashboard</h1>
-                    <p style={{ ...subtitleStyle, color: isDarkMode ? '#94a3b8' : 'var(--text-muted)' }}>Manage your organization's environmental contributions and waste tracking.</p>
+                    <h1 style={{ ...titleStyle, color: isDarkMode ? '#f8fafc' : 'var(--primary-900)' }}>Panel de Empresa</h1>
+                    <p style={{ ...subtitleStyle, color: isDarkMode ? 'rgba(255,255,255,0.70)' : 'var(--text-muted)' }}>
+                        Gestiona la deuda ambiental, tasa por estado y pagos de tu empresa.
+                    </p>
                 </div>
 
                 <div style={roleToggleStyle}>
@@ -24,49 +126,74 @@ export default function LobbyEmpresa({ onLogout: _onLogout, isDarkMode = false }
 
             <div style={gridStyle}>
                 <div style={columnStyle}>
-                    <Card title="🏢 Enterprise Info">
+                    <Card title="Datos de empresa">
                         <div style={inputGroupStyle}>
-                            <label style={labelStyle}>Razón Social</label>
-                            <input type="text" value="EcoCorp Solutions S.L." readOnly style={inputStyle} />
+                            <label style={labelStyle}>Razón social</label>
+                            <input type="text" value="EcoCorp" readOnly style={inputStyle} />
                         </div>
                         <div style={inputGroupStyle}>
-                            <label style={labelStyle}>Sede Principal</label>
-                            <input type="text" value="Barcelona" readOnly style={inputStyle} />
+                            <label style={labelStyle}>Estado (tasa aplicada)</label>
+                            <select
+                                value={estadoSeleccionado}
+                                onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                                style={{ ...inputStyle, cursor: 'pointer' }}
+                            >
+                                {estados.map((e) => (
+                                    <option key={e.id} value={e.id}>
+                                        {e.nombre} · {Number(e.tasa_actual).toFixed(2)}%
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <div style={infoBoxStyle}>
-                            El cálculo industrial considera factores de riesgo ambiental y volumen de residuos especiales.
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <Button variant="secondary" fullWidth onClick={() => void fetchData()}>
+                                Actualizar
+                            </Button>
+                            <Button variant="primary" fullWidth onClick={() => void handleGuardarEstado()}>
+                                Guardar
+                            </Button>
                         </div>
                     </Card>
                 </div>
 
                 <div style={columnStyle}>
-                    <Card title="Monthly Production">
+                    <Card title="Resumen">
                         <div style={calcRowStyle}>
-                            <span style={calcLabelStyle}>Plástico Industrial</span>
-                            <span style={calcValueStyle}>1,200 kg</span>
+                            <span style={calcLabelStyle}>Deuda vigente</span>
+                            <span style={calcValueStyle}>{montoDeuda.toFixed(2)} Bs</span>
                         </div>
-                        <div style={{ ...calcRowStyle, borderBottom: 'none', marginBottom: '20px' }}>
-                            <span style={calcLabelStyle}>Desechos Orgánicos</span>
-                            <span style={calcValueStyle}>450 kg</span>
+                        <div style={calcRowStyle}>
+                            <span style={calcLabelStyle}>Tasa del estado</span>
+                            <span style={calcValueStyle}>{tasaActual.toFixed(2)}%</span>
                         </div>
-                        <Button fullWidth variant="primary">
-                            <span style={{ fontSize: '1.2rem' }}>📄</span> Generar Reporte
-                        </Button>
+                        <div style={{ ...calcRowStyle, borderBottom: 'none' }}>
+                            <span style={{ ...calcLabelStyle, fontWeight: 700, color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>
+                                Total a pagar
+                            </span>
+                            <span style={{ ...calcValueStyle, color: 'var(--primary-700)' }}>{totalAPagar.toFixed(2)} Bs</span>
+                        </div>
                     </Card>
                 </div>
 
                 <div style={columnStyle}>
-                    <Card variant="highlight" title="ESTADO DE CUENTA">
-                        <p style={{ margin: '0 0 5px 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Impuesto Corporativo Mensual</p>
-                        <h2 style={{ margin: '0 0 20px 0', fontSize: '3.5rem', color: 'var(--primary-dark)' }}>4,250.00€</h2>
+                    <Card variant="highlight" title="Pago">
+                        <p style={{ margin: '0 0 10px 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                            Registra el pago de la deuda vigente de tu empresa.
+                        </p>
+                        <Button
+                            fullWidth
+                            variant="dark"
+                            onClick={() => void handlePagar()}
+                            disabled={!deuda?.has_deuda || statusKind === 'loading'}
+                        >
+                            {deuda?.has_deuda ? 'Pagar deuda' : 'Sin deuda'}
+                        </Button>
 
-                        <div style={priceBoxStyle}>
-                            <div style={iconBoxStyle}>🏭</div>
-                            <div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 'bold' }}>Tasa Industrial</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>2.50€/kg</div>
+                        {statusMsg && (
+                            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: statusKind === 'error' ? '#ef4444' : 'var(--text-muted)' }}>
+                                {statusMsg}
                             </div>
-                        </div>
+                        )}
                     </Card>
                 </div>
             </div>
@@ -98,13 +225,13 @@ const subtitleStyle: React.CSSProperties = {
 
 const roleToggleStyle: React.CSSProperties = {
     display: 'flex',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: 'var(--surface-2)',
     borderRadius: '9999px',
     padding: '4px'
 };
 
 const roleActiveStyle: React.CSSProperties = {
-    backgroundColor: 'var(--primary-dark)',
+    backgroundColor: 'var(--primary-900)',
     color: '#ffffff',
     padding: '8px 20px',
     borderRadius: '9999px',
@@ -151,19 +278,10 @@ const inputStyle: React.CSSProperties = {
     padding: '12px',
     borderRadius: '8px',
     border: '1px solid var(--border-color)',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: 'var(--surface-2)',
     fontSize: '1rem',
     color: 'var(--text-main)',
     outline: 'none'
-};
-
-const infoBoxStyle: React.CSSProperties = {
-    backgroundColor: '#f0fdf4',
-    padding: '12px',
-    borderRadius: '8px',
-    fontSize: '0.85rem',
-    color: 'var(--primary-dark)',
-    marginTop: '5px'
 };
 
 const calcRowStyle: React.CSSProperties = {
@@ -181,26 +299,4 @@ const calcLabelStyle: React.CSSProperties = {
 const calcValueStyle: React.CSSProperties = {
     fontWeight: 'bold',
     fontSize: '1.1rem'
-};
-
-const priceBoxStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-    backgroundColor: '#ffffff',
-    padding: '15px',
-    borderRadius: '12px',
-    border: '1px solid var(--border-color)',
-    marginBottom: '20px'
-};
-
-const iconBoxStyle: React.CSSProperties = {
-    width: '40px',
-    height: '40px',
-    backgroundColor: '#f1f5f9',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.2rem'
 };

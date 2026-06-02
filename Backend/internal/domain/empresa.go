@@ -12,6 +12,8 @@ type Empresa struct {
 	Email         string `json:"email"`
 	PasswordHash  string `json:"-"`
 	NombreEmpresa string `json:"nombre_empresa"`
+	EstadoID      *string `json:"estado_id,omitempty"`
+	EstadoNombre  *string `json:"estado_nombre,omitempty"`
 	CreatedAt     string `json:"created_at"`
 	UpdatedAt     string `json:"updated_at"`
 }

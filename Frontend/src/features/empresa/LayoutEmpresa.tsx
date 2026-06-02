@@ -7,17 +7,19 @@ interface LayoutEmpresaProps {
     onNavigateSettings?: () => void;
 }
 
+type WithDarkModeProp = { isDarkMode?: boolean };
+
 export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }: LayoutEmpresaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         if (isDarkMode) {
-            document.body.style.backgroundColor = '#0f172a';
+            document.body.style.backgroundColor = '#050b16';
             document.body.style.color = '#f8fafc';
         } else {
-            document.body.style.backgroundColor = '#f3f4f6';
-            document.body.style.color = '#111827';
+            document.body.style.backgroundColor = 'var(--bg-main)';
+            document.body.style.color = 'var(--text-main)';
         }
         return () => {
             document.body.style.backgroundColor = '';
@@ -43,8 +45,8 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
     };
 
     const childrenWithProps = React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-            return React.cloneElement(child, { isDarkMode: isDarkMode } as any);
+        if (React.isValidElement<WithDarkModeProp>(child)) {
+            return React.cloneElement(child, { isDarkMode });
         }
         return child;
     });
@@ -52,46 +54,53 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <header style={{
-                backgroundColor: isDarkMode ? '#1e293b' : '#1e3a5f',
+                backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.75)' : 'rgba(255, 255, 255, 0.85)',
                 padding: '1rem 2rem',
                 position: 'sticky',
                 top: 0,
-                zIndex: 100
+                zIndex: 100,
+                borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'var(--border-color)'}`,
+                backdropFilter: 'blur(10px)',
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white' }}>
-                        Ecologic Business 📊
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div style={{ fontSize: '1.35rem', fontWeight: 800, color: isDarkMode ? '#ffffff' : 'var(--primary-900)', fontFamily: 'var(--font-display)' }}>
+                            EcoTax
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: isDarkMode ? 'rgba(255,255,255,0.72)' : 'var(--text-muted)' }}>
+                            Empresa
+                        </div>
                     </div>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <button onClick={() => setIsDarkMode(!isDarkMode)} style={{
-                            padding: '8px',
-                            borderRadius: '50%',
-                            border: '1px solid white',
-                            background: 'transparent',
-                            color: 'white',
+                            padding: '8px 12px',
+                            borderRadius: '9999px',
+                            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.18)' : 'var(--border-color)'}`,
+                            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)',
+                            color: isDarkMode ? '#ffffff' : 'var(--text-main)',
                             cursor: 'pointer',
-                            fontSize: '1.1rem',
-                            width: '36px',
-                            height: '36px'
+                            fontSize: '0.85rem',
+                            height: '36px',
+                            boxShadow: isDarkMode ? 'none' : 'var(--shadow-sm)',
                         }}>
-                            {isDarkMode ? '☀️' : '🌙'}
+                            {isDarkMode ? 'Light' : 'Dark'}
                         </button>
                         <button
                             id="user-menu-button"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             style={{
-                                padding: '8px',
-                                borderRadius: '50%',
-                                border: '1px solid white',
-                                background: 'transparent',
-                                color: 'white',
+                                padding: '8px 12px',
+                                borderRadius: '9999px',
+                                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.18)' : 'var(--border-color)'}`,
+                                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)',
+                                color: isDarkMode ? '#ffffff' : 'var(--text-main)',
                                 cursor: 'pointer',
-                                fontSize: '1.1rem',
-                                width: '36px',
-                                height: '36px'
+                                fontSize: '0.85rem',
+                                height: '36px',
+                                boxShadow: isDarkMode ? 'none' : 'var(--shadow-sm)',
                             }}
                         >
-                            🏢
+                            Menu
                         </button>
                     </div>
                 </div>
@@ -120,8 +129,8 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
                     right: isMenuOpen ? '0' : '-300px',
                     width: '280px',
                     height: '100vh',
-                    backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-                    boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+                    backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.92)' : 'var(--surface)',
+                    boxShadow: '-10px 0 30px rgba(2, 6, 23, 0.18)',
                     zIndex: 999,
                     transition: 'right 0.3s ease',
                     display: 'flex',
@@ -135,39 +144,40 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     paddingBottom: '16px',
-                    borderBottom: `1px solid ${isDarkMode ? '#334155' : '#e5e7eb'}`
+                    borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.10)' : 'var(--border-color)'}`
                 }}>
-                    <span style={{ fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#111827' }}>Mi Empresa</span>
-                    <button onClick={() => setIsMenuOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                    <span style={{ fontWeight: 800, color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Mi empresa</span>
+                    <button onClick={() => setIsMenuOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.0rem', cursor: 'pointer', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>✕</button>
                 </div>
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
                     padding: '12px',
-                    backgroundColor: isDarkMode ? '#0f172a' : '#f3f4f6',
-                    borderRadius: '12px'
+                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'var(--surface-2)',
+                    borderRadius: 'var(--radius-md)',
+                    border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'var(--border-color)'}`
                 }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🏢</div>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '9999px', backgroundColor: 'var(--primary-900)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: '#ffffff', fontWeight: 800 }}>E</div>
                     <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: isDarkMode ? '#f8fafc' : '#111827' }}>Nombre Empresa</div>
-                        <div style={{ fontSize: '0.7rem', color: isDarkMode ? '#94a3b8' : '#6b7280' }}>empresa@email.com</div>
+                        <div style={{ fontWeight: 800, fontSize: '0.9rem', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Empresa</div>
+                        <div style={{ fontSize: '0.75rem', color: isDarkMode ? 'rgba(255,255,255,0.70)' : 'var(--text-muted)' }}>empresa@ecotax.local</div>
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>📈 Estadísticas</button>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>💰 Facturación</button>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}>👥 Empleados</button>
+                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Estadísticas</button>
+                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Facturación</button>
+                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Empleados</button>
                     <button
                         onClick={() => {
                             setIsMenuOpen(false);
                             if (onNavigateSettings) onNavigateSettings();
                         }}
-                        style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px' }}
-                    >⚙️ Configuración</button>
-                    <button onClick={handleLogoutClick} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', color: '#ef4444' }}>🚪 Cerrar sesión</button>
+                        style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}
+                    >Configuración</button>
+                    <button onClick={handleLogoutClick} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', color: '#ef4444' }}>Cerrar sesión</button>
                 </div>
-                <div style={{ fontSize: '0.6rem', textAlign: 'center', color: isDarkMode ? '#64748b' : '#9ca3af', paddingTop: '16px', borderTop: `1px solid ${isDarkMode ? '#334155' : '#e5e7eb'}` }}>Versión Empresarial 1.0.0</div>
+                <div style={{ fontSize: '0.7rem', textAlign: 'center', color: isDarkMode ? 'rgba(255,255,255,0.60)' : 'var(--text-muted)', paddingTop: '16px', borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.10)' : 'var(--border-color)'}` }}>Empresa · v1.0.0</div>
             </div>
 
             <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>

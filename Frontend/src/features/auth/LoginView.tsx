@@ -42,7 +42,7 @@ export function LoginView({
           onToggle={onTogglePassword}
         />
         {errorMsg && <p style={{ color: '#f87171', margin: '0' }}>{errorMsg}</p>}
-        <button type="submit" style={buttonStyle('#10b981', '#ffffff', 'none', '100%')}>
+        <button type="submit" style={buttonStyle('var(--primary-500)', '#052e1c', 'none', '100%')}>
           Entrar
         </button>
       </form>
