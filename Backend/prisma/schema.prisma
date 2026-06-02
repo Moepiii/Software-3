@@ -22,6 +22,9 @@ model Personas {
   role          String   @default("user")
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  estado_id     String?
+  estado        Estado?  @relation(fields: [estado_id], references: [id], onDelete: SetNull)
+  deudas        Deuda[]
 
   @@map("personas")
 }
@@ -35,4 +38,38 @@ model Empresas {
   updated_at    DateTime @updatedAt
 
   @@map("empresas")
+}
+
+model Estado {
+  id        String       @id @default(uuid())
+  nombre    String       @unique
+  personas  Personas[]
+  tasas     TasaEstado[]
+
+  @@map("estados")
+}
+
+model TasaEstado {
+  id           String    @id @default(uuid())
+  estado_id    String
+  porcentaje   Float
+  valido_desde DateTime  @default(now())
+  valido_hasta DateTime?
+  estado       Estado    @relation(fields: [estado_id], references: [id], onDelete: Cascade)
+
+  @@index([estado_id, valido_desde, valido_hasta])
+  @@map("tasa_estados")
+}
+
+model Deuda {
+  id             String   @id @default(uuid())
+  persona_cedula String
+  monto          Float
+  vigente        Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  persona        Personas @relation(fields: [persona_cedula], references: [cedula], onDelete: Cascade)
+
+  @@index([persona_cedula, vigente])
+  @@map("deudas")
 }

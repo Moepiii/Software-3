@@ -13,12 +13,14 @@ const (
 )
 
 type Persona struct {
-	Cedula       string `json:"cedula"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"-"`
-	Nombres      string `json:"nombres"`
-	Apellidos    string `json:"apellidos"`
-	Role         string `json:"role,omitempty"`
-	CreatedAt    string `json:"created_at"`
-	UpdatedAt    string `json:"updated_at"`
+	Cedula       string  `json:"cedula"`
+	Email        string  `json:"email"`
+	PasswordHash string  `json:"-"`
+	Nombres      string  `json:"nombres"`
+	Apellidos    string  `json:"apellidos"`
+	Role         string  `json:"role,omitempty"`
+	EstadoID     *string `json:"estado_id,omitempty"`
+	EstadoNombre *string `json:"estado_nombre,omitempty"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
 }

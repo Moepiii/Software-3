@@ -67,6 +67,10 @@ func (r *handlerPersonaRepo) Delete(ctx context.Context, cedula string) error {
 	return nil
 }
 
+func (r *handlerPersonaRepo) UpdateEstado(ctx context.Context, cedula string, estadoID string) error {
+	return nil
+}
+
 type handlerEmpresaRepo struct {
 	created *domain.Empresa
 }

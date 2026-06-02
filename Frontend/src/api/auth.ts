@@ -7,6 +7,8 @@ export type LoginUser = {
   nombres?: string;
   apellidos?: string;
   nombre_empresa?: string;
+  estado_id?: string;
+  estado_nombre?: string;
 };
 
 export type LoginResponse = {

@@ -31,14 +31,21 @@ func main() {
 	}
 	defer database.Close(client)
 
-	database.SeedAdmin(context.Background(), client)
+	database.SeedData(context.Background(), client)
 
 	personaRepo := repositories.NewPersonaRepository(client)
 	empresaRepo := repositories.NewEmpresaRepository(client)
+	deudaRepo := repositories.NewDeudaRepository(client)
+	estadoRepo := repositories.NewEstadoRepository(client)
+
 	authService := services.NewAuthService(personaRepo, empresaRepo, cfg.JWTSecret)
+	personaService := services.NewPersonaService(personaRepo, deudaRepo, estadoRepo)
+
 	authHandler := handlers.NewAuthHandler(authService)
+	personaHandler := handlers.NewPersonaHandler(personaService)
+
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
-	router := routes.NewRouter(authHandler, authMiddleware)
+	router := routes.NewRouter(authHandler, personaHandler, authMiddleware)
 
 	log.Printf("Servidor corriendo en el puerto :%s", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {

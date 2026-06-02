@@ -59,6 +59,13 @@ func (r *fakePersonaRepo) Delete(ctx context.Context, cedula string) error {
 	return nil
 }
 
+func (r *fakePersonaRepo) UpdateEstado(ctx context.Context, cedula string, estadoID string) error {
+	if p, ok := r.byID[cedula]; ok {
+		p.EstadoID = &estadoID
+	}
+	return nil
+}
+
 type fakeEmpresaRepo struct {
 	byEmail map[string]*domain.Empresa
 	byRif   map[string]*domain.Empresa

@@ -64,7 +64,7 @@ function App() {
     if (user.userType === 'persona') {
       return (
         <LayoutPersona onLogout={handleLogout} onNavigateSettings={handleNavigateSettings}>
-          <LobbyPersona onLogout={handleLogout} />
+          <LobbyPersona onLogout={handleLogout} user={user} onUpdateUser={handleUpdateUser} />
         </LayoutPersona>
       );
     }
