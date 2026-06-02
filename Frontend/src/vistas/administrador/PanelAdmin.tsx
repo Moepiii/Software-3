@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { FormEvent, CSSProperties } from 'react';
 import { ApiError, createAdmin, deleteUser, listAdmins, type AdminUser } from '../../api';
-import Card from '../../shared/Card';
-import Button from '../../shared/Button';
+import Card from '../../componentes/Tarjeta';
+import Button from '../../componentes/Boton';
 
 export default function AdminPanel() {
     const [admins, setAdmins] = useState<AdminUser[]>([]);

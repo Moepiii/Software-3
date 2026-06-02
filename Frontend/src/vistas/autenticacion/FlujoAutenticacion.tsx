@@ -1,21 +1,28 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { login, registerEmpresa, registerPersona, type LoginUser } from '../../api';
-import { LandingView } from './LandingView';
-import { ChoiceView } from './ChoiceView';
-import { FormPersonaView } from './FormPersonaView';
-import { FormEmpresaView } from './FormEmpresaView';
-import { LoginView } from './LoginView';
-import { mainContainerStyle, bgFixedStyle, wrapperStyle } from './authStyles';
+import { ChoiceView } from './VistaEleccion';
+import { FormPersonaView } from './FormularioPersona';
+import { FormEmpresaView } from './FormularioEmpresa';
+import { LoginView } from './VistaInicioSesion';
+import { mainContainerStyle, bgFixedStyle, wrapperStyle } from './estilosAutenticacion';
 
 type FormStep = 'LANDING' | 'CHOICE' | 'FORM_PERSONA' | 'FORM_EMPRESA' | 'LOGIN';
 
 interface AuthFlowProps {
   onLoginSuccess: (token: string, user: LoginUser) => void;
+  initialView?: 'login' | 'register';
 }
 
-export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
-  const [step, setStep] = useState<FormStep>('LANDING');
+export default function FlujoAutenticacion({ onLoginSuccess, initialView }: AuthFlowProps) {
+  // Determinar el paso inicial basado en initialView
+  const getInitialStep = (): FormStep => {
+    if (initialView === 'login') return 'LOGIN';
+    if (initialView === 'register') return 'CHOICE';
+    return 'LANDING';
+  };
+
+  const [step, setStep] = useState<FormStep>(getInitialStep());
   const [errorMsg, setErrorMsg] = useState('');
 
   const [cedula, setCedula] = useState('');
@@ -32,7 +39,11 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
 
   const handleBack = () => {
     setErrorMsg('');
-    if (step === 'CHOICE' || step === 'LOGIN') setStep('LANDING');
+    if (step === 'CHOICE' || step === 'LOGIN') {
+      // Volver a la página de inicio
+      window.location.href = '/';
+      return;
+    }
     if (step === 'FORM_PERSONA' || step === 'FORM_EMPRESA') setStep('CHOICE');
   };
 
@@ -79,15 +90,17 @@ export default function AuthFlow({ onLoginSuccess }: AuthFlowProps) {
     }
   };
 
+  // ============================================
+  // LANDING - Redirige a la página de inicio
+  // ============================================
   if (step === 'LANDING') {
-    return (
-      <LandingView
-        onRegister={() => setStep('CHOICE')}
-        onLogin={() => setStep('LOGIN')}
-      />
-    );
+    window.location.href = '/';
+    return null;
   }
 
+  // ============================================
+  // FORMULARIOS DE AUTENTICACIÓN
+  // ============================================
   return (
     <main style={mainContainerStyle}>
       <div style={bgFixedStyle} />

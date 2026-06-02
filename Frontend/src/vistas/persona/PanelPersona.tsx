@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import Card from '../../shared/Card';
-import Button from '../../shared/Button';
-import PaymentPortal from './PaymentPortal';
+import Card from '../../componentes/Tarjeta';
+import Button from '../../componentes/Boton';
+import PaymentPortal from './PortalPago';
 import {
     getDeudaActual,
     getEstados,

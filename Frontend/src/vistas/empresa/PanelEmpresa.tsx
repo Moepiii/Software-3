@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Card from '../../shared/Card';
-import Button from '../../shared/Button';
+import Card from '../../componentes/Tarjeta';
+import Button from '../../componentes/Boton';
 import {
     getDeudaActualEmpresa,
     getEstadosEmpresa,

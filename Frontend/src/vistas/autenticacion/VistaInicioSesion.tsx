@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react';
-import { PasswordInput } from '../../shared/PasswordInput';
-import { cardStyle, h2Style, formGridStyle, inputStyle, buttonStyle, backButtonStyle } from './authStyles';
+import { PasswordInput } from '../../componentes/InputContrasena';
+import { cardStyle, h2Style, formGridStyle, inputStyle, buttonStyle, backButtonStyle } from './estilosAutenticacion';
 
 interface LoginViewProps {
   email: string;

@@ -1,61 +1,93 @@
 import { useState } from 'react';
-import LobbyPersona from './features/persona/LobbyPersona';
-import LobbyEmpresa from './features/empresa/LobbyEmpresa';
-import AdminPanel from './features/admin/AdminPanel';
-import AuthFlow from './features/auth/AuthFlow';
-import LayoutPersona from './features/persona/LayoutPersona';
-import LayoutEmpresa from './features/empresa/LayoutEmpresa';
-import LayoutAdmin from './features/admin/AdminLayout';
-import { SettingsView } from './features/auth/SettingsView';
+import DisenoInicio from './vistas/inicio/DisenoInicio';
+import { VistaInicio } from './vistas/inicio/VistaInicio';
+import PanelPersona from './vistas/persona/PanelPersona';
+import PanelEmpresa from './vistas/empresa/PanelEmpresa';
+import PanelAdmin from './vistas/administrador/PanelAdmin';
+import FlujoAutenticacion from './vistas/autenticacion/FlujoAutenticacion';
+import DisenoPersona from './vistas/persona/DisenoPersona';
+import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
+import DisenoAdmin from './vistas/administrador/DisenoAdmin';
+import { SettingsView as VistaConfiguracion } from './vistas/autenticacion/VistaConfiguracion';
 
 import { clearToken, decodeSession, getToken, saveToken, type LoginUser } from './api';
 
-type CurrentView = 'lobby' | 'settings';
+type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<LoginUser | null>(null);
-  const [currentView, setCurrentView] = useState<CurrentView>('lobby');
+  const [vistaActual, setVistaActual] = useState<VistaActual>('inicio');
 
   const handleLoginSuccess = (token: string, u: LoginUser) => {
     saveToken(token);
     setUser(u);
     setIsAuthenticated(true);
-    setCurrentView('lobby');
+    setVistaActual('panel');
   };
 
   const handleLogout = () => {
     clearToken();
     setIsAuthenticated(false);
     setUser(null);
-    setCurrentView('lobby');
+    setVistaActual('inicio');
   };
 
-  const handleNavigateSettings = () => setCurrentView('settings');
-  const handleNavigateLobby = () => setCurrentView('lobby');
+  const handleNavegarConfiguracion = () => setVistaActual('configuracion');
+  const handleNavegarPanel = () => setVistaActual('panel');
+  const handleNavegarLogin = () => setVistaActual('login');
+  const handleNavegarRegistro = () => setVistaActual('registro');
 
-  const handleUpdateUser = (updatedUser: LoginUser) => {
-    setUser(updatedUser);
+  const handleActualizarUsuario = (usuarioActualizado: LoginUser) => {
+    setUser(usuarioActualizado);
   };
 
+  // ============================================
+  // VISTA DE INICIO (Landing Page) - CON header y footer
+  // ============================================
+  if (!isAuthenticated && vistaActual === 'inicio') {
+    return (
+      <DisenoInicio
+        onRegister={handleNavegarRegistro}
+        onLogin={handleNavegarLogin}
+      >
+        <VistaInicio />
+      </DisenoInicio>
+    );
+  }
+
+  // ============================================
+  // LOGIN / REGISTRO - SIN header y footer
+  // ============================================
+  if (!isAuthenticated) {
+    return (
+      <FlujoAutenticacion
+        onLoginSuccess={handleLoginSuccess}
+        initialView={vistaActual === 'registro' ? 'register' : 'login'}
+      />
+    );
+  }
+
+  // ============================================
+  // USUARIO AUTENTICADO - CON header y footer (cada uno con su diseño)
+  // ============================================
   if (isAuthenticated && user) {
-    const isAdmin = decodeSession(getToken())?.role === 'admin';
+    const esAdmin = decodeSession(getToken())?.role === 'admin';
 
-    if (isAdmin) {
+    if (esAdmin) {
       return (
-        <LayoutAdmin onLogout={handleLogout}>
-          <AdminPanel />
-        </LayoutAdmin>
+        <DisenoAdmin onLogout={handleLogout}>
+          <PanelAdmin />
+        </DisenoAdmin>
       );
     }
 
-    // Settings view is shared between persona and empresa
-    if (currentView === 'settings') {
+    if (vistaActual === 'configuracion') {
       return (
-        <SettingsView
+        <VistaConfiguracion
           user={user}
-          onSave={handleUpdateUser}
-          onCancel={handleNavigateLobby}
+          onSave={handleActualizarUsuario}
+          onCancel={handleNavegarPanel}
           onLogout={handleLogout}
         />
       );
@@ -63,22 +95,30 @@ function App() {
 
     if (user.userType === 'persona') {
       return (
-        <LayoutPersona onLogout={handleLogout} onNavigateSettings={handleNavigateSettings}>
-          <LobbyPersona onLogout={handleLogout} user={user} onUpdateUser={handleUpdateUser} />
-        </LayoutPersona>
+        <DisenoPersona onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
+          <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
+        </DisenoPersona>
       );
     }
 
     if (user.userType === 'empresa') {
       return (
-        <LayoutEmpresa onLogout={handleLogout} onNavigateSettings={handleNavigateSettings}>
-          <LobbyEmpresa onLogout={handleLogout} />
-        </LayoutEmpresa>
+        <DisenoEmpresa onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
+          <PanelEmpresa onLogout={handleLogout} />
+        </DisenoEmpresa>
       );
     }
   }
 
-  return <AuthFlow onLoginSuccess={handleLoginSuccess} />;
+  // Fallback
+  return (
+    <DisenoInicio
+      onRegister={handleNavegarRegistro}
+      onLogin={handleNavegarLogin}
+    >
+      <VistaInicio />
+    </DisenoInicio>
+  );
 }
 
 export default App;

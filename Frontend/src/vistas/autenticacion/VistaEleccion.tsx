@@ -1,4 +1,4 @@
-import { cardStyle, h2Style, buttonStyle, backButtonStyle } from './authStyles';
+import { cardStyle, h2Style, buttonStyle, backButtonStyle } from './estilosAutenticacion';
 
 interface ChoiceViewProps {
   onPersona: () => void;

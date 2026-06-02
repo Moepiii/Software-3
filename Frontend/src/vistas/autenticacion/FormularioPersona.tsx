@@ -1,10 +1,11 @@
 import type { FormEvent } from 'react';
-import { PasswordInput } from '../../shared/PasswordInput';
-import { cardStyle, h2Style, formGridStyle, inputStyle, buttonStyle, backButtonStyle } from './authStyles';
+import { PasswordInput } from '../../componentes/InputContrasena';
+import { cardStyle, h2Style, formGridStyle, inputStyle, buttonStyle, backButtonStyle } from './estilosAutenticacion';
 
-interface FormEmpresaViewProps {
-  rif: string; setRif: (v: string) => void;
-  nombreEmpresa: string; setNombreEmpresa: (v: string) => void;
+interface FormPersonaViewProps {
+  cedula: string; setCedula: (v: string) => void;
+  nombres: string; setNombres: (v: string) => void;
+  apellidos: string; setApellidos: (v: string) => void;
   email: string; setEmail: (v: string) => void;
   password: string; setPassword: (v: string) => void;
   confirmPassword: string; setConfirmPassword: (v: string) => void;
@@ -15,9 +16,10 @@ interface FormEmpresaViewProps {
   onBack: () => void;
 }
 
-export function FormEmpresaView({
-  rif, setRif,
-  nombreEmpresa, setNombreEmpresa,
+export function FormPersonaView({
+  cedula, setCedula,
+  nombres, setNombres,
+  apellidos, setApellidos,
   email, setEmail,
   password, setPassword,
   confirmPassword, setConfirmPassword,
@@ -26,13 +28,14 @@ export function FormEmpresaView({
   errorMsg,
   onSubmit,
   onBack,
-}: FormEmpresaViewProps) {
+}: FormPersonaViewProps) {
   return (
     <div style={cardStyle}>
-      <h2 style={h2Style}>Registro de Empresa</h2>
+      <h2 style={h2Style}>Registro de Persona</h2>
       <form style={formGridStyle} onSubmit={onSubmit}>
-        <input type="text" placeholder="RIF" required value={rif} onChange={e => setRif(e.target.value)} style={inputStyle} />
-        <input type="text" placeholder="Nombre de la empresa" required value={nombreEmpresa} onChange={e => setNombreEmpresa(e.target.value)} style={inputStyle} />
+        <input type="text" placeholder="Cédula" required value={cedula} onChange={e => setCedula(e.target.value)} style={inputStyle} />
+        <input type="text" placeholder="Nombres" required value={nombres} onChange={e => setNombres(e.target.value)} style={inputStyle} />
+        <input type="text" placeholder="Apellidos" required value={apellidos} onChange={e => setApellidos(e.target.value)} style={inputStyle} />
         <input type="email" placeholder="Correo Electrónico" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
         <PasswordInput
           value={password}
@@ -50,7 +53,7 @@ export function FormEmpresaView({
         />
         {errorMsg && <p style={{ color: '#f87171', margin: '0' }}>{errorMsg}</p>}
         <button type="submit" style={buttonStyle('var(--primary-500)', '#052e1c', 'none', '100%')}>
-          Registrar Empresa
+          Completar Registro
         </button>
       </form>
       <button onClick={onBack} style={backButtonStyle}>← Volver</button>
