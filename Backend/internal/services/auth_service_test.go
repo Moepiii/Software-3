@@ -59,6 +59,13 @@ func (r *fakePersonaRepo) Delete(ctx context.Context, cedula string) error {
 	return nil
 }
 
+func (r *fakePersonaRepo) Update(ctx context.Context, cedula string, nombres string, apellidos string, email string) error {
+	if cedula == "" {
+		return domain.ErrInvalidInput
+	}
+	return nil
+}
+
 type fakeEmpresaRepo struct {
 	byEmail map[string]*domain.Empresa
 	byRif   map[string]*domain.Empresa
@@ -96,7 +103,12 @@ func (r *fakeEmpresaRepo) RifExists(ctx context.Context, rif string) (bool, erro
 	_, ok := r.byRif[rif]
 	return ok, nil
 }
-
+func (r *fakeEmpresaRepo) Update(ctx context.Context, rif string, nombreEmpresa string, email string) error {
+	if rif == "" {
+		return domain.ErrInvalidInput
+	}
+	return nil
+}
 func TestRegisterPersonaCreatesUserRoleAndHash(t *testing.T) {
 	personas := newFakePersonaRepo()
 	empresas := newFakeEmpresaRepo()

@@ -20,6 +20,7 @@ type EmpresaRepository interface {
 	FindByRif(ctx context.Context, rif string) (*domain.Empresa, error)
 	EmailExists(ctx context.Context, email string) (bool, error)
 	RifExists(ctx context.Context, rif string) (bool, error)
+	Update(ctx context.Context, rif string, nombreEmpresa, email string) error
 }
 
 type empresaRepo struct {
@@ -96,6 +97,19 @@ func (r *empresaRepo) RifExists(ctx context.Context, rif string) (bool, error) {
 		return false, err
 	}
 	return model != nil, nil
+}
+
+func (r *empresaRepo) Update(ctx context.Context, rif string, nombreEmpresa, email string) error {
+	_, err := r.client.Empresas.FindUnique(
+		database.Empresas.Rif.Equals(rif),
+	).Update(
+		database.Empresas.NombreEmpresa.Set(nombreEmpresa),
+		database.Empresas.Email.Set(email),
+	).Exec(ctx)
+	if err != nil && err == database.ErrNotFound {
+		return domain.ErrUserNotFound
+	}
+	return err
 }
 
 func empresaFromModel(model *db.EmpresasModel) *domain.Empresa {

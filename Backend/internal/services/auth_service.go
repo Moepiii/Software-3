@@ -296,6 +296,72 @@ func (s *AuthService) DeleteUserByID(ctx context.Context, id string) error {
 	return s.personaRepo.Delete(ctx, id)
 }
 
+type UpdatePersonaRequest struct {
+	Nombres   string `json:"nombres"`
+	Apellidos string `json:"apellidos"`
+	Email     string `json:"email"`
+}
+
+func (s *AuthService) UpdatePersona(ctx context.Context, cedula string, req UpdatePersonaRequest) error {
+	req.Nombres = strings.TrimSpace(req.Nombres)
+	req.Apellidos = strings.TrimSpace(req.Apellidos)
+	req.Email = normalizeEmail(req.Email)
+	if req.Nombres == "" || req.Apellidos == "" || req.Email == "" {
+		return domain.ErrInvalidInput
+	}
+
+	// Verificar si el nuevo email ya esta en uso por OTRO usuario
+	persona, err := s.personaRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if persona != nil && persona.Cedula != cedula {
+		return domain.ErrEmailAlreadyExists
+	}
+
+	empresa, err := s.empresaRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if empresa != nil {
+		return domain.ErrEmailAlreadyExists
+	}
+
+	return s.personaRepo.Update(ctx, cedula, req.Nombres, req.Apellidos, req.Email)
+}
+
+type UpdateEmpresaRequest struct {
+	NombreEmpresa string `json:"nombre_empresa"`
+	Email         string `json:"email"`
+}
+
+func (s *AuthService) UpdateEmpresa(ctx context.Context, rif string, req UpdateEmpresaRequest) error {
+	req.NombreEmpresa = strings.TrimSpace(req.NombreEmpresa)
+	req.Email = normalizeEmail(req.Email)
+	if req.NombreEmpresa == "" || req.Email == "" {
+		return domain.ErrInvalidInput
+	}
+
+	// Verificar si el nuevo email ya esta en uso por OTRO usuario
+	empresa, err := s.empresaRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if empresa != nil && empresa.Rif != rif {
+		return domain.ErrEmailAlreadyExists
+	}
+
+	persona, err := s.personaRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		return err
+	}
+	if persona != nil {
+		return domain.ErrEmailAlreadyExists
+	}
+
+	return s.empresaRepo.Update(ctx, rif, req.NombreEmpresa, req.Email)
+}
+
 func normalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
 }

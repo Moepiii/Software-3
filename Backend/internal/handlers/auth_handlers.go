@@ -9,6 +9,7 @@ package handlers
 
 import (
 	"Backend/internal/domain"
+	"Backend/internal/middleware"
 	"Backend/internal/services"
 	"Backend/internal/utils"
 	"encoding/json"
@@ -110,6 +111,46 @@ func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Eliminado con éxito"})
+}
+
+func (h *AuthHandler) UpdatePersona(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+		return
+	}
+
+	var req services.UpdatePersonaRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := h.authService.UpdatePersona(r.Context(), claims.ID, req); err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Perfil actualizado exitosamente"})
+}
+
+func (h *AuthHandler) UpdateEmpresa(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+		return
+	}
+
+	var req services.UpdateEmpresaRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := h.authService.UpdateEmpresa(r.Context(), claims.ID, req); err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Perfil de empresa actualizado exitosamente"})
 }
 
 func decodeJSON(w http.ResponseWriter, r *http.Request, target interface{}) bool {
