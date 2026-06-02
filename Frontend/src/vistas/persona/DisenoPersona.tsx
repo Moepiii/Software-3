@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import logo from '../../assets/logo.png'; // ← Ajusta la ruta
+import logo from '../../assets/logo.png';
+import instagramIcon from '../../assets/instagram.png';
+import facebookIcon from '../../assets/facebook.png';
+import whatsappIcon from '../../assets/whatsapp.png';
 
 interface LayoutPersonaProps {
     children: ReactNode;
@@ -10,7 +13,7 @@ interface LayoutPersonaProps {
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function LayoutPersona({ children, onLogout, onNavigateSettings }: LayoutPersonaProps) {
+export default function DisenoPersona({ children, onLogout, onNavigateSettings }: LayoutPersonaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -19,8 +22,8 @@ export default function LayoutPersona({ children, onLogout, onNavigateSettings }
             document.body.style.backgroundColor = '#050b16';
             document.body.style.color = '#f8fafc';
         } else {
-            document.body.style.backgroundColor = 'var(--bg-main)';
-            document.body.style.color = 'var(--text-main)';
+            document.body.style.backgroundColor = '#f3f4f6';
+            document.body.style.color = '#111827';
         }
         return () => {
             document.body.style.backgroundColor = '';
@@ -45,25 +48,133 @@ export default function LayoutPersona({ children, onLogout, onNavigateSettings }
         if (onLogout) onLogout();
     };
 
+    // HEADER - Verde oscuro fijo (igual que DisenoInicio)
     const headerStyle: React.CSSProperties = {
-        backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: '#065a46',
         padding: '1rem 2rem',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        transition: 'background-color 0.3s ease',
-        borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'var(--border-color)'}`,
-        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
     };
 
+    const headerContentStyle: React.CSSProperties = {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        flexWrap: 'wrap',
+        gap: '1rem'
+    };
+
+    const logoContainerStyle: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
+    };
+
+    const logoImgStyle: React.CSSProperties = {
+        height: '45px',
+        width: 'auto',
+        borderRadius: '12px',
+        filter: 'brightness(0) invert(1)'
+    };
+
+    const logoTipoStyle: React.CSSProperties = {
+        fontSize: '1.5rem',
+        fontWeight: 800,
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '0.02em',
+        color: '#ffffff'
+    };
+
+    const navStyle: React.CSSProperties = {
+        display: 'flex',
+        gap: '2rem'
+    };
+
+    const navLinkStyle: React.CSSProperties = {
+        color: '#e5e7eb',
+        textDecoration: 'none',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        transition: 'color 0.2s'
+    };
+
+    // Botón modo oscuro - solo ícono
+    const btnModoOscuroStyle: React.CSSProperties = {
+        padding: '8px',
+        borderRadius: '9999px',
+        border: '1px solid rgba(255,255,255,0.3)',
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        color: '#ffffff',
+        cursor: 'pointer',
+        fontSize: '1.2rem',
+        width: '36px',
+        height: '36px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s'
+    };
+
+    const btnMenuStyle: React.CSSProperties = {
+        padding: '8px 12px',
+        borderRadius: '9999px',
+        border: '1px solid rgba(255,255,255,0.3)',
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        color: '#ffffff',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        height: '36px',
+        transition: 'all 0.2s'
+    };
+
+    // FOOTER - Verde oscuro con redes sociales (igual que DisenoInicio)
     const footerStyle: React.CSSProperties = {
-        backgroundColor: isDarkMode ? '#050b16' : 'var(--primary-900)',
+        backgroundColor: '#065a46',
         color: '#ffffff',
         padding: '2rem',
         marginTop: 'auto',
-        transition: 'background-color 0.3s ease'
+        borderTop: '1px solid rgba(255,255,255,0.1)'
     };
 
+    const footerContentStyle: React.CSSProperties = {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '2rem'
+    };
+
+    const socialIconStyle: React.CSSProperties = {
+        width: '32px',
+        height: '32px',
+        objectFit: 'contain',
+        transition: 'all 0.2s',
+        cursor: 'pointer',
+        filter: 'brightness(0) invert(1)'
+    };
+
+    const footerLinksStyle: React.CSSProperties = {
+        display: 'flex',
+        gap: '1.5rem',
+        flexWrap: 'wrap'
+    };
+
+    const footerLinkStyle: React.CSSProperties = {
+        color: '#d1d5db',
+        textDecoration: 'none',
+        fontSize: '0.85rem',
+        transition: 'color 0.2s'
+    };
+
+    // Pasar isDarkMode a los hijos
     const childrenWithProps = React.Children.map(children, (child) => {
         if (React.isValidElement<WithDarkModeProp>(child)) {
             return React.cloneElement(child, { isDarkMode });
@@ -72,48 +183,66 @@ export default function LayoutPersona({ children, onLogout, onNavigateSettings }
     });
 
     return (
-        <div style={layoutStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden' }}>
+            {/* HEADER VERDE OSCURO */}
             <header style={headerStyle}>
                 <div style={headerContentStyle}>
-                    {/* LOGO + NOMBRE */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img
-                            src={logo}
-                            alt="Ecologic Logo"
-                            style={{
-                                height: '40px',
-                                width: 'auto',
-                                borderRadius: '12px'
-                            }}
-                        />
-                        <div style={{
-                            fontSize: '1.5rem',
-                            fontWeight: 800,
-                            fontFamily: 'var(--font-display)',
-                            letterSpacing: '0.02em',
-                            color: isDarkMode ? '#ffffff' : 'var(--primary-900)',
-                        }}>
-                            EcoTax
-                        </div>
+                    <div style={logoContainerStyle}>
+                        <img src={logo} alt="Logo" style={logoImgStyle} />
+                        <div style={logoTipoStyle}>EcoLogic</div>
                     </div>
 
                     <nav style={navStyle}>
-                        <a href="#" style={navLinkStyle}>Cursos</a>
-                        <a href="#" style={navLinkStyle}>Información</a>
-                        <a href="#" style={navLinkStyle}>Contáctanos</a>
+                        <a
+                            href="#"
+                            style={navLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
+                        >
+                            Cursos
+                        </a>
+                        <a
+                            href="#"
+                            style={navLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
+                        >
+                            Estadisticas
+                        </a>
+                        <a
+                            href="#"
+                            style={navLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
+                        >
+                            Información
+                        </a>
                     </nav>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} style={iconButtonStyle(isDarkMode)}>
-                            {isDarkMode ? 'Light' : 'Dark'}
+                        <button
+                            onClick={() => setIsDarkMode(!isDarkMode)}
+                            style={btnModoOscuroStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                            title={isDarkMode ? 'Modo claro' : 'Modo oscuro'}
+                        >
+                            {isDarkMode ? '☀️' : '🌙'}
                         </button>
-                        <button id="user-menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)} style={iconButtonStyle(isDarkMode)}>
+                        <button
+                            id="user-menu-button"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            style={btnMenuStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                        >
                             Menu
                         </button>
                     </div>
                 </div>
             </header>
 
+            {/* MENÚ LATERAL */}
             {isMenuOpen && <div onClick={() => setIsMenuOpen(false)} style={overlayStyle} />}
             <div id="user-menu" style={{ ...menuStyle(isDarkMode), right: isMenuOpen ? '0' : '-300px' }}>
                 <div style={menuHeaderStyle(isDarkMode)}>
@@ -128,35 +257,114 @@ export default function LayoutPersona({ children, onLogout, onNavigateSettings }
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <button 
+                    <button
                         onClick={() => {
                             setIsMenuOpen(false);
                             if (onNavigateSettings) onNavigateSettings();
                         }}
                         style={menuOptionStyle(isDarkMode)}
                     >
-                        Configuración
+                        ⚙️ Configuración
                     </button>
-                    <button style={menuOptionStyle(isDarkMode)}>Mis estadísticas</button>
+                    <button style={menuOptionStyle(isDarkMode)}>📊 Mis estadísticas</button>
                     <button onClick={handleLogoutClick} style={{ ...menuOptionStyle(isDarkMode), color: '#ef4444' }}>
-                        Cerrar sesión
+                        🚪 Cerrar sesión
                     </button>
                 </div>
                 <div style={versionStyle(isDarkMode)}>Versión 1.0.0</div>
             </div>
 
-            <main style={mainStyle}>
-                <div style={mainContentStyle}>{childrenWithProps}</div>
+            {/* CONTENIDO PRINCIPAL */}
+            <main style={{ flex: 1, padding: '2rem' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                    {childrenWithProps}
+                </div>
             </main>
 
+            {/* FOOTER VERDE OSCURO CON REDES SOCIALES */}
             <footer style={footerStyle}>
                 <div style={footerContentStyle}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Ecologic</div>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <a
+                            href="https://instagram.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex' }}
+                            title="Instagram"
+                        >
+                            <img
+                                src={instagramIcon}
+                                alt="Instagram"
+                                style={socialIconStyle}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            />
+                        </a>
+                        <a
+                            href="https://facebook.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex' }}
+                            title="Facebook"
+                        >
+                            <img
+                                src={facebookIcon}
+                                alt="Facebook"
+                                style={socialIconStyle}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            />
+                        </a>
+                        <a
+                            href="https://whatsapp.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'flex' }}
+                            title="WhatsApp"
+                        >
+                            <img
+                                src={whatsappIcon}
+                                alt="WhatsApp"
+                                style={socialIconStyle}
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            />
+                        </a>
+                    </div>
+
                     <div style={footerLinksStyle}>
-                        <a href="#" style={footerLinkStyle}>Privacy Policy</a>
-                        <a href="#" style={footerLinkStyle}>Terms of Service</a>
-                        <a href="#" style={footerLinkStyle}>Annual Reports</a>
-                        <a href="#" style={footerLinkStyle}>Contact Us</a>
+                        <a
+                            href="#"
+                            style={footerLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                        >
+                            Política de Privacidad
+                        </a>
+                        <a
+                            href="#"
+                            style={footerLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                        >
+                            Términos de Servicio
+                        </a>
+                        <a
+                            href="#"
+                            style={footerLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                        >
+                            Reportes Anuales
+                        </a>
+                        <a
+                            href="#"
+                            style={footerLinkStyle}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                        >
+                            Contáctanos
+                        </a>
                     </div>
                 </div>
             </footer>
@@ -164,36 +372,24 @@ export default function LayoutPersona({ children, onLogout, onNavigateSettings }
     );
 }
 
-// ========== ESTILOS ==========
-const layoutStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden' };
-const headerContentStyle: React.CSSProperties = { maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' };
-const navStyle: React.CSSProperties = { display: 'flex', gap: '2rem' };
-const navLinkStyle: React.CSSProperties = { color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 };
-const mainStyle: React.CSSProperties = { flex: 1, padding: '2rem' };
-const mainContentStyle: React.CSSProperties = { maxWidth: '1200px', margin: '0 auto', width: '100%' };
-const footerContentStyle: React.CSSProperties = { maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' };
-const footerLinksStyle: React.CSSProperties = { display: 'flex', gap: '1.5rem', flexWrap: 'wrap' };
-const footerLinkStyle: React.CSSProperties = { color: '#d1d5db', textDecoration: 'none', fontSize: '0.9rem' };
+// ========== ESTILOS DEL MENÚ LATERAL ==========
+const overlayStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 998
+};
 
-const iconButtonStyle = (isDark: boolean): React.CSSProperties => ({
-    padding: '8px 12px',
-    borderRadius: '9999px',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.18)' : 'var(--border-color)'}`,
-    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'var(--surface)',
-    color: isDark ? '#ffffff' : 'var(--text-main)',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-    height: '36px',
-    boxShadow: isDark ? 'none' : 'var(--shadow-sm)',
-});
-const overlayStyle: React.CSSProperties = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 998 };
 const menuStyle = (isDark: boolean): React.CSSProperties => ({
     position: 'fixed',
     top: 0,
     width: '280px',
     height: '100vh',
-    backgroundColor: isDark ? 'rgba(2, 6, 23, 0.92)' : 'var(--surface)',
-    boxShadow: '-10px 0 30px rgba(2, 6, 23, 0.18)',
+    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+    boxShadow: '-10px 0 30px rgba(0,0,0,0.2)',
     zIndex: 999,
     transition: 'right 0.3s ease',
     display: 'flex',
@@ -201,30 +397,64 @@ const menuStyle = (isDark: boolean): React.CSSProperties => ({
     padding: '24px 16px',
     gap: '20px'
 });
-const menuHeaderStyle = (isDark: boolean): React.CSSProperties => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` });
-const closeButtonStyle: React.CSSProperties = { background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' };
+
+const menuHeaderStyle = (isDark: boolean): React.CSSProperties => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: '16px',
+    borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`
+});
+
+const closeButtonStyle: React.CSSProperties = {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.2rem',
+    cursor: 'pointer'
+};
+
 const userInfoStyle = (isDark: boolean): React.CSSProperties => ({
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
     padding: '12px',
-    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'var(--surface-2)',
-    borderRadius: 'var(--radius-md)',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'var(--border-color)'}`
+    backgroundColor: isDark ? '#0f172a' : '#f3f4f6',
+    borderRadius: '12px'
 });
-const avatarStyle: React.CSSProperties = { width: '44px', height: '44px', borderRadius: '9999px', backgroundColor: 'var(--primary-900)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: '#ffffff', fontWeight: 800 };
+
+const avatarStyle: React.CSSProperties = {
+    width: '44px',
+    height: '44px',
+    borderRadius: '50%',
+    backgroundColor: '#065a46',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+    color: '#ffffff',
+    fontWeight: 'bold'
+};
+
 const menuOptionStyle = (isDark: boolean): React.CSSProperties => ({
     width: '100%',
     padding: '12px',
     textAlign: 'left',
     backgroundColor: 'transparent',
     border: 'none',
-    borderRadius: 'var(--radius-sm)',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.9rem',
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    color: isDark ? '#f8fafc' : 'var(--text-main)'
+    color: isDark ? '#f8fafc' : '#111827',
+    transition: 'background 0.2s'
 });
-const versionStyle = (isDark: boolean): React.CSSProperties => ({ fontSize: '0.6rem', textAlign: 'center', color: isDark ? '#64748b' : '#9ca3af', paddingTop: '16px', borderTop: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` });
+
+const versionStyle = (isDark: boolean): React.CSSProperties => ({
+    fontSize: '0.6rem',
+    textAlign: 'center',
+    color: isDark ? '#64748b' : '#9ca3af',
+    paddingTop: '16px',
+    borderTop: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`
+});

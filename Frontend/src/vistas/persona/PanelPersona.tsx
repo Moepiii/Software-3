@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import Card from '../../componentes/Tarjeta';
-import Button from '../../componentes/Boton';
 import PaymentPortal from './PortalPago';
 import {
     getDeudaActual,
@@ -11,6 +9,11 @@ import {
 } from '../../api/persona';
 import type { LoginUser } from '../../api/auth';
 
+// Importar imágenes de cursos (solo 3)
+import allySandboxImg from '../../assets/cursos/ally-sandbox.png';
+import bladeRunnerImg from '../../assets/cursos/blade-runner.png';
+import georgeFeenyImg from '../../assets/cursos/george-feeny.png';
+
 interface LobbyPersonaProps {
     onLogout?: () => void;
     isDarkMode?: boolean;
@@ -19,6 +22,28 @@ interface LobbyPersonaProps {
 }
 
 type Status = 'idle' | 'loading' | 'error' | 'success';
+
+// Datos de cursos actuales con imágenes (solo 3)
+const cursosActuales = [
+    {
+        nombre: "Recoger Basura",
+        categoria: "Culmina 02/09/2026",
+        imagen: allySandboxImg,
+        color: "#3b82f6"
+    },
+    {
+        nombre: "Reciclaje",
+        categoria: "Culmina 02/09/2026",
+        imagen: bladeRunnerImg,
+        color: "#8b5cf6"
+    },
+    {
+        nombre: "Elaboración De Sillas De Cartón",
+        categoria: "Culmina 02/09/2026",
+        imagen: georgeFeenyImg,
+        color: "#10b981"
+    }
+];
 
 export default function LobbyPersona({
     isDarkMode = false,
@@ -33,6 +58,28 @@ export default function LobbyPersona({
     const [statusKind, setStatusKind] = useState<Status>('idle');
     const [statusMsg, setStatusMsg] = useState('');
     const [showPortal, setShowPortal] = useState(false);
+
+    // Colores según modo oscuro
+    const colors = {
+        bgPage: isDarkMode ? '#0f172a' : '#f3f4f6',
+        cardBg: isDarkMode ? '#1e293b' : '#ffffff',
+        cardBorder: isDarkMode ? '#334155' : '#e5e7eb',
+        textPrimary: isDarkMode ? '#f8fafc' : '#111827',
+        textSecondary: isDarkMode ? '#94a3b8' : '#6b7280',
+        textMuted: isDarkMode ? '#94a3b8' : '#6b7280',
+        inputBg: isDarkMode ? '#0f172a' : '#ffffff',
+        inputBorder: isDarkMode ? '#475569' : '#d1d5db',
+        inputText: isDarkMode ? '#f8fafc' : '#111827',
+        highlightBg: isDarkMode ? '#064e3b' : '#f0fdf4',
+        highlightBorder: isDarkMode ? '#065f46' : '#bbf7d0',
+        success: '#10b981',
+        error: '#ef4444',
+        buttonPrimary: '#10b981',
+        buttonPrimaryHover: '#059669',
+        buttonSecondaryBg: isDarkMode ? '#334155' : '#f3f4f6',
+        buttonSecondaryText: isDarkMode ? '#f8fafc' : '#374151',
+        buttonSecondaryBorder: isDarkMode ? '#475569' : '#d1d5db',
+    };
 
     const fetchData = useCallback(async () => {
         setLoadingData(true);
@@ -96,117 +143,258 @@ export default function LobbyPersona({
         setStatusMsg(`Pago exitoso. Deuda restante: ${Number(nuevaDeuda.monto).toFixed(2)} Bs.`);
         setShowPortal(false);
     };
+
+    // Estilos reutilizables
+    const cardStyle: React.CSSProperties = {
+        backgroundColor: colors.cardBg,
+        border: `1px solid ${colors.cardBorder}`,
+        borderRadius: '16px',
+        padding: '24px',
+        boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)'
+    };
+
+    const inputStyle: React.CSSProperties = {
+        width: '100%',
+        padding: '10px 12px',
+        borderRadius: '8px',
+        border: `1px solid ${colors.inputBorder}`,
+        backgroundColor: colors.inputBg,
+        color: colors.inputText,
+        fontSize: '0.95rem',
+        outline: 'none',
+        boxSizing: 'border-box' as const
+    };
+
+    const labelStyle: React.CSSProperties = {
+        display: 'block',
+        fontSize: '0.8rem',
+        fontWeight: '600',
+        color: colors.textMuted,
+        marginBottom: '6px'
+    };
+
+    const buttonPrimaryStyle: React.CSSProperties = {
+        backgroundColor: colors.buttonPrimary,
+        color: 'white',
+        border: 'none',
+        padding: '10px 16px',
+        borderRadius: '8px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        transition: 'background-color 0.2s',
+        flex: 1,
+        textAlign: 'center' as const
+    };
+
+    const buttonSecondaryStyle: React.CSSProperties = {
+        backgroundColor: colors.buttonSecondaryBg,
+        color: colors.buttonSecondaryText,
+        border: `1px solid ${colors.buttonSecondaryBorder}`,
+        padding: '10px 16px',
+        borderRadius: '8px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        transition: 'all 0.2s',
+        flex: 1,
+        textAlign: 'center' as const
+    };
+
+    const selectStyle: React.CSSProperties = {
+        ...inputStyle,
+        cursor: 'pointer',
+        appearance: 'none' as const,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='${isDarkMode ? '%2394a3b8' : '%236b7280'}' strokeLinecap='round' strokeLinejoin='round' strokeWidth='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+        backgroundPosition: 'right 10px center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '20px'
+    };
+
     if (loadingData) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '260px' }}>
-                <div style={{ textAlign: 'center', color: isDarkMode ? 'rgba(255,255,255,0.72)' : 'var(--text-muted)' }}>
-                    Cargando...
-                </div>
+                <div style={{ textAlign: 'center', color: colors.textSecondary }}>Cargando...</div>
             </div>
         );
     }
 
     if (errorMsg) {
         return (
-            <Card style={{ textAlign: 'center' }}>
+            <div style={{ ...cardStyle, textAlign: 'center' }}>
                 <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>⚠️</div>
-                <div style={{ color: '#ef4444', marginBottom: '12px' }}>{errorMsg}</div>
-                <Button variant="secondary" onClick={() => void fetchData()}>
+                <div style={{ color: colors.error, marginBottom: '12px' }}>{errorMsg}</div>
+                <button onClick={() => void fetchData()} style={buttonPrimaryStyle}>
                     Reintentar
-                </Button>
-            </Card>
+                </button>
+            </div>
         );
     }
 
     return (
         <>
-            <div style={containerStyle}>
-                <div style={headerSectionStyle}>
-                    <div>
-                        <h1 style={{ ...titleStyle, color: isDarkMode ? '#f8fafc' : 'var(--primary-900)' }}>
-                            Panel de Persona
-                        </h1>
-                        <p style={{ ...subtitleStyle, color: isDarkMode ? 'rgba(255,255,255,0.70)' : 'var(--text-muted)' }}>
-                            Gestiona tu deuda ambiental, estado y pago en un solo lugar.
-                        </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* TÍTULO */}
+                <div>
+                    <h1 style={{ margin: 0, fontSize: '1.8rem', color: colors.textPrimary }}>Panel de Persona</h1>
+                    <p style={{ margin: '5px 0 0 0', color: colors.textSecondary }}>Gestiona tu deuda ambiental, estado y pago en un solo lugar.</p>
+                </div>
+
+                {/* GRID DE 3 COLUMNAS */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', alignItems: 'start' }}>
+
+                    {/* Tarjeta 1 - Datos de persona */}
+                    <div style={cardStyle}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.textPrimary }}>Datos de persona</h3>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={labelStyle}>Nombre</label>
+                            <input
+                                type="text"
+                                value={`${user?.nombres ?? ''} ${user?.apellidos ?? ''}`.trim() || 'Usuario'}
+                                readOnly
+                                style={inputStyle}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={labelStyle}>Estado (tasa aplicada)</label>
+                            <select
+                                value={estadoSeleccionado}
+                                onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                                style={selectStyle}
+                            >
+                                {estados.map((e) => (
+                                    <option key={e.id} value={e.id}>
+                                        {e.nombre} · {Number(e.tasa_actual).toFixed(2)}%
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => void fetchData()} style={buttonSecondaryStyle}>
+                                Actualizar
+                            </button>
+                            <button onClick={() => void handleCambiarEstado()} style={buttonPrimaryStyle}>
+                                Guardar
+                            </button>
+                        </div>
                     </div>
-                    <div style={roleToggleStyle}>
-                        <div style={roleActiveStyle}>Particular</div>
-                        <div style={roleInactiveStyle}>Empresa</div>
+
+                    {/* Tarjeta 2 - Resumen */}
+                    <div style={cardStyle}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.textPrimary }}>Resumen</h3>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${colors.cardBorder}` }}>
+                            <span style={{ color: colors.textMuted }}>Deuda vigente</span>
+                            <span style={{ fontWeight: 'bold', color: colors.textPrimary }}>{montoDeuda.toFixed(2)} Bs</span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${colors.cardBorder}` }}>
+                            <span style={{ color: colors.textMuted }}>Tasa del estado</span>
+                            <span style={{ fontWeight: 'bold', color: colors.textPrimary }}>{tasaActual.toFixed(2)}%</span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                            <span style={{ fontWeight: 700, color: colors.textPrimary }}>Total a pagar</span>
+                            <span style={{ fontWeight: 'bold', color: colors.success }}>{totalAPagar.toFixed(2)} Bs</span>
+                        </div>
+                    </div>
+
+                    {/* Tarjeta 3 - Pago */}
+                    <div style={{ ...cardStyle, backgroundColor: colors.highlightBg, borderColor: colors.highlightBorder }}>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.success }}>Pago</h3>
+                        <p style={{ margin: '0 0 12px 0', color: colors.textSecondary, fontSize: '0.85rem' }}>
+                            Registra el pago de tu deuda vigente.
+                        </p>
+                        <button
+                            onClick={() => void setShowPortal(true)}
+                            disabled={montoDeuda === 0 || statusKind === 'loading'}
+                            style={{
+                                ...buttonPrimaryStyle,
+                                width: '100%',
+                                opacity: (montoDeuda === 0 || statusKind === 'loading') ? 0.6 : 1,
+                                cursor: (montoDeuda === 0 || statusKind === 'loading') ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            {montoDeuda === 0 ? 'Sin deuda' : 'Pagar deuda'}
+                        </button>
+
+                        {statusMsg && (
+                            <div style={{ marginTop: '12px', fontSize: '0.8rem', color: statusKind === 'error' ? colors.error : colors.success }}>
+                                {statusMsg}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div style={gridStyle}>
-                    <div style={columnStyle}>
-                        <Card title="Datos de persona">
-                            <div style={inputGroupStyle}>
-                                <label style={labelStyle}>Nombre</label>
-                                <input type="text" value={`${user?.nombres ?? ''} ${user?.apellidos ?? ''}`.trim() || 'Usuario'} readOnly style={inputStyle} />
-                            </div>
-                            <div style={inputGroupStyle}>
-                                <label style={labelStyle}>Estado (tasa aplicada)</label>
-                                <select
-                                    value={estadoSeleccionado}
-                                    onChange={(e) => setEstadoSeleccionado(e.target.value)}
-                                    style={{ ...inputStyle, cursor: 'pointer' }}
-                                >
-                                    {estados.map((e) => (
-                                        <option key={e.id} value={e.id}>
-                                            {e.nombre} · {Number(e.tasa_actual).toFixed(2)}%
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <Button variant="secondary" fullWidth onClick={() => void fetchData()}>
-                                    Actualizar
-                                </Button>
-                                <Button variant="primary" fullWidth onClick={() => void handleCambiarEstado()}>
-                                    Guardar
-                                </Button>
-                            </div>
-                        </Card>
-                    </div>
+                {/* TARJETA DE CURSOS CON IMÁGENES LOCALES (solo 3) */}
+                <div style={cardStyle}>
+                    <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.textPrimary }}>Cursos en los que participa actualmente</h3>
 
-                    <div style={columnStyle}>
-                        <Card title="Resumen">
-                            <div style={calcRowStyle}>
-                                <span style={calcLabelStyle}>Deuda vigente</span>
-                                <span style={calcValueStyle}>{montoDeuda.toFixed(2)} Bs</span>
-                            </div>
-                            <div style={calcRowStyle}>
-                                <span style={calcLabelStyle}>Tasa del estado</span>
-                                <span style={calcValueStyle}>{tasaActual.toFixed(2)}%</span>
-                            </div>
-                            <div style={{ ...calcRowStyle, borderBottom: 'none' }}>
-                                <span style={{ ...calcLabelStyle, fontWeight: 700, color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>
-                                    Total a pagar
-                                </span>
-                                <span style={{ ...calcValueStyle, color: 'var(--primary-700)' }}>{totalAPagar.toFixed(2)} Bs</span>
-                            </div>
-                        </Card>
-                    </div>
-
-                    <div style={columnStyle}>
-                        <Card variant="highlight" title="Pago">
-                            <p style={{ margin: '0 0 10px 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                Registra el pago de tu deuda vigente.
-                            </p>
-                            <Button
-                                fullWidth
-                                variant="dark"
-                                onClick={() => void setShowPortal(true)}
-                                disabled={montoDeuda === 0 || statusKind === 'loading'}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                        {cursosActuales.map((curso, idx) => (
+                            <div
+                                key={idx}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '14px',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    backgroundColor: isDarkMode ? '#0f172a' : '#f9fafb',
+                                    border: `1px solid ${colors.cardBorder}`,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
                             >
-                                {montoDeuda === 0 ? 'Sin deuda' : 'Pagar deuda'}
-                            </Button>
-
-                            {statusMsg && (
-                                <div style={{ marginTop: '12px', fontSize: '0.85rem', color: statusKind === 'error' ? '#ef4444' : 'var(--text-muted)' }}>
-                                    {statusMsg}
+                                {/* Imagen del curso */}
+                                <div style={{
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '12px',
+                                    backgroundColor: `${curso.color}15`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden'
+                                }}>
+                                    <img
+                                        src={curso.imagen}
+                                        alt={curso.nombre}
+                                        style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            objectFit: 'contain'
+                                        }}
+                                    />
                                 </div>
-                            )}
-                        </Card>
+
+                                {/* Información del curso */}
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px', color: colors.textPrimary }}>
+                                        {curso.nombre}
+                                    </div>
+                                    {curso.categoria && (
+                                        <div style={{ fontSize: '0.7rem', color: colors.textSecondary }}>
+                                            {curso.categoria}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Flecha indicadora */}
+                                <div style={{ color: colors.textMuted, fontSize: '1rem' }}>→</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -224,103 +412,3 @@ export default function LobbyPersona({
         </>
     );
 }
-
-const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-};
-
-const headerSectionStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '10px',
-};
-
-const titleStyle: React.CSSProperties = {
-    margin: 0,
-    fontSize: '2rem',
-};
-
-const subtitleStyle: React.CSSProperties = {
-    margin: '5px 0 0 0',
-};
-
-const roleToggleStyle: React.CSSProperties = {
-    display: 'flex',
-    backgroundColor: 'var(--surface-2)',
-    borderRadius: '9999px',
-    padding: '4px',
-};
-
-const roleActiveStyle: React.CSSProperties = {
-    backgroundColor: 'var(--primary-900)',
-    color: '#ffffff',
-    padding: '8px 20px',
-    borderRadius: '9999px',
-    fontWeight: 'bold',
-    fontSize: '0.9rem',
-};
-
-const roleInactiveStyle: React.CSSProperties = {
-    color: 'var(--text-muted)',
-    padding: '8px 20px',
-    borderRadius: '9999px',
-    fontWeight: 'bold',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-};
-
-const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    alignItems: 'start',
-};
-
-const columnStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-};
-
-const inputGroupStyle: React.CSSProperties = {
-    marginBottom: '15px',
-};
-
-const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    color: 'var(--text-muted)',
-    marginBottom: '5px',
-};
-
-const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px',
-    borderRadius: '8px',
-    border: '1px solid var(--border-color)',
-    backgroundColor: 'var(--surface-2)',
-    fontSize: '1rem',
-    color: 'var(--text-main)',
-    outline: 'none',
-};
-
-const calcRowStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '15px 0',
-    borderBottom: '1px solid var(--border-color)',
-};
-
-const calcLabelStyle: React.CSSProperties = {
-    color: 'var(--text-muted)',
-    fontSize: '1rem',
-};
-
-const calcValueStyle: React.CSSProperties = {
-    fontWeight: 'bold',
-    fontSize: '1.1rem',
-};

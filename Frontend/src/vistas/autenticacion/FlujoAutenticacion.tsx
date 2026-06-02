@@ -5,7 +5,7 @@ import { ChoiceView } from './VistaEleccion';
 import { FormPersonaView } from './FormularioPersona';
 import { FormEmpresaView } from './FormularioEmpresa';
 import { LoginView } from './VistaInicioSesion';
-import { mainContainerStyle, bgFixedStyle, wrapperStyle } from './estilosAutenticacion';
+import { mainContainerStyle, wrapperStyle } from './estilosAutenticacion';
 
 type FormStep = 'LANDING' | 'CHOICE' | 'FORM_PERSONA' | 'FORM_EMPRESA' | 'LOGIN';
 
@@ -103,7 +103,7 @@ export default function FlujoAutenticacion({ onLoginSuccess, initialView }: Auth
   // ============================================
   return (
     <main style={mainContainerStyle}>
-      <div style={bgFixedStyle} />
+      
       <div style={wrapperStyle}>
         {step === 'CHOICE' && (
           <ChoiceView
