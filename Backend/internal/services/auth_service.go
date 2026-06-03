@@ -4,6 +4,11 @@ Autor: Baudilio Velasquez
 Este archivo contiene el servicio de autenticacion y usuarios. Coordina reglas
 de negocio como registro, login, roles de administrador y eliminacion sin
 conocer detalles HTTP ni consultas Prisma concretas.
+
+# UPDATE - Leonardo Dolande
+
+Se agregaron funciones updatePersona y updateEmpresa para permitir a
+los usuarios actualizar su informacion basica.
 */
 package services
 
@@ -200,12 +205,12 @@ type LoginResponse struct {
 }
 
 type LoginUser struct {
-	ID            string `json:"id"`
-	Email         string `json:"email"`
-	UserType      string `json:"userType"`
-	Nombres       string `json:"nombres,omitempty"`
-	Apellidos     string `json:"apellidos,omitempty"`
-	NombreEmpresa string `json:"nombre_empresa,omitempty"`
+	ID            string  `json:"id"`
+	Email         string  `json:"email"`
+	UserType      string  `json:"userType"`
+	Nombres       string  `json:"nombres,omitempty"`
+	Apellidos     string  `json:"apellidos,omitempty"`
+	NombreEmpresa string  `json:"nombre_empresa,omitempty"`
 	EstadoID      *string `json:"estado_id,omitempty"`
 	EstadoNombre  *string `json:"estado_nombre,omitempty"`
 }
@@ -236,12 +241,12 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 		return &LoginResponse{
 			Token: token,
 			User: LoginUser{
-				ID:        persona.Cedula,
-				Email:     persona.Email,
-				UserType:  UserTypePersona,
-				Nombres:   persona.Nombres,
-				Apellidos: persona.Apellidos,
-				EstadoID:  persona.EstadoID,
+				ID:           persona.Cedula,
+				Email:        persona.Email,
+				UserType:     UserTypePersona,
+				Nombres:      persona.Nombres,
+				Apellidos:    persona.Apellidos,
+				EstadoID:     persona.EstadoID,
 				EstadoNombre: persona.EstadoNombre,
 			},
 		}, nil

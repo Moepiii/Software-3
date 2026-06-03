@@ -4,6 +4,10 @@ Autor: Baudilio Velasquez
 Este archivo contiene los handlers HTTP de autenticacion y administracion de
 usuarios. Su responsabilidad es recibir requests, delegar en servicios y
 responder JSON con codigos HTTP claros.
+
+# Update - Leonardo Dolande
+
+Se agregaron handlers para actualizar perfiles de personas y empresas
 */
 package handlers
 

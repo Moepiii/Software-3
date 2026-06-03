@@ -9,7 +9,12 @@ repositorios falsos. Valida codigos HTTP y respuestas sin levantar servidor.
 Modificacion
 Autor: Franco Murillo
 
-Agregadas pruebas para crear un usuario de tipo Empresa, hacer login y eliminar un usuario
+# Agregadas pruebas para crear un usuario de tipo Empresa, hacer login y eliminar un usuario
+
+# Update - Leonardo Dolande
+
+Se agregaron las pruebas UpdatePersona y UpdateEmpresa,
+que validan que los handlers de actualizacion de perfiles
 */
 package handlers
 
@@ -23,6 +28,11 @@ import (
 	"net/http/httptest"
 	"testing"
 )
+
+// Definimos la clave de contexto idéntica a la del middleware para la simulación
+type contextKey string
+
+const claimsContextKey contextKey = "claims"
 
 type handlerPersonaRepo struct {
 	created *domain.Persona

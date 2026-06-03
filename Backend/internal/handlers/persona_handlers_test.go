@@ -1,3 +1,8 @@
+/*
+//Update - Leonardo Dolande
+
+Se agrega el metodo update para arreglar problemas con la actualizacion de perfiles
+*/
 package handlers
 
 import (
@@ -33,6 +38,9 @@ func (m *mockPersonaRepo) Delete(ctx context.Context, cedula string) error      
 func (m *mockPersonaRepo) UpdateEstado(ctx context.Context, cedula string, estadoID string) error {
 	m.cedula = cedula
 	m.estadoID = estadoID
+	return nil
+}
+func (m *mockPersonaRepo) Update(ctx context.Context, cedula string, nombres string, apellidos string, email string) error {
 	return nil
 }
 
