@@ -68,10 +68,6 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
         onCancel(); // Volver al lobby
       }, 1000);
 
-      // NOTA: Si prefieres que vuelva INSTANTÁNEAMENTE sin esperar el check visual, 
-      // borra el setTimeout y simplemente pon:
-      // onCancel();
-
     } catch (err) {
       setIsSaving(false);
       // REQUERIMIENTO: Si la llamada falla, se guarda el error y NO se navega (no se llama a onCancel)
@@ -86,7 +82,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
         <div className="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full">
           <div className="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed flex items-center gap-2 cursor-pointer" onClick={onCancel}>
             <span className="material-symbols-outlined text-primary dark:text-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-            <span>EcoTax</span>
+            <span>EcoLogic</span> {/* 1. CORREGIDO AQUÍ */}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -140,7 +136,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 </div>
                 <div>
                   <h1 className="text-headline-md font-headline-md text-on-primary">
-                    {fullName || 'Usuario EcoTax'}
+                    {fullName || 'Usuario EcoLogic'} {/* 2. CORREGIDO AQUÍ */}
                   </h1>
                   <p className="text-on-primary opacity-80 text-body-md font-body-md">
                     {user.userType === 'persona' ? 'Environmental Steward • Individual Profile' : 'Corporate Partner • Business Profile'}
@@ -161,7 +157,6 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 </span>
               </div>
 
-              {/* REQUERIMIENTO: Mostrar el error en la interfaz si la API falla */}
               {errorMsg && (
                 <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-lg border border-error text-body-md flex items-center gap-2">
                   <span className="material-symbols-outlined">error</span>
@@ -197,7 +192,6 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                   <label className="text-label-bold font-label-bold text-on-surface-variant opacity-60">
                     {user.userType === 'persona' ? 'ID / DNI Number' : 'RIF Number'}
                   </label>
-                  {/* REQUERIMIENTO: Campo dni deshabilitado (disabled), sin onChange */}
                   <input
                     className="rounded-lg border-outline-variant bg-surface-variant text-on-surface-variant opacity-60 cursor-not-allowed h-11 text-body-md px-3"
                     type="text"
@@ -206,7 +200,6 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                   />
                 </div>
 
-                {/* Separador invisible para mantener la grilla alineada */}
                 <div className="col-span-1 md:col-span-2"></div>
 
                 {/* Action Bar */}
@@ -242,9 +235,9 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
       <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
         <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoTax</div>
+            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div> {/* 3. CORREGIDO AQUÍ */}
             <p className="text-body-sm font-body-sm text-on-primary dark:text-on-primary-container opacity-80 mt-2">
-              © 2026 EcoTax. Stewardship through fiscal responsibility.
+              © 2026 EcoLogic. Stewardship through fiscal responsibility. {/* 4. CORREGIDO AQUÍ */}
             </p>
           </div>
           <div className="flex space-x-8">
