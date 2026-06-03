@@ -1,3 +1,9 @@
+/** @jest-environment jsdom */
+
+
+//Autor Leonardo Dolande
+
+
 import React, { useState } from 'react';
 import type { LoginUser } from '../../api';
 import { updatePersona, updateEmpresa } from '../../api';
@@ -82,7 +88,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
         <div className="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full">
           <div className="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed flex items-center gap-2 cursor-pointer" onClick={onCancel}>
             <span className="material-symbols-outlined text-primary dark:text-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-            <span>EcoLogic</span> {/* 1. CORREGIDO AQUÍ */}
+            <span>EcoLogic</span>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -136,7 +142,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 </div>
                 <div>
                   <h1 className="text-headline-md font-headline-md text-on-primary">
-                    {fullName || 'Usuario EcoLogic'} {/* 2. CORREGIDO AQUÍ */}
+                    {fullName || 'Usuario EcoLogic'}
                   </h1>
                   <p className="text-on-primary opacity-80 text-body-md font-body-md">
                     {user.userType === 'persona' ? 'Environmental Steward • Individual Profile' : 'Corporate Partner • Business Profile'}
@@ -165,11 +171,13 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
               )}
 
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-gutter gap-y-stack-md">
+                {/* CAMPO 1: NOMBRE COMPLETÓ / EMPRESA */}
                 <div className="flex flex-col space-y-1">
-                  <label className="text-label-bold font-label-bold text-on-surface-variant">
+                  <label htmlFor="fullNameInput" className="text-label-bold font-label-bold text-on-surface-variant">
                     {user.userType === 'persona' ? 'Full Name' : 'Company Name'}
                   </label>
                   <input
+                    id="fullNameInput"
                     className="rounded-lg border-outline-variant bg-surface-bright focus:border-primary focus:ring-primary h-11 text-body-md px-3"
                     type="text"
                     value={fullName}
@@ -177,9 +185,14 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                     required
                   />
                 </div>
+
+                {/* CAMPO 2: EMAIL */}
                 <div className="flex flex-col space-y-1">
-                  <label className="text-label-bold font-label-bold text-on-surface-variant">Email Address</label>
+                  <label htmlFor="emailInput" className="text-label-bold font-label-bold text-on-surface-variant">
+                    Email Address
+                  </label>
                   <input
+                    id="emailInput"
                     className="rounded-lg border-outline-variant bg-surface-bright focus:border-primary focus:ring-primary h-11 text-body-md px-3"
                     type="email"
                     value={email}
@@ -188,11 +201,13 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                   />
                 </div>
 
+                {/* CAMPO 3: IDENTIFICACIÓN (DNI O RIF) */}
                 <div className="flex flex-col space-y-1">
-                  <label className="text-label-bold font-label-bold text-on-surface-variant opacity-60">
+                  <label htmlFor="dniInput" className="text-label-bold font-label-bold text-on-surface-variant opacity-60">
                     {user.userType === 'persona' ? 'ID / DNI Number' : 'RIF Number'}
                   </label>
                   <input
+                    id="dniInput"
                     className="rounded-lg border-outline-variant bg-surface-variant text-on-surface-variant opacity-60 cursor-not-allowed h-11 text-body-md px-3"
                     type="text"
                     value={dni}
@@ -219,10 +234,15 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                         : 'bg-primary text-on-primary hover:opacity-90'
                       }`}
                   >
+                    {/* Agrupamos los íconos condicionales aquí */}
                     {isSaving && <span className="material-symbols-outlined animate-spin">sync</span>}
                     {isSaved && <span className="material-symbols-outlined">check_circle</span>}
                     {!isSaving && !isSaved && <span className="material-symbols-outlined text-white">save</span>}
-                    {isSaving ? 'Saving...' : isSaved ? 'Saved!' : 'Save Changes'}
+                    
+                    {/* Envolvemos el texto en un span propio para que Jest lo encuentre sin interferencias */}
+                    <span>
+                      {isSaving ? 'Saving...' : isSaved ? 'Saved!' : 'Save Changes'}
+                    </span>
                   </button>
                 </div>
               </form>
@@ -235,9 +255,9 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
       <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
         <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div> {/* 3. CORREGIDO AQUÍ */}
+            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div>
             <p className="text-body-sm font-body-sm text-on-primary dark:text-on-primary-container opacity-80 mt-2">
-              © 2026 EcoLogic. Stewardship through fiscal responsibility. {/* 4. CORREGIDO AQUÍ */}
+              © 2026 EcoLogic. Stewardship through fiscal responsibility.
             </p>
           </div>
           <div className="flex space-x-8">
