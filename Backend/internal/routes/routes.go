@@ -27,6 +27,8 @@ func NewRouter(
 	mux.HandleFunc("GET /api/admins", authMiddleware.RequireAdmin(authHandler.ListAdmins))
 	mux.HandleFunc("POST /api/admins", authMiddleware.RequireAdmin(authHandler.CreateAdmin))
 	mux.HandleFunc("DELETE /api/users/{id}", authMiddleware.RequireAdmin(authHandler.DeleteUser))
+	mux.HandleFunc("PUT /api/me/persona", authMiddleware.RequireAuth(authHandler.UpdatePersona))
+	mux.HandleFunc("PUT /api/me/empresa", authMiddleware.RequireAuth(authHandler.UpdateEmpresa))
 
 	// Persona specific routes
 	mux.HandleFunc("GET /api/persona/deuda", authMiddleware.RequireAuth(personaHandler.GetDeudaActual))

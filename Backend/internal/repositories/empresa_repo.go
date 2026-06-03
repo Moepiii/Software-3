@@ -21,6 +21,7 @@ type EmpresaRepository interface {
 	EmailExists(ctx context.Context, email string) (bool, error)
 	RifExists(ctx context.Context, rif string) (bool, error)
 	UpdateEstado(ctx context.Context, rif string, estadoID string) error
+	Update(ctx context.Context, rif string, nombreEmpresa, email string) error
 }
 
 type empresaRepo struct {
@@ -119,6 +120,19 @@ func (r *empresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID str
 				db.Estado.ID.Equals(estadoID),
 			),
 		).Exec(ctx)
+	}
+	return err
+}
+
+func (r *empresaRepo) Update(ctx context.Context, rif string, nombreEmpresa, email string) error {
+	_, err := r.client.Empresas.FindUnique(
+		database.Empresas.Rif.Equals(rif),
+	).Update(
+		database.Empresas.NombreEmpresa.Set(nombreEmpresa),
+		database.Empresas.Email.Set(email),
+	).Exec(ctx)
+	if err != nil && err == database.ErrNotFound {
+		return domain.ErrUserNotFound
 	}
 	return err
 }

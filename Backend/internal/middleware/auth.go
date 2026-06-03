@@ -48,6 +48,7 @@ func (m *AuthMiddleware) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// RequireAuth valida que el request tenga un JWT valido (cualquier rol).
 func (m *AuthMiddleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString, ok := utils.TokenFromBearerHeader(r.Header.Get("Authorization"))

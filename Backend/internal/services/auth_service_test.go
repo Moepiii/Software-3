@@ -66,6 +66,19 @@ func (r *fakePersonaRepo) UpdateEstado(ctx context.Context, cedula string, estad
 	return nil
 }
 
+func (r *fakePersonaRepo) Update(ctx context.Context, cedula string, nombres string, apellidos string, email string) error {
+	if cedula == "" {
+		return domain.ErrInvalidInput
+	}
+	// Si necesitas simular que se guardan los datos en el mapa de pruebas:
+	if p, ok := r.byID[cedula]; ok {
+		p.Nombres = nombres
+		p.Apellidos = apellidos
+		p.Email = email
+	}
+	return nil
+}
+
 type fakeEmpresaRepo struct {
 	byEmail map[string]*domain.Empresa
 	byRif   map[string]*domain.Empresa
@@ -103,7 +116,6 @@ func (r *fakeEmpresaRepo) RifExists(ctx context.Context, rif string) (bool, erro
 	_, ok := r.byRif[rif]
 	return ok, nil
 }
-
 func (r *fakeEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID string) error {
 	if e, ok := r.byRif[rif]; ok {
 		e.EstadoID = &estadoID
@@ -111,6 +123,17 @@ func (r *fakeEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID
 	return nil
 }
 
+func (r *fakeEmpresaRepo) Update(ctx context.Context, rif string, nombreEmpresa string, email string) error {
+	if rif == "" {
+		return domain.ErrInvalidInput
+	}
+	// Si tus pruebas necesitan verificar que el mapa simule la actualización de datos:
+	if e, ok := r.byRif[rif]; ok {
+		e.NombreEmpresa = nombreEmpresa
+		e.Email = email
+	}
+	return nil
+}
 func TestRegisterPersonaCreatesUserRoleAndHash(t *testing.T) {
 	personas := newFakePersonaRepo()
 	empresas := newFakeEmpresaRepo()

@@ -56,3 +56,30 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     body: JSON.stringify(payload),
   });
 }
+
+export type UpdatePersonaPayload = {
+  nombres: string;
+  apellidos: string;
+  email: string;
+};
+
+export type UpdateEmpresaPayload = {
+  nombre_empresa: string;
+  email: string;
+};
+
+export async function updatePersona(payload: UpdatePersonaPayload): Promise<void> {
+  await apiRequest('/api/me/persona', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    auth: true,
+  });
+}
+
+export async function updateEmpresa(payload: UpdateEmpresaPayload): Promise<void> {
+  await apiRequest('/api/me/empresa', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    auth: true,
+  });
+}

@@ -22,6 +22,7 @@ type PersonaRepository interface {
 	ListAdmins(ctx context.Context) ([]domain.Persona, error)
 	Delete(ctx context.Context, cedula string) error
 	UpdateEstado(ctx context.Context, cedula string, estadoID string) error
+	Update(ctx context.Context, cedula string, nombres, apellidos, email string) error
 }
 
 type personaRepo struct {
@@ -145,6 +146,20 @@ func (r *personaRepo) UpdateEstado(ctx context.Context, cedula string, estadoID 
 				db.Estado.ID.Equals(estadoID),
 			),
 		).Exec(ctx)
+	}
+	return err
+}
+
+func (r *personaRepo) Update(ctx context.Context, cedula string, nombres, apellidos, email string) error {
+	_, err := r.client.Personas.FindUnique(
+		database.Personas.Cedula.Equals(cedula),
+	).Update(
+		database.Personas.Nombres.Set(nombres),
+		database.Personas.Apellidos.Set(apellidos),
+		database.Personas.Email.Set(email),
+	).Exec(ctx)
+	if err != nil && err == database.ErrNotFound {
+		return domain.ErrUserNotFound
 	}
 	return err
 }

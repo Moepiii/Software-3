@@ -71,6 +71,14 @@ func (r *handlerPersonaRepo) UpdateEstado(ctx context.Context, cedula string, es
 	return nil
 }
 
+func (r *handlerPersonaRepo) Update(ctx context.Context, cedula string, nombres string, apellidos string, email string) error {
+	// Para los tests, podemos simular que si nos pasan datos válidos, todo sale bien
+	if cedula == "" {
+		return domain.ErrInvalidInput
+	}
+	return nil
+}
+
 type handlerEmpresaRepo struct {
 	created *domain.Empresa
 }
@@ -95,6 +103,13 @@ func (r *handlerEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estad
 func newTestHandler() *AuthHandler {
 	service := services.NewAuthService(&handlerPersonaRepo{}, &handlerEmpresaRepo{}, "secret")
 	return NewAuthHandler(service)
+}
+
+func (r *handlerEmpresaRepo) Update(ctx context.Context, rif string, nombreEmpresa string, email string) error {
+	if rif == "" {
+		return domain.ErrInvalidInput
+	}
+	return nil
 }
 
 func TestRegisterPersonaHandler(t *testing.T) {
