@@ -1,3 +1,8 @@
+/*
+Ya se la saben xD
+
+Este archivo unifica los servicios para los usuarios persona y empresa
+*/
 package services
 
 import (
@@ -6,19 +11,19 @@ import (
 	"context"
 )
 
-type PersonaService struct {
-	personaRepo repositories.PersonaRepository
+type UsuarioService struct {
+	usuarioRepo repositories.UsuarioRepository
 	deudaRepo   repositories.DeudaRepository
 	estadoRepo  repositories.EstadoRepository
 }
 
-func NewPersonaService(
-	personaRepo repositories.PersonaRepository,
+func NewUsuarioService(
+	usuarioRepo repositories.UsuarioRepository,
 	deudaRepo repositories.DeudaRepository,
 	estadoRepo repositories.EstadoRepository,
-) *PersonaService {
-	return &PersonaService{
-		personaRepo: personaRepo,
+) *UsuarioService {
+	return &UsuarioService{
+		usuarioRepo: usuarioRepo,
 		deudaRepo:   deudaRepo,
 		estadoRepo:  estadoRepo,
 	}
@@ -29,8 +34,8 @@ type DeudaResponse struct {
 	HasDeuda bool    `json:"has_deuda"`
 }
 
-func (s *PersonaService) GetDeudaVigente(ctx context.Context, cedula string) (*DeudaResponse, error) {
-	deudas, err := s.deudaRepo.FindVigentesByPersona(ctx, cedula)
+func (s *UsuarioService) GetDeudaVigente(ctx context.Context, usuarioID string) (*DeudaResponse, error) {
+	deudas, err := s.deudaRepo.FindVigentesByUsuario(ctx, usuarioID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +51,11 @@ func (s *PersonaService) GetDeudaVigente(ctx context.Context, cedula string) (*D
 	}, nil
 }
 
-func (s *PersonaService) ListEstadosConTasa(ctx context.Context) ([]domain.EstadoConTasa, error) {
+func (s *UsuarioService) ListEstadosConTasa(ctx context.Context) ([]domain.EstadoConTasa, error) {
 	return s.estadoRepo.ListAll(ctx)
 }
 
-func (s *PersonaService) UpdateEstado(ctx context.Context, cedula string, estadoID string) error {
+func (s *UsuarioService) UpdateEstado(ctx context.Context, usuarioID string, estadoID string) error {
 	if estadoID != "" {
 		states, err := s.estadoRepo.ListAll(ctx)
 		if err != nil {
@@ -67,9 +72,9 @@ func (s *PersonaService) UpdateEstado(ctx context.Context, cedula string, estado
 			return domain.ErrInvalidInput
 		}
 	}
-	return s.personaRepo.UpdateEstado(ctx, cedula, estadoID)
+	return s.usuarioRepo.UpdateEstado(ctx, usuarioID, estadoID)
 }
 
-func (s *PersonaService) PayDeuda(ctx context.Context, cedula string) error {
-	return s.deudaRepo.MarkAllAsPaid(ctx, cedula)
+func (s *UsuarioService) PayDeuda(ctx context.Context, usuarioID string) error {
+	return s.deudaRepo.MarkAllAsPaid(ctx, usuarioID)
 }

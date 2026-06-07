@@ -50,7 +50,7 @@ describe('FlujoAutenticacion', () => {
     const handleLoginSuccess = jest.fn();
     loginMock.mockResolvedValueOnce({
       token: 'token-123',
-      user: { id: 'V-1', email: 'user@ecologic.com', userType: 'persona' },
+      user: { id: 'V-1', identificacion: 'V-1', email: 'user@ecologic.com', tipo: 'NATURAL', nombre: 'Test', role: 'usuario' },
     });
 
     render(<FlujoAutenticacion onLoginSuccess={handleLoginSuccess} initialView="login" />);
@@ -64,8 +64,11 @@ describe('FlujoAutenticacion', () => {
       expect(loginMock).toHaveBeenCalledWith({ email: 'user@ecologic.com', password: 'secreto' });
       expect(handleLoginSuccess).toHaveBeenCalledWith('token-123', {
         id: 'V-1',
+        identificacion: 'V-1',
         email: 'user@ecologic.com',
-        userType: 'persona',
+        tipo: 'NATURAL',
+        nombre: 'Test',
+        role: 'usuario'
       });
     });
   });

@@ -3,11 +3,8 @@ import { apiRequest } from './client';
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 export type DeudaResponse = {
-  deuda_id: string;
   monto: number;
-  descripcion: string;
-  fecha_creacion: string;
-  estado_id: string;
+  has_deuda: boolean;
 };
 
 export type EstadoResponse = {
@@ -26,14 +23,14 @@ export type PagarPayload = {
 
 export type PagoResponse = {
   message: string;
-  monto_pagado: number;
-  deuda_restante: number;
 };
 
 // ─── Funciones de API ─────────────────────────────────────────────────────────
 
 /** Obtiene la deuda vigente del usuario autenticado */
 export async function getDeudaActual(): Promise<DeudaResponse> {
+  // Nota: El backend redirige internamente ambas rutas (persona/empresa) al mismo handler unificado.
+  // Usamos el endpoint de 'persona' por defecto para ambos, ya que funcionalmente son idénticos.
   return apiRequest<DeudaResponse>('/api/persona/deuda', {
     method: 'GET',
     auth: true,
@@ -48,7 +45,7 @@ export async function getEstados(): Promise<EstadoResponse[]> {
   });
 }
 
-/** Actualiza el estado de la persona autenticada */
+/** Actualiza el estado del usuario autenticado */
 export async function updateEstado(payload: UpdateEstadoPayload): Promise<void> {
   await apiRequest('/api/persona/estado', {
     method: 'PUT',
@@ -58,10 +55,10 @@ export async function updateEstado(payload: UpdateEstadoPayload): Promise<void> 
 }
 
 /** Registra un pago parcial o total de la deuda */
-export async function realizarPago(payload: PagarPayload): Promise<PagoResponse> {
+export async function realizarPago(payload?: PagarPayload): Promise<PagoResponse> {
   return apiRequest<PagoResponse>('/api/persona/pagar', {
     method: 'POST',
     auth: true,
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload || {}),
   });
 }

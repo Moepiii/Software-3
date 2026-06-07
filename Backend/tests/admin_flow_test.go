@@ -1,7 +1,8 @@
 package tests
 
 import (
-	"Backend/internal/services"
+	"Backend/internal/domain"
+	"context"
 	"net/http"
 	"testing"
 )
@@ -19,33 +20,43 @@ func TestAdminFlow(t *testing.T) {
 	res = app.request(t, http.MethodGet, "/api/admins", nil, adminToken)
 	assertStatus(t, res, http.StatusOK)
 
-	admins := decodeJSONResponse[[]services.LoginUser](t, res)
+	admins := decodeJSONResponse[[]domain.Usuario](t, res)
 	if !containsUser(admins, "ADM-1") {
 		t.Fatalf("expected default admin in list, got %+v", admins)
 	}
 
+	// El payload ahora respeta la estructura unificada (usa 'nombre' genérico)
 	res = app.request(t, http.MethodPost, "/api/admins", map[string]string{
-		"cedula":    "ADM-2",
-		"email":     "admin2@mail.com",
-		"password":  "123456",
-		"nombres":   "Admin",
-		"apellidos": "Dos",
+		"email":    "admin2@mail.com",
+		"password": "123456",
+		"nombre":   "Admin Dos",
 	}, adminToken)
 	assertStatus(t, res, http.StatusCreated)
 
 	res = app.request(t, http.MethodGet, "/api/admins", nil, adminToken)
 	assertStatus(t, res, http.StatusOK)
 
-	admins = decodeJSONResponse[[]services.LoginUser](t, res)
-	if !containsUser(admins, "ADM-2") {
+	admins = decodeJSONResponse[[]domain.Usuario](t, res)
+
+	// Validamos buscando por correo ya que los Admins pueden no tener Identificación
+	foundAdmin2 := false
+	for _, a := range admins {
+		if a.Email == "admin2@mail.com" {
+			foundAdmin2 = true
+			break
+		}
+	}
+	if !foundAdmin2 {
 		t.Fatalf("expected created admin in list, got %+v", admins)
 	}
 
 	res = app.request(t, http.MethodDelete, "/api/users/V123", nil, adminToken)
 	assertStatus(t, res, http.StatusOK)
 
-	if persona := app.fakes.store.personaByID("V123"); persona != nil {
-		t.Fatalf("expected persona V123 to be deleted, got %+v", persona)
+	// Verificacion unificada
+	usuario, _ := app.fakes.usuarioRepo.FindByIdentificacion(context.Background(), "V123")
+	if usuario != nil {
+		t.Fatalf("expected usuario V123 to be deleted, got %+v", usuario)
 	}
 
 	res = app.request(t, http.MethodDelete, "/api/users/V123", nil, adminToken)

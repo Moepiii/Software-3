@@ -11,44 +11,51 @@ datasource db {
 
 generator db {
   provider = "go run github.com/steebchen/prisma-client-go"
+  output   = "./db"
 }
 
-model Personas {
-  cedula        String   @id
-  email         String   @unique
-  password_hash String
-  nombres       String
-  apellidos     String
-  role          String   @default("user")
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  estado_id     String?
-  estado        Estado?  @relation(fields: [estado_id], references: [id], onDelete: SetNull)
-  deudas        Deuda[]
+// Aqui arranca la refactorizacion xddd
+// Basicamente se van a unir las tablas de personas y empresas en una sola de usuarios
 
-  @@map("personas")
+enum TipoUsuario {
+  NATURAL   // Personas naturales (usan cedula)
+  JURIDICO  // Empresas (usan rif)
+  ADMIN     // Administradores de la plataforma
 }
 
-model Empresas {
-  rif           String   @id
-  email         String   @unique
-  password_hash String
-  nombre_empresa String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  estado_id     String?
-  estado        Estado?  @relation(fields: [estado_id], references: [id], onDelete: SetNull)
-  deudas        DeudaEmpresa[]
+model Usuarios {
+  id             String      @id @default(uuid())
+  email          String      @unique
+  password_hash  String
+  tipo           TipoUsuario
+  role           String      @default("user") // user o admin
+  
+  // Campo generico para identificacion (Cedula o RIF). 
+  // Para los ADMIN puede ser opcional (nullable) o vacio
+  identificacion String?     @unique 
 
-  @@map("empresas")
+  // El nombre completo ira aqui:
+  // - Personas: "Nombres Apellidos"
+  // - Empresas: "Razon Social / Nombre Empresa"
+  // - Admin: "Nombre del Administrador"
+  nombre         String      
+
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+  
+  // Relaciones
+  estado_id      String?
+  estado         Estado?     @relation(fields: [estado_id], references: [id], onDelete: SetNull)
+  deudas         Deuda[]
+
+  @@map("usuarios")
 }
 
 model Estado {
-  id        String       @id @default(uuid())
-  nombre    String       @unique
-  personas  Personas[]
-  empresas  Empresas[]
-  tasas     TasaEstado[]
+  id       String     @id @default(uuid())
+  nombre   String     @unique
+  usuarios Usuarios[]
+  tasas    TasaEstado[]
 
   @@map("estados")
 }
@@ -65,28 +72,16 @@ model TasaEstado {
   @@map("tasa_estados")
 }
 
+// Lo mismo que para los usuarios xd se estaran unificando las tablas de deudas de personas y empresas en una sola
 model Deuda {
-  id             String   @id @default(uuid())
-  persona_cedula String
-  monto          Float
-  vigente        Boolean  @default(true)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-  persona        Personas @relation(fields: [persona_cedula], references: [cedula], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  usuario_id String
+  monto      Float
+  vigente    Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  usuario    Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
-  @@index([persona_cedula, vigente])
+  @@index([usuario_id, vigente])
   @@map("deudas")
-}
-
-model DeudaEmpresa {
-  id          String   @id @default(uuid())
-  empresa_rif String
-  monto       Float
-  vigente     Boolean  @default(true)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  empresa     Empresas @relation(fields: [empresa_rif], references: [rif], onDelete: Cascade)
-
-  @@index([empresa_rif, vigente])
-  @@map("deudas_empresas")
 }

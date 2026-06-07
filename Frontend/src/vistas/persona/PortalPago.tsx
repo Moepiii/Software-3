@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { realizarPago, getDeudaActual, type DeudaResponse } from '../../api/persona';
+import { realizarPago, getDeudaActual, type DeudaResponse } from '../../api/usuario';
 
 interface PaymentPortalProps {
     totalAPagar: number;

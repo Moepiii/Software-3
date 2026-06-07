@@ -76,5 +76,38 @@ pnmp tiene el comando
 Esto te abre un archivo de configuracion dende se puede cambiar como la herramienta descarga los paquetes
 
 
+# Refactorización
 
+Esta rama tiene la refactorización del backend (las tablas de personas y empresas se unificaron en la tabla usuarios, y lo mismo para las deudas). Por lo que es necesario borrar la base de datos vieja y suplantarla por esta nueva. Los pasos son: 
 
+# Paso 1. Apaga los contenedores y destruye el volumen físico de la base de datos vieja
+
+```bash
+docker compose down -v
+```
+
+# Paso 2. Levanta de nuevo el contenedor de PostgreSQL completamente limpio
+
+```bash
+docker compose up -d
+```
+
+O 
+
+```bash
+docker compose up -d postgres
+```
+
+# Paso 3. Crea la migración inicial unificada (desde la carpeta Backend)
+
+```bash
+go run github.com/steebchen/prisma-client-go migrate dev
+```
+
+# Paso 4. Genera el nuevo cliente de prisma (desde la carpeta Backend)
+
+```bash
+go run github.com/steebchen/prisma-client-go generate
+```
+
+Oooooo usa el Makefile y ya xddd

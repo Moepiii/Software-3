@@ -142,7 +142,7 @@ export default function AdminPanel() {
                                 <tbody>
                                     {admins.map((admin) => (
                                         <tr key={admin.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                            <td style={cellStyle}>{admin.nombres} {admin.apellidos}</td>
+                                            <td style={cellStyle}>{admin.nombre}</td>
                                             <td style={cellStyle}>{admin.email}</td>
                                             <td style={{ ...cellStyle, textAlign: 'center' }}>
                                                 <button

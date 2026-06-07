@@ -2,11 +2,11 @@ import { apiRequest } from './client';
 
 export type LoginUser = {
   id: string;
+  identificacion?: string;
+  tipo: 'NATURAL' | 'JURIDICO' | 'ADMIN';
   email: string;
-  userType: 'persona' | 'empresa';
-  nombres?: string;
-  apellidos?: string;
-  nombre_empresa?: string;
+  nombre: string;
+  role: string;
   estado_id?: string;
   estado_nombre?: string;
 };

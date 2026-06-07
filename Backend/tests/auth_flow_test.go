@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"Backend/internal/domain"
 	"Backend/internal/services"
 	"net/http"
 	"testing"
@@ -29,7 +30,9 @@ func TestAuthFlow(t *testing.T) {
 	if personaLogin.Token == "" {
 		t.Fatal("expected persona login token")
 	}
-	if personaLogin.User.ID != "V999" || personaLogin.User.UserType != services.UserTypePersona {
+
+	// Validacion adaptada al modelo generico de Usuario
+	if personaLogin.User.Identificacion != "V999" || personaLogin.User.Tipo != domain.TipoNatural {
 		t.Fatalf("unexpected persona login user: %+v", personaLogin.User)
 	}
 
@@ -51,7 +54,9 @@ func TestAuthFlow(t *testing.T) {
 	if empresaLogin.Token == "" {
 		t.Fatal("expected empresa login token")
 	}
-	if empresaLogin.User.ID != "J999" || empresaLogin.User.UserType != services.UserTypeEmpresa {
+
+	// Validacion adaptada al modelo generico de Usuario
+	if empresaLogin.User.Identificacion != "J999" || empresaLogin.User.Tipo != domain.TipoJuridico {
 		t.Fatalf("unexpected empresa login user: %+v", empresaLogin.User)
 	}
 

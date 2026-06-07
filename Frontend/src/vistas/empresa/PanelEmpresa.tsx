@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Card from '../../componentes/Tarjeta';
 import Button from '../../componentes/Boton';
 import {
-    getDeudaActualEmpresa,
-    getEstadosEmpresa,
-    realizarPagoEmpresa,
-    updateEstadoEmpresa,
-    type EmpresaDeudaResponse,
+    getDeudaActual,
+    getEstados,
+    realizarPago,
+    updateEstado,
+    type DeudaResponse,
     type EstadoResponse,
-} from '../../api/empresa';
+} from '../../api/usuario';
 
 interface LobbyEmpresaProps {
     onLogout?: () => void;
@@ -18,7 +18,7 @@ interface LobbyEmpresaProps {
 export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
-    const [deuda, setDeuda] = useState<EmpresaDeudaResponse | null>(null);
+    const [deuda, setDeuda] = useState<DeudaResponse | null>(null);
     const [estados, setEstados] = useState<EstadoResponse[]>([]);
     const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
     const [statusMsg, setStatusMsg] = useState('');
@@ -29,8 +29,8 @@ export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) 
         setErrorMsg('');
         try {
             const [deudaData, estadosData] = await Promise.all([
-                getDeudaActualEmpresa(),
-                getEstadosEmpresa(),
+                getDeudaActual(),
+                getEstados(),
             ]);
             setDeuda(deudaData);
             setEstados(estadosData);
@@ -63,7 +63,7 @@ export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) 
         setStatusKind('loading');
         setStatusMsg('');
         try {
-            await updateEstadoEmpresa({ estado_id: estadoSeleccionado });
+            await updateEstado({ estado_id: estadoSeleccionado });
             setStatusKind('success');
             setStatusMsg('Estado actualizado correctamente.');
         } catch (e: unknown) {
@@ -76,7 +76,7 @@ export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) 
         setStatusKind('loading');
         setStatusMsg('');
         try {
-            await realizarPagoEmpresa();
+            await realizarPago(); // Call sin monto o con monto 0 asumiendo el mismo comportamiento
             await fetchData();
             setStatusKind('success');
             setStatusMsg('Pago registrado. Deuda actualizada.');

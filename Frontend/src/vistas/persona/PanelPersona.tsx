@@ -6,7 +6,7 @@ import {
     updateEstado,
     type DeudaResponse,
     type EstadoResponse,
-} from '../../api/persona';
+} from '../../api/usuario';
 import type { LoginUser } from '../../api/auth';
 
 // Importar imágenes de cursos (solo 3)
@@ -251,7 +251,7 @@ export default function LobbyPersona({
                             <label style={labelStyle}>Nombre</label>
                             <input
                                 type="text"
-                                value={`${user?.nombres ?? ''} ${user?.apellidos ?? ''}`.trim() || 'Usuario'}
+                                value={user?.nombre || 'Usuario'}
                                 readOnly
                                 style={inputStyle}
                             />

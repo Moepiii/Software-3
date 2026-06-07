@@ -3,8 +3,7 @@ import type { LoginUser } from './auth';
 
 export type AdminUser = {
   id: string;
-  nombres: string;
-  apellidos: string;
+  nombre: string;
   email: string;
 };
 
@@ -24,8 +23,7 @@ export async function listAdmins(): Promise<AdminUser[]> {
 
   return data.map((user) => ({
     id: user.id,
-    nombres: user.nombres || 'Admin',
-    apellidos: user.apellidos || '',
+    nombre: user.nombre || 'Admin',
     email: user.email,
   }));
 }

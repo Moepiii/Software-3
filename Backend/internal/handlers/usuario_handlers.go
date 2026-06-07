@@ -1,3 +1,6 @@
+/*
+Este archivo tiene la unificacion de los handlers de las personas y empresas en uno solo
+*/
 package handlers
 
 import (
@@ -8,24 +11,25 @@ import (
 	"net/http"
 )
 
-type EmpresaHandler struct {
-	empresaService *services.EmpresaService
+type UsuarioHandler struct {
+	usuarioService *services.UsuarioService
 }
 
-func NewEmpresaHandler(empresaService *services.EmpresaService) *EmpresaHandler {
-	return &EmpresaHandler{
-		empresaService: empresaService,
+func NewUsuarioHandler(usuarioService *services.UsuarioService) *UsuarioHandler {
+	return &UsuarioHandler{
+		usuarioService: usuarioService,
 	}
 }
 
-func (h *EmpresaHandler) GetDeudaActual(w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) GetDeudaActual(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
 	if !ok {
 		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
 		return
 	}
 
-	resp, err := h.empresaService.GetDeudaVigente(r.Context(), claims.ID)
+	// El claim.ID contiene la Identificación (Cédula o RIF) o el UUID según como lo guardes en el token
+	resp, err := h.usuarioService.GetDeudaVigente(r.Context(), claims.ID)
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -34,8 +38,8 @@ func (h *EmpresaHandler) GetDeudaActual(w http.ResponseWriter, r *http.Request) 
 	utils.SendJSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *EmpresaHandler) GetEstados(w http.ResponseWriter, r *http.Request) {
-	estados, err := h.empresaService.ListEstadosConTasa(r.Context())
+func (h *UsuarioHandler) GetEstados(w http.ResponseWriter, r *http.Request) {
+	estados, err := h.usuarioService.ListEstadosConTasa(r.Context())
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -44,24 +48,25 @@ func (h *EmpresaHandler) GetEstados(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSONResponse(w, http.StatusOK, estados)
 }
 
-type UpdateEmpresaEstadoRequest struct {
+type UpdateUsuarioEstadoRequest struct {
 	EstadoID string `json:"estado_id"`
 }
 
-func (h *EmpresaHandler) UpdateEstadoEmpresa(w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) UpdateEstadoUsuario(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
 	if !ok {
 		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
 		return
 	}
 
-	var req UpdateEmpresaEstadoRequest
+	var req UpdateUsuarioEstadoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.SendJSONError(w, http.StatusBadRequest, "Payload inválido")
 		return
 	}
 
-	if err := h.empresaService.UpdateEstado(r.Context(), claims.ID, req.EstadoID); err != nil {
+	err := h.usuarioService.UpdateEstado(r.Context(), claims.ID, req.EstadoID)
+	if err != nil {
 		utils.SendJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -69,18 +74,18 @@ func (h *EmpresaHandler) UpdateEstadoEmpresa(w http.ResponseWriter, r *http.Requ
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Estado actualizado correctamente"})
 }
 
-func (h *EmpresaHandler) PayDeuda(w http.ResponseWriter, r *http.Request) {
+func (h *UsuarioHandler) PayDeuda(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
 	if !ok {
 		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
 		return
 	}
 
-	if err := h.empresaService.PayDeuda(r.Context(), claims.ID); err != nil {
+	err := h.usuarioService.PayDeuda(r.Context(), claims.ID)
+	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Deuda pagada exitosamente"})
 }
-

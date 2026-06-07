@@ -1,8 +1,11 @@
 /*
 Autor: Baudilio Velasquez
+Modificación: Arquitectura Unificada
 
-Este archivo es el punto de entrada del servidor. Carga configuracion, conecta
-Prisma, arma las dependencias principales y arranca el servidor HTTP.
+Este archivo es el punto de entrada del servidor. Carga configuración, conecta
+Prisma, arma las dependencias principales unificadas y arranca el servidor HTTP.
+
+Refactorizado: se inicializan los repositorios, servicios y handlers unificados
 */
 package main
 
@@ -33,25 +36,26 @@ func main() {
 
 	database.SeedData(context.Background(), client)
 
-	personaRepo := repositories.NewPersonaRepository(client)
-	empresaRepo := repositories.NewEmpresaRepository(client)
+	// Repositorios
+	usuarioRepo := repositories.NewUsuarioRepository(client)
 	deudaRepo := repositories.NewDeudaRepository(client)
-	deudaEmpresaRepo := repositories.NewDeudaEmpresaRepository(client)
 	estadoRepo := repositories.NewEstadoRepository(client)
 
-	authService := services.NewAuthService(personaRepo, empresaRepo, cfg.JWTSecret)
-	personaService := services.NewPersonaService(personaRepo, deudaRepo, estadoRepo)
-	empresaService := services.NewEmpresaService(empresaRepo, deudaEmpresaRepo, estadoRepo)
+	// Servicios
+	authService := services.NewAuthService(usuarioRepo, cfg.JWTSecret)
+	usuarioService := services.NewUsuarioService(usuarioRepo, deudaRepo, estadoRepo)
 
+	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
-	personaHandler := handlers.NewPersonaHandler(personaService)
-	empresaHandler := handlers.NewEmpresaHandler(empresaService)
+	usuarioHandler := handlers.NewUsuarioHandler(usuarioService)
 
+	// Middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
-	router := routes.NewRouter(authHandler, personaHandler, empresaHandler, authMiddleware)
 
-	log.Printf("Servidor corriendo en el puerto :%s", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {
-		log.Fatal(err)
-	}
+	// Inicializacion del Router
+	router := routes.NewRouter(authHandler, usuarioHandler, authMiddleware)
+
+	// Arranque del servidor HTTP
+	log.Printf("Servidor corriendo en puerto %s", cfg.Port)
+	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
 }

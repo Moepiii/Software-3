@@ -13,31 +13,22 @@ import (
 )
 
 type backendFakes struct {
-	store            *memoryStore
-	personaRepo      *fakePersonaRepo
-	empresaRepo      *fakeEmpresaRepo
-	deudaRepo        *fakeDeudaRepo
-	deudaEmpresaRepo *fakeDeudaEmpresaRepo
-	estadoRepo       *fakeEstadoRepo
+	store       *memoryStore
+	usuarioRepo *fakeUsuarioRepo
+	deudaRepo   *fakeDeudaRepo
+	estadoRepo  *fakeEstadoRepo
 }
 
 type memoryStore struct {
-	mu            sync.Mutex
-	personas      map[string]*domain.Persona
-	empresas      map[string]*domain.Empresa
-	deudas        []domain.Deuda
-	deudasEmpresa []domain.DeudaEmpresa
-	estados       []domain.EstadoConTasa
-	nextDeudaID   int
-	nextEmpresaID int
-	nextEstadoID  int
+	mu           sync.Mutex
+	usuarios     map[string]*domain.Usuario
+	deudas       []domain.Deuda
+	estados      []domain.EstadoConTasa
+	nextDeudaID  int
+	nextEstadoID int
 }
 
-type fakePersonaRepo struct {
-	store *memoryStore
-}
-
-type fakeEmpresaRepo struct {
+type fakeUsuarioRepo struct {
 	store *memoryStore
 }
 
@@ -45,87 +36,79 @@ type fakeDeudaRepo struct {
 	store *memoryStore
 }
 
-type fakeDeudaEmpresaRepo struct {
-	store *memoryStore
-}
-
 type fakeEstadoRepo struct {
 	store *memoryStore
 }
+
+const testTimestamp = "2026-06-05T00:00:00Z"
 
 func newBackendFakes(t testing.TB) *backendFakes {
 	t.Helper()
 
 	estadoID := "est-1"
 	estadoNombre := "caracas"
-	empresaEstadoID := "est-1"
-	empresaEstadoNombre := "caracas"
 
 	store := &memoryStore{
-		personas: map[string]*domain.Persona{
+		usuarios: map[string]*domain.Usuario{
 			"ADM-1": {
-				Cedula:       "ADM-1",
-				Email:        "admin@mail.com",
-				PasswordHash: testPasswordHash(t, "123456"),
-				Nombres:      "Admin",
-				Apellidos:    "Sistema",
-				Role:         domain.RoleAdmin,
-				CreatedAt:    testTimestamp,
-				UpdatedAt:    testTimestamp,
+				ID:             "u1",
+				Identificacion: "ADM-1",
+				Email:          "admin@mail.com",
+				PasswordHash:   testPasswordHash(t, "123456"),
+				Nombre:         "Admin Sistema",
+				Tipo:           domain.TipoAdmin,
+				Role:           domain.RoleAdmin,
+				CreatedAt:      testTimestamp,
+				UpdatedAt:      testTimestamp,
 			},
 			"V123": {
-				Cedula:       "V123",
-				Email:        "persona@mail.com",
-				PasswordHash: testPasswordHash(t, "123456"),
-				Nombres:      "Juan",
-				Apellidos:    "Perez",
-				Role:         domain.RoleUser,
-				EstadoID:     &estadoID,
-				EstadoNombre: &estadoNombre,
-				CreatedAt:    testTimestamp,
-				UpdatedAt:    testTimestamp,
+				ID:             "u2",
+				Identificacion: "V123",
+				Email:          "persona@mail.com",
+				PasswordHash:   testPasswordHash(t, "123456"),
+				Nombre:         "Juan Perez",
+				Tipo:           domain.TipoNatural,
+				Role:           domain.RoleUser,
+				EstadoID:       &estadoID,
+				EstadoNombre:   &estadoNombre,
+				CreatedAt:      testTimestamp,
+				UpdatedAt:      testTimestamp,
 			},
-		},
-		empresas: map[string]*domain.Empresa{
 			"J123": {
-				Rif:           "J123",
-				Email:         "empresa@mail.com",
-				PasswordHash:  testPasswordHash(t, "123456"),
-				NombreEmpresa: "EcoCorp",
-				EstadoID:      &empresaEstadoID,
-				EstadoNombre:  &empresaEstadoNombre,
-				CreatedAt:     testTimestamp,
-				UpdatedAt:     testTimestamp,
+				ID:             "u3",
+				Identificacion: "J123",
+				Email:          "empresa@mail.com",
+				PasswordHash:   testPasswordHash(t, "123456"),
+				Nombre:         "EcoCorp",
+				Tipo:           domain.TipoJuridico,
+				Role:           domain.RoleUser,
+				EstadoID:       &estadoID,
+				EstadoNombre:   &estadoNombre,
+				CreatedAt:      testTimestamp,
+				UpdatedAt:      testTimestamp,
 			},
 		},
 		deudas: []domain.Deuda{
-			{ID: "deuda-persona-1", PersonaCedula: "V123", Monto: 4000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-			{ID: "deuda-persona-2", PersonaCedula: "V123", Monto: 6000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-			{ID: "deuda-persona-pagada", PersonaCedula: "V123", Monto: 5000.0, Vigente: false, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-		},
-		deudasEmpresa: []domain.DeudaEmpresa{
-			{ID: "deuda-empresa-1", EmpresaRif: "J123", Monto: 25000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
+			{ID: "deuda-persona-1", UsuarioID: "V123", Monto: 4000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
+			{ID: "deuda-persona-2", UsuarioID: "V123", Monto: 6000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
+			{ID: "deuda-persona-pagada", UsuarioID: "V123", Monto: 5000.0, Vigente: false, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
+			{ID: "deuda-empresa-1", UsuarioID: "J123", Monto: 25000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
 		},
 		estados: []domain.EstadoConTasa{
 			{ID: "est-1", Nombre: "caracas", TasaActual: 5.0},
 			{ID: "est-2", Nombre: "miranda", TasaActual: 8.0},
 		},
-		nextDeudaID:   3,
-		nextEmpresaID: 2,
-		nextEstadoID:  3,
+		nextDeudaID:  5,
+		nextEstadoID: 3,
 	}
 
 	return &backendFakes{
-		store:            store,
-		personaRepo:      &fakePersonaRepo{store: store},
-		empresaRepo:      &fakeEmpresaRepo{store: store},
-		deudaRepo:        &fakeDeudaRepo{store: store},
-		deudaEmpresaRepo: &fakeDeudaEmpresaRepo{store: store},
-		estadoRepo:       &fakeEstadoRepo{store: store},
+		store:       store,
+		usuarioRepo: &fakeUsuarioRepo{store: store},
+		deudaRepo:   &fakeDeudaRepo{store: store},
+		estadoRepo:  &fakeEstadoRepo{store: store},
 	}
 }
-
-const testTimestamp = "2026-06-05T00:00:00Z"
 
 func testPasswordHash(t testing.TB, password string) string {
 	t.Helper()
@@ -137,221 +120,147 @@ func testPasswordHash(t testing.TB, password string) string {
 	return hash
 }
 
-func (s *memoryStore) personaByID(id string) *domain.Persona {
+func (s *memoryStore) usuarioByIdentificacion(id string) *domain.Usuario {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	return clonePersona(s.personas[id])
+	return cloneUsuario(s.usuarios[id])
 }
 
-func (s *memoryStore) empresaByRif(rif string) *domain.Empresa {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// MOCK: UsuarioRepository
 
-	return cloneEmpresa(s.empresas[rif])
-}
-
-func (r *fakePersonaRepo) Create(ctx context.Context, p domain.Persona) error {
+func (r *fakeUsuarioRepo) Create(ctx context.Context, u domain.Usuario) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	if _, ok := r.store.personas[p.Cedula]; ok {
-		return domain.ErrCedulaAlreadyExists
+	if u.Identificacion != "" {
+		if _, ok := r.store.usuarios[u.Identificacion]; ok {
+			return domain.ErrIdentificacionAlreadyExists
+		}
 	}
-	if personaEmailExistsLocked(r.store, p.Email) {
+	if usuarioEmailExistsLocked(r.store, u.Email) {
 		return domain.ErrEmailAlreadyExists
 	}
-	if p.Role == "" {
-		p.Role = domain.RoleUser
+	if u.Role == "" {
+		u.Role = domain.RoleUser
 	}
-	r.store.applyPersonaStateLocked(&p)
-	r.store.personas[p.Cedula] = clonePersona(&p)
+	r.store.applyUsuarioStateLocked(&u)
+
+	// Usamos Identificacion como llave del mapa, si está vacia (ej. un admin raro), usamos email
+	key := u.Identificacion
+	if key == "" {
+		key = u.Email
+	}
+	r.store.usuarios[key] = cloneUsuario(&u)
 	return nil
 }
 
-func (r *fakePersonaRepo) FindByEmail(ctx context.Context, email string) (*domain.Persona, error) {
+func (r *fakeUsuarioRepo) FindByEmail(ctx context.Context, email string) (*domain.Usuario, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	for _, p := range r.store.personas {
-		if sameEmail(p.Email, email) {
-			return clonePersona(p), nil
+	for _, u := range r.store.usuarios {
+		if sameEmail(u.Email, email) {
+			return cloneUsuario(u), nil
 		}
 	}
 	return nil, nil
 }
 
-func (r *fakePersonaRepo) EmailExists(ctx context.Context, email string) (bool, error) {
+func (r *fakeUsuarioRepo) FindByIdentificacion(ctx context.Context, id string) (*domain.Usuario, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	return personaEmailExistsLocked(r.store, email), nil
+	return cloneUsuario(r.store.usuarios[id]), nil
 }
 
-func (r *fakePersonaRepo) CedulaExists(ctx context.Context, cedula string) (bool, error) {
+func (r *fakeUsuarioRepo) EmailExists(ctx context.Context, email string) (bool, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	_, ok := r.store.personas[cedula]
+	return usuarioEmailExistsLocked(r.store, email), nil
+}
+
+func (r *fakeUsuarioRepo) IdentificacionExists(ctx context.Context, id string) (bool, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	_, ok := r.store.usuarios[id]
 	return ok, nil
 }
 
-func (r *fakePersonaRepo) ListAdmins(ctx context.Context) ([]domain.Persona, error) {
+func (r *fakeUsuarioRepo) ListAdmins(ctx context.Context) ([]domain.Usuario, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	admins := make([]domain.Persona, 0)
-	for _, p := range r.store.personas {
-		if p.Role == domain.RoleAdmin {
-			admins = append(admins, *clonePersona(p))
+	admins := make([]domain.Usuario, 0)
+	for _, u := range r.store.usuarios {
+		if u.Role == domain.RoleAdmin {
+			admins = append(admins, *cloneUsuario(u))
 		}
 	}
 	sort.Slice(admins, func(i, j int) bool {
-		return admins[i].Cedula < admins[j].Cedula
+		return admins[i].Identificacion < admins[j].Identificacion
 	})
 	return admins, nil
 }
 
-func (r *fakePersonaRepo) Delete(ctx context.Context, cedula string) error {
+func (r *fakeUsuarioRepo) Delete(ctx context.Context, id string) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	if _, ok := r.store.personas[cedula]; !ok {
+	if _, ok := r.store.usuarios[id]; !ok {
 		return domain.ErrUserNotFound
 	}
-	delete(r.store.personas, cedula)
+	delete(r.store.usuarios, id)
 	return nil
 }
 
-func (r *fakePersonaRepo) UpdateEstado(ctx context.Context, cedula string, estadoID string) error {
+func (r *fakeUsuarioRepo) UpdateEstado(ctx context.Context, id string, estadoID string) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	p, ok := r.store.personas[cedula]
+	u, ok := r.store.usuarios[id]
 	if !ok {
 		return domain.ErrUserNotFound
 	}
 	if estadoID == "" {
-		p.EstadoID = nil
-		p.EstadoNombre = nil
+		u.EstadoID = nil
+		u.EstadoNombre = nil
 		return nil
 	}
 	nombre, ok := r.store.stateNameByIDLocked(estadoID)
 	if !ok {
 		return domain.ErrInvalidInput
 	}
-	p.EstadoID = stringPtr(estadoID)
-	p.EstadoNombre = stringPtr(nombre)
+	u.EstadoID = stringPtr(estadoID)
+	u.EstadoNombre = stringPtr(nombre)
 	return nil
 }
 
-func (r *fakePersonaRepo) Update(ctx context.Context, cedula string, nombres string, apellidos string, email string) error {
+func (r *fakeUsuarioRepo) Update(ctx context.Context, id string, nombre string, email string) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	p, ok := r.store.personas[cedula]
+	u, ok := r.store.usuarios[id]
 	if !ok {
 		return domain.ErrUserNotFound
 	}
-	p.Nombres = nombres
-	p.Apellidos = apellidos
-	p.Email = email
-	p.UpdatedAt = testTimestamp
+	u.Nombre = nombre
+	u.Email = email
+	u.UpdatedAt = testTimestamp
 	return nil
 }
 
-func (r *fakeEmpresaRepo) Create(ctx context.Context, e domain.Empresa) error {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
+// MOCK: DeudaRepository
 
-	if _, ok := r.store.empresas[e.Rif]; ok {
-		return domain.ErrRifAlreadyExists
-	}
-	if empresaEmailExistsLocked(r.store, e.Email) {
-		return domain.ErrEmailAlreadyExists
-	}
-	r.store.applyEmpresaStateLocked(&e)
-	r.store.empresas[e.Rif] = cloneEmpresa(&e)
-	return nil
-}
-
-func (r *fakeEmpresaRepo) FindByEmail(ctx context.Context, email string) (*domain.Empresa, error) {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	for _, e := range r.store.empresas {
-		if sameEmail(e.Email, email) {
-			return cloneEmpresa(e), nil
-		}
-	}
-	return nil, nil
-}
-
-func (r *fakeEmpresaRepo) FindByRif(ctx context.Context, rif string) (*domain.Empresa, error) {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	return cloneEmpresa(r.store.empresas[rif]), nil
-}
-
-func (r *fakeEmpresaRepo) EmailExists(ctx context.Context, email string) (bool, error) {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	return empresaEmailExistsLocked(r.store, email), nil
-}
-
-func (r *fakeEmpresaRepo) RifExists(ctx context.Context, rif string) (bool, error) {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	_, ok := r.store.empresas[rif]
-	return ok, nil
-}
-
-func (r *fakeEmpresaRepo) UpdateEstado(ctx context.Context, rif string, estadoID string) error {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	e, ok := r.store.empresas[rif]
-	if !ok {
-		return domain.ErrUserNotFound
-	}
-	if estadoID == "" {
-		e.EstadoID = nil
-		e.EstadoNombre = nil
-		return nil
-	}
-	nombre, ok := r.store.stateNameByIDLocked(estadoID)
-	if !ok {
-		return domain.ErrInvalidInput
-	}
-	e.EstadoID = stringPtr(estadoID)
-	e.EstadoNombre = stringPtr(nombre)
-	return nil
-}
-
-func (r *fakeEmpresaRepo) Update(ctx context.Context, rif string, nombreEmpresa string, email string) error {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	e, ok := r.store.empresas[rif]
-	if !ok {
-		return domain.ErrUserNotFound
-	}
-	e.NombreEmpresa = nombreEmpresa
-	e.Email = email
-	e.UpdatedAt = testTimestamp
-	return nil
-}
-
-func (r *fakeDeudaRepo) FindVigentesByPersona(ctx context.Context, cedula string) ([]domain.Deuda, error) {
+func (r *fakeDeudaRepo) FindVigentesByUsuario(ctx context.Context, usuarioID string) ([]domain.Deuda, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
 	result := make([]domain.Deuda, 0)
 	for _, d := range r.store.deudas {
-		if d.PersonaCedula == cedula && d.Vigente {
+		if d.UsuarioID == usuarioID && d.Vigente {
 			result = append(result, d)
 		}
 	}
@@ -363,19 +272,19 @@ func (r *fakeDeudaRepo) Create(ctx context.Context, d domain.Deuda) error {
 	defer r.store.mu.Unlock()
 
 	if d.ID == "" {
-		d.ID = fmt.Sprintf("deuda-persona-%d", r.store.nextDeudaID)
+		d.ID = fmt.Sprintf("deuda-%d", r.store.nextDeudaID)
 		r.store.nextDeudaID++
 	}
 	r.store.deudas = append(r.store.deudas, d)
 	return nil
 }
 
-func (r *fakeDeudaRepo) MarkAllAsPaid(ctx context.Context, cedula string) error {
+func (r *fakeDeudaRepo) MarkAllAsPaid(ctx context.Context, usuarioID string) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
 	for i := range r.store.deudas {
-		if r.store.deudas[i].PersonaCedula == cedula {
+		if r.store.deudas[i].UsuarioID == usuarioID {
 			r.store.deudas[i].Vigente = false
 			r.store.deudas[i].UpdatedAt = testTimestamp
 		}
@@ -383,43 +292,7 @@ func (r *fakeDeudaRepo) MarkAllAsPaid(ctx context.Context, cedula string) error 
 	return nil
 }
 
-func (r *fakeDeudaEmpresaRepo) FindVigentesByEmpresa(ctx context.Context, rif string) ([]domain.DeudaEmpresa, error) {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	result := make([]domain.DeudaEmpresa, 0)
-	for _, d := range r.store.deudasEmpresa {
-		if d.EmpresaRif == rif && d.Vigente {
-			result = append(result, d)
-		}
-	}
-	return result, nil
-}
-
-func (r *fakeDeudaEmpresaRepo) Create(ctx context.Context, d domain.DeudaEmpresa) error {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	if d.ID == "" {
-		d.ID = fmt.Sprintf("deuda-empresa-%d", r.store.nextEmpresaID)
-		r.store.nextEmpresaID++
-	}
-	r.store.deudasEmpresa = append(r.store.deudasEmpresa, d)
-	return nil
-}
-
-func (r *fakeDeudaEmpresaRepo) MarkAllAsPaid(ctx context.Context, rif string) error {
-	r.store.mu.Lock()
-	defer r.store.mu.Unlock()
-
-	for i := range r.store.deudasEmpresa {
-		if r.store.deudasEmpresa[i].EmpresaRif == rif {
-			r.store.deudasEmpresa[i].Vigente = false
-			r.store.deudasEmpresa[i].UpdatedAt = testTimestamp
-		}
-	}
-	return nil
-}
+// MOCK: EstadoRepository
 
 func (r *fakeEstadoRepo) ListAll(ctx context.Context) ([]domain.EstadoConTasa, error) {
 	r.store.mu.Lock()
@@ -482,41 +355,24 @@ func (r *fakeEstadoRepo) CreateTasa(ctx context.Context, estadoID string, porcen
 	return domain.ErrInvalidInput
 }
 
-func personaEmailExistsLocked(store *memoryStore, email string) bool {
-	for _, p := range store.personas {
-		if sameEmail(p.Email, email) {
+// HELPERS INTERNOS
+
+func usuarioEmailExistsLocked(store *memoryStore, email string) bool {
+	for _, u := range store.usuarios {
+		if sameEmail(u.Email, email) {
 			return true
 		}
 	}
 	return false
 }
 
-func empresaEmailExistsLocked(store *memoryStore, email string) bool {
-	for _, e := range store.empresas {
-		if sameEmail(e.Email, email) {
-			return true
-		}
-	}
-	return false
-}
-
-func (s *memoryStore) applyPersonaStateLocked(p *domain.Persona) {
-	if p.EstadoID == nil || *p.EstadoID == "" {
+func (s *memoryStore) applyUsuarioStateLocked(u *domain.Usuario) {
+	if u.EstadoID == nil || *u.EstadoID == "" {
 		return
 	}
-	nombre, ok := s.stateNameByIDLocked(*p.EstadoID)
+	nombre, ok := s.stateNameByIDLocked(*u.EstadoID)
 	if ok {
-		p.EstadoNombre = stringPtr(nombre)
-	}
-}
-
-func (s *memoryStore) applyEmpresaStateLocked(e *domain.Empresa) {
-	if e.EstadoID == nil || *e.EstadoID == "" {
-		return
-	}
-	nombre, ok := s.stateNameByIDLocked(*e.EstadoID)
-	if ok {
-		e.EstadoNombre = stringPtr(nombre)
+		u.EstadoNombre = stringPtr(nombre)
 	}
 }
 
@@ -538,24 +394,14 @@ func stringPtr(value string) *string {
 	return &v
 }
 
-func clonePersona(p *domain.Persona) *domain.Persona {
-	if p == nil {
+func cloneUsuario(u *domain.Usuario) *domain.Usuario {
+	if u == nil {
 		return nil
 	}
-	cp := *p
-	cp.EstadoID = cloneStringPtr(p.EstadoID)
-	cp.EstadoNombre = cloneStringPtr(p.EstadoNombre)
-	return &cp
-}
-
-func cloneEmpresa(e *domain.Empresa) *domain.Empresa {
-	if e == nil {
-		return nil
-	}
-	cp := *e
-	cp.EstadoID = cloneStringPtr(e.EstadoID)
-	cp.EstadoNombre = cloneStringPtr(e.EstadoNombre)
-	return &cp
+	cu := *u
+	cu.EstadoID = cloneStringPtr(u.EstadoID)
+	cu.EstadoNombre = cloneStringPtr(u.EstadoNombre)
+	return &cu
 }
 
 func cloneStringPtr(value *string) *string {

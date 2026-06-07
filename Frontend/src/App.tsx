@@ -93,7 +93,7 @@ function App() {
       );
     }
 
-    if (user.userType === 'persona') {
+    if (user.tipo === 'NATURAL') {
       return (
         <DisenoPersona onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
           <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
@@ -101,7 +101,7 @@ function App() {
       );
     }
 
-    if (user.userType === 'empresa') {
+    if (user.tipo === 'JURIDICO') {
       return (
         <DisenoEmpresa onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
           <PanelEmpresa onLogout={handleLogout} />

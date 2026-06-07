@@ -18,14 +18,12 @@ interface SettingsViewProps {
 export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewProps) {
   // Field states
   const [fullName, setFullName] = useState(
-    user.userType === 'persona'
-      ? `${user.nombres || ''} ${user.apellidos || ''}`.trim()
-      : user.nombre_empresa || ''
+    user.nombre || ''
   );
   const [email, setEmail] = useState(user.email || '');
 
   // REQUERIMIENTO: El DNI es una constante local aquí, no necesita setDni porque es inmutable
-  const [dni] = useState(user.id || '');
+  const [dni] = useState(user.identificacion || '');
 
   // Button States
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +43,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
       };
 
       // Llamadas reales a la API según la tarea
-      if (user.userType === 'persona') {
+      if (user.tipo === 'NATURAL') {
         const parts = fullName.trim().split(' ');
         const nombres = parts[0] || '';
         const apellidos = parts.slice(1).join(' ') || '';
@@ -53,13 +51,12 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
         // Pasa el payload exacto: nombres, apellidos, email
         await updatePersona({ nombres, apellidos, email });
 
-        updatedUser.nombres = nombres;
-        updatedUser.apellidos = apellidos;
+        updatedUser.nombre = fullName.trim();
       } else {
         // Pasa el payload exacto: nombre_empresa, email
         await updateEmpresa({ nombre_empresa: fullName.trim(), email });
 
-        updatedUser.nombre_empresa = fullName.trim();
+        updatedUser.nombre = fullName.trim();
       }
 
       // ÉXITO: Invocar guardado en el estado superior de React
@@ -145,7 +142,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                     {fullName || 'Usuario EcoLogic'}
                   </h1>
                   <p className="text-on-primary opacity-80 text-body-md font-body-md">
-                    {user.userType === 'persona' ? 'Environmental Steward • Individual Profile' : 'Corporate Partner • Business Profile'}
+                    {user.tipo === 'NATURAL' ? 'Environmental Steward • Individual Profile' : 'Corporate Partner • Business Profile'}
                   </p>
                 </div>
               </div>
@@ -174,7 +171,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 {/* CAMPO 1: NOMBRE COMPLETÓ / EMPRESA */}
                 <div className="flex flex-col space-y-1">
                   <label htmlFor="fullNameInput" className="text-label-bold font-label-bold text-on-surface-variant">
-                    {user.userType === 'persona' ? 'Full Name' : 'Company Name'}
+                    {user.tipo === 'NATURAL' ? 'Full Name' : 'Company Name'}
                   </label>
                   <input
                     id="fullNameInput"
@@ -204,7 +201,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 {/* CAMPO 3: IDENTIFICACIÓN (DNI O RIF) */}
                 <div className="flex flex-col space-y-1">
                   <label htmlFor="dniInput" className="text-label-bold font-label-bold text-on-surface-variant opacity-60">
-                    {user.userType === 'persona' ? 'ID / DNI Number' : 'RIF Number'}
+                    {user.tipo === 'NATURAL' ? 'ID / DNI Number' : 'RIF Number'}
                   </label>
                   <input
                     id="dniInput"

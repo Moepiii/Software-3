@@ -1,13 +1,7 @@
 /*
-Autor: Baudilio Velasquez
-
-Este archivo contiene los handlers HTTP de autenticacion y administracion de
-usuarios. Su responsabilidad es recibir requests, delegar en servicios y
-responder JSON con codigos HTTP claros.
-
-# Update - Leonardo Dolande
-
-Se agregaron handlers para actualizar perfiles de personas y empresas
+Este archivo contiene los handlers HTTP de autenticación y administración de
+usuarios. Su responsabilidad es recibir requests (HTTP/JSON), mapear los payloads
+a los DTOs genéricos del servicio, y responder con códigos HTTP claros.
 */
 package handlers
 
@@ -32,48 +26,54 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	}
 }
 
-func (h *AuthHandler) RegisterPersona(w http.ResponseWriter, r *http.Request) {
-	var req services.RegisterPersonaRequest
-	if !decodeJSON(w, r, &req) {
+// HANDLERS UNIFICADOS DE USUARIOS (Contribuyentes)
+
+// Register maneja tanto el registro de Personas Naturales como de Empresas (Juridicos)
+// dependiendo del campo "tipo" enviado en el JSON payload.
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var raw map[string]string
+	if !decodeJSON(w, r, &raw) {
 		return
 	}
 
-	if err := h.authService.RegisterPersona(r.Context(), req); err != nil {
+	req := services.RegisterRequest{
+		Identificacion: raw["identificacion"],
+		Email:          raw["email"],
+		Password:       raw["password"],
+		Nombre:         raw["nombre"],
+	}
+
+	if req.Identificacion == "" {
+		req.Identificacion = raw["cedula"]
+	}
+	if req.Identificacion == "" {
+		req.Identificacion = raw["rif"]
+	}
+
+	if req.Nombre == "" {
+		req.Nombre = strings.TrimSpace(raw["nombres"] + " " + raw["apellidos"])
+	}
+	if req.Nombre == "" {
+		req.Nombre = raw["nombre_empresa"]
+	}
+
+	if strings.Contains(r.URL.Path, "empresa") {
+		req.Tipo = domain.TipoJuridico
+	} else {
+		req.Tipo = domain.TipoNatural
+	}
+
+	if err := h.authService.Register(r.Context(), req); err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
-	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Persona registrada exitosamente"})
+	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{
+		"message": "Usuario registrado exitosamente",
+	})
 }
 
-func (h *AuthHandler) RegisterEmpresa(w http.ResponseWriter, r *http.Request) {
-	var req services.RegisterEmpresaRequest
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.authService.RegisterEmpresa(r.Context(), req); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Empresa registrada exitosamente"})
-}
-
-func (h *AuthHandler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
-	var req services.CreateAdminRequest
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.authService.CreateAdmin(r.Context(), req); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Administrador registrado exitosamente"})
-}
-
+// Login autentica a cualquier usuario (Natural, Jurídico o Admin) usando su Email y Password
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req services.LoginRequest
 	if !decodeJSON(w, r, &req) {
@@ -89,74 +89,86 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSONResponse(w, http.StatusOK, resp)
 }
 
-func (h *AuthHandler) ListAdmins(w http.ResponseWriter, r *http.Request) {
-	admins, err := h.authService.ListAllAdmins(r.Context())
-	if err != nil {
+// UpdateProfile unifica la actualización de datos comunes (Nombre/Razón Social y Email)
+func (h *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+		return
+	}
+
+	var raw map[string]string
+	if !decodeJSON(w, r, &raw) {
+		return
+	}
+
+	nombre := raw["nombre"]
+	if nombre == "" {
+		nombre = strings.TrimSpace(raw["nombres"] + " " + raw["apellidos"])
+	}
+	if nombre == "" {
+		nombre = raw["nombre_empresa"]
+	}
+
+	req := services.UpdateUsuarioRequest{
+		Nombre: nombre,
+		Email:  raw["email"],
+	}
+
+	if err := h.authService.UpdateUsuario(r.Context(), claims.ID, req); err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{
+		"message": "Perfil actualizado exitosamente",
+	})
+}
+
+// HANDLERS DE GESTION ADMINISTRATIVA (Admins)
+func (h *AuthHandler) ListAdmins(w http.ResponseWriter, r *http.Request) {
+	admins, err := h.authService.ListAdmins(r.Context())
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
 	utils.SendJSONResponse(w, http.StatusOK, admins)
+}
+
+func (h *AuthHandler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
+	var req services.CreateAdminRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	if err := h.authService.CreateAdmin(r.Context(), req); err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{
+		"message": "Administrador creado exitosamente",
+	})
 }
 
 func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
-		id = strings.TrimPrefix(r.URL.Path, "/api/users/")
-	}
-	if id == "" || id == r.URL.Path {
 		utils.SendJSONError(w, http.StatusBadRequest, "ID de usuario requerido")
 		return
 	}
 
-	if err := h.authService.DeleteUserByID(r.Context(), id); err != nil {
+	if err := h.authService.DeleteUser(r.Context(), id); err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
-	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Eliminado con éxito"})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{
+		"message": "Usuario eliminado exitosamente",
+	})
 }
 
-func (h *AuthHandler) UpdatePersona(w http.ResponseWriter, r *http.Request) {
-	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
-		return
-	}
-
-	var req services.UpdatePersonaRequest
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.authService.UpdatePersona(r.Context(), claims.ID, req); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Perfil actualizado exitosamente"})
-}
-
-func (h *AuthHandler) UpdateEmpresa(w http.ResponseWriter, r *http.Request) {
-	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
-		return
-	}
-
-	var req services.UpdateEmpresaRequest
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-
-	if err := h.authService.UpdateEmpresa(r.Context(), claims.ID, req); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Perfil de empresa actualizado exitosamente"})
-}
-
+// HELPERS REUTILIZABLES INTERNOS
 func decodeJSON(w http.ResponseWriter, r *http.Request, target interface{}) bool {
 	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
 		utils.SendJSONError(w, http.StatusBadRequest, "Payload inválido")
@@ -168,19 +180,16 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, target interface{}) bool
 func writeServiceError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrEmailAlreadyExists),
-		errors.Is(err, domain.ErrCedulaAlreadyExists),
-		errors.Is(err, domain.ErrRifAlreadyExists):
+		errors.Is(err, domain.ErrIdentificacionAlreadyExists):
 		utils.SendJSONError(w, http.StatusConflict, err.Error())
 	case errors.Is(err, domain.ErrInvalidCredentials),
 		errors.Is(err, domain.ErrUnauthorized):
 		utils.SendJSONError(w, http.StatusUnauthorized, err.Error())
 	case errors.Is(err, domain.ErrInvalidInput):
 		utils.SendJSONError(w, http.StatusBadRequest, err.Error())
-	case errors.Is(err, domain.ErrForbidden):
-		utils.SendJSONError(w, http.StatusForbidden, err.Error())
 	case errors.Is(err, domain.ErrUserNotFound):
 		utils.SendJSONError(w, http.StatusNotFound, err.Error())
 	default:
-		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error interno del servidor")
 	}
 }
