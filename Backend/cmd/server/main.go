@@ -40,20 +40,23 @@ func main() {
 	usuarioRepo := repositories.NewUsuarioRepository(client)
 	deudaRepo := repositories.NewDeudaRepository(client)
 	estadoRepo := repositories.NewEstadoRepository(client)
+	cursoRepo := repositories.NewCursoRepository(client)
 
 	// Servicios
 	authService := services.NewAuthService(usuarioRepo, cfg.JWTSecret)
 	usuarioService := services.NewUsuarioService(usuarioRepo, deudaRepo, estadoRepo)
+	cursoService := services.NewCursoService(cursoRepo)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	usuarioHandler := handlers.NewUsuarioHandler(usuarioService)
+	cursoHandler := handlers.NewCursoHandler(cursoService)
 
 	// Middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
 
 	// Inicializacion del Router
-	router := routes.NewRouter(authHandler, usuarioHandler, authMiddleware)
+	router := routes.NewRouter(authHandler, usuarioHandler, cursoHandler, authMiddleware)
 
 	// Arranque del servidor HTTP
 	log.Printf("Servidor corriendo en puerto %s", cfg.Port)

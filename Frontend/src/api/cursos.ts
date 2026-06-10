@@ -23,7 +23,9 @@ export type CreateCursoPayload = {
     imagen?: string;
 };
 
-export type UpdateCursoPayload = Partial<CreateCursoPayload>;
+export type UpdateCursoPayload = Partial<CreateCursoPayload> & {
+    estado?: 'activo' | 'planificado' | 'finalizado';
+};
 
 // Obtener todos los cursos
 export async function listarCursos(): Promise<Curso[]> {

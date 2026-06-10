@@ -9,6 +9,7 @@ import (
 func NewRouter(
 	authHandler *handlers.AuthHandler,
 	usuarioHandler *handlers.UsuarioHandler,
+	cursoHandler *handlers.CursoHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) http.Handler {
 	mux := http.NewServeMux()
@@ -39,6 +40,12 @@ func NewRouter(
 	mux.HandleFunc("GET /api/empresa/estados", authMiddleware.RequireAuth(usuarioHandler.GetEstados)) // Si el FE llamaba a este endpoint
 	mux.HandleFunc("PUT /api/empresa/estado", authMiddleware.RequireAuth(usuarioHandler.UpdateEstadoUsuario))
 	mux.HandleFunc("POST /api/empresa/pagar", authMiddleware.RequireAuth(usuarioHandler.PayDeuda))
+
+	// Rutas Cursos
+	mux.HandleFunc("GET /api/cursos", cursoHandler.GetCursos)
+	mux.HandleFunc("POST /api/cursos", cursoHandler.CreateCurso)
+	mux.HandleFunc("PUT /api/cursos/{id}", cursoHandler.UpdateCurso)
+	mux.HandleFunc("DELETE /api/cursos/{id}", cursoHandler.DeleteCurso)
 
 	return mux
 }

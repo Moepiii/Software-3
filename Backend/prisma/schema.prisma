@@ -45,8 +45,9 @@ model Usuarios {
   
   // Relaciones
   estado_id      String?
-  estado         Estado?     @relation(fields: [estado_id], references: [id], onDelete: SetNull)
+  estado         Estado?       @relation(fields: [estado_id], references: [id], onDelete: SetNull)
   deudas         Deuda[]
+  inscripciones  Inscripcion[]
 
   @@map("usuarios")
 }
@@ -84,4 +85,39 @@ model Deuda {
 
   @@index([usuario_id, vigente])
   @@map("deudas")
+}
+
+model Curso {
+  id          String   @id @default(uuid())
+  titulo      String
+  descripcion String
+  fechaInicio String
+  fechaFin    String
+  estado      String   @default("planificado") // activo, planificado, finalizado
+  categoria   String?
+  imagen      String?
+
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  inscripciones Inscripcion[]
+
+  @@map("cursos")
+}
+
+model Inscripcion {
+  id         String   @id @default(uuid())
+  usuario_id String
+  curso_id   String
+  estado     String   @default("activa") // activa, cancelada, completada
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  usuario    Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  curso      Curso    @relation(fields: [curso_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, curso_id])
+  @@index([curso_id])
+  @@index([usuario_id])
+  @@map("inscripciones")
 }

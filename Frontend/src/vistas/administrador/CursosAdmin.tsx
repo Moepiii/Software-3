@@ -1,17 +1,8 @@
 // Frontend/src/vistas/administrador/CursosAdmin.tsx
 import { useState, useEffect } from 'react';
 import Button from '../../componentes/Boton';
-
-type Curso = {
-    id: string;
-    titulo: string;
-    descripcion: string;
-    fechaInicio: string;
-    fechaFin: string;
-    estado: 'activo' | 'planificado' | 'finalizado';
-    categoria?: string;
-    imagen?: string;
-};
+import type { Curso } from '../../api/cursos';
+import { listarCursos, crearCurso, actualizarCurso, eliminarCurso } from '../../api/cursos';
 
 // Función para obtener todas las imágenes de la carpeta
 const importarImagenes = () => {
@@ -30,38 +21,7 @@ const importarImagenes = () => {
 
 export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boolean }) {
     const [imagenesDisponibles, setImagenesDisponibles] = useState<{ nombre: string; url: string }[]>([]);
-    const [cursos, setCursos] = useState<Curso[]>([
-        {
-            id: '1',
-            titulo: 'Auditoría de Huella de Carbono',
-            descripcion: 'Capacitación avanzada para consultores ambientales sobre metodologías de medición ISO...',
-            fechaInicio: '15 Oct, 2024',
-            fechaFin: '20 Dic, 2024',
-            estado: 'activo',
-            categoria: 'Medio Ambiente',
-            imagen: 'carbon.jpg'
-        },
-        {
-            id: '2',
-            titulo: 'Eficiencia Energética Corporativa',
-            descripcion: 'Estrategias de optimización de consumo eléctrico y transición a fuentes renovables...',
-            fechaInicio: '01 Nov, 2024',
-            fechaFin: '15 Ene, 2025',
-            estado: 'activo',
-            categoria: 'Energía',
-            imagen: 'energia.jpg'
-        },
-        {
-            id: '3',
-            titulo: 'Legislación Hídrica 2024',
-            descripcion: 'Análisis de las nuevas normativas de vertidos y gestión de cuencas para directores...',
-            fechaInicio: '10 Ene, 2025',
-            fechaFin: '28 Feb, 2025',
-            estado: 'planificado',
-            categoria: 'Agua',
-            imagen: 'agua.jpg'
-        }
-    ]);
+    const [cursos, setCursos] = useState<Curso[]>([]);
 
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const [cursoEditando, setCursoEditando] = useState<Curso | null>(null);
@@ -75,6 +35,15 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
     });
     const [imagenPreview, setImagenPreview] = useState('');
 
+    const cargarCursos = async () => {
+        try {
+            const data = await listarCursos();
+            setCursos(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Error al cargar cursos:', error);
+        }
+    };
+
     useEffect(() => {
         const imagenes = importarImagenes();
         setImagenesDisponibles(imagenes);
@@ -82,6 +51,7 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
             setFormData(prev => ({ ...prev, imagen: imagenes[0].nombre }));
             setImagenPreview(imagenes[0].url);
         }
+        cargarCursos();
     }, []);
 
     const resetFormulario = () => {
@@ -98,46 +68,57 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
         setImagenPreview(imagenesDisponibles[0]?.url || '');
     };
 
-    const handleCrearCurso = (e: React.FormEvent) => {
+    const handleCrearCurso = async (e: React.FormEvent) => {
         e.preventDefault();
-        const nuevoCurso: Curso = {
-            id: Date.now().toString(),
-            ...formData,
-            estado: 'planificado' // Siemnde: Los nuevos cursos van a PLANIFICADO
-        };
-        setCursos([...cursos, nuevoCurso]);
-        resetFormulario();
-        alert('¡Curso creado exitosamente! Aparecerá en "Planificado"');
-    };
-
-    const handleActualizarCurso = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!cursoEditando) return;
-
-        setCursos(cursos.map(c =>
-            c.id === cursoEditando.id
-                ? { ...c, ...formData }
-                : c
-        ));
-        resetFormulario();
-        alert('¡Curso actualizado exitosamente!');
-    };
-
-    const handleEliminarCurso = (curso: Curso) => {
-        if (confirm(`¿Estás seguro de que deseas eliminar el curso "${curso.titulo}"?`)) {
-            setCursos(cursos.filter(c => c.id !== curso.id));
-            alert('¡Curso eliminado exitosamente!');
+        try {
+            await crearCurso(formData);
+            await cargarCursos();
+            resetFormulario();
+            alert('¡Curso creado exitosamente! Aparecerá en "Planificado"');
+        } catch (error) {
+            console.error(error);
+            alert('Hubo un error al crear el curso');
         }
     };
 
-    const handleOficializarCurso = (curso: Curso) => {
+    const handleActualizarCurso = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!cursoEditando) return;
+
+        try {
+            await actualizarCurso(cursoEditando.id, formData);
+            await cargarCursos();
+            resetFormulario();
+            alert('¡Curso actualizado exitosamente!');
+        } catch (error) {
+            console.error(error);
+            alert('Hubo un error al actualizar el curso');
+        }
+    };
+
+    const handleEliminarCurso = async (curso: Curso) => {
+        if (confirm(`¿Estás seguro de que deseas eliminar el curso "${curso.titulo}"?`)) {
+            try {
+                await eliminarCurso(curso.id);
+                await cargarCursos();
+                alert('¡Curso eliminado exitosamente!');
+            } catch (error) {
+                console.error(error);
+                alert('Hubo un error al eliminar el curso');
+            }
+        }
+    };
+
+    const handleOficializarCurso = async (curso: Curso) => {
         if (confirm(`¿Oficializar el curso "${curso.titulo}"? Pasará a estar activo y visible para los usuarios.`)) {
-            setCursos(cursos.map(c =>
-                c.id === curso.id
-                    ? { ...c, estado: 'activo' }
-                    : c
-            ));
-            alert('¡Curso oficializado! Ahora aparece en "Cursos Activos"');
+            try {
+                await actualizarCurso(curso.id, { estado: 'activo' });
+                await cargarCursos();
+                alert('¡Curso oficializado! Ahora aparece en "Cursos Activos"');
+            } catch (error) {
+                console.error(error);
+                alert('Hubo un error al oficializar el curso');
+            }
         }
     };
 
