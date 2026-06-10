@@ -3,7 +3,6 @@ import DisenoInicio from './vistas/inicio/DisenoInicio';
 import { VistaInicio } from './vistas/inicio/VistaInicio';
 import PanelPersona from './vistas/persona/PanelPersona';
 import PanelEmpresa from './vistas/empresa/PanelEmpresa';
-import PanelAdmin from './vistas/administrador/PanelAdmin';
 import FlujoAutenticacion from './vistas/autenticacion/FlujoAutenticacion';
 import DisenoPersona from './vistas/persona/DisenoPersona';
 import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
@@ -75,10 +74,9 @@ function App() {
     const esAdmin = decodeSession(getToken())?.role === 'admin';
 
     if (esAdmin) {
+      // Admin: No pasamos children, la navegación interna de DisenoAdmin manejará las vistas
       return (
-        <DisenoAdmin onLogout={handleLogout}>
-          <PanelAdmin />
-        </DisenoAdmin>
+        <DisenoAdmin onLogout={handleLogout} />
       );
     }
 
@@ -93,6 +91,7 @@ function App() {
       );
     }
 
+    // 🔧 Corregido: user.tipo en lugar de user.userType
     if (user.tipo === 'NATURAL') {
       return (
         <DisenoPersona onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
@@ -101,6 +100,7 @@ function App() {
       );
     }
 
+    // 🔧 Corregido: user.tipo en lugar de user.userType
     if (user.tipo === 'JURIDICO') {
       return (
         <DisenoEmpresa onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>

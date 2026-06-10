@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import type { FormEvent, CSSProperties } from 'react';
+import { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
 import { ApiError, createAdmin, deleteUser, listAdmins, type AdminUser } from '../../api';
 import Card from '../../componentes/Tarjeta';
 import Button from '../../componentes/Boton';
 
-export default function AdminPanel() {
+export default function AdminPanel({ isDarkMode = false }: { isDarkMode?: boolean }) {
     const [admins, setAdmins] = useState<AdminUser[]>([]);
     const [nuevoNombre, setNuevoNombre] = useState('');
     const [nuevoApellido, setNuevoApellido] = useState('');
@@ -65,7 +65,7 @@ export default function AdminPanel() {
     };
 
     const handleDeleteAdmin = async (admin: AdminUser) => {
-        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${admin.nombres} de la base de datos?`)) {
+        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente a ${admin.nombre} de la base de datos?`)) {
             try {
                 await deleteUser(admin.id);
                 setAdmins(prev => prev.filter(a => a.id !== admin.id));
@@ -79,38 +79,134 @@ export default function AdminPanel() {
         }
     };
 
+    const styles = {
+        container: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            gap: '20px'
+        },
+        headerSection: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '10px'
+        },
+        title: {
+            margin: 0,
+            fontSize: '2rem',
+            color: isDarkMode ? '#f8fafc' : 'var(--primary-dark)'
+        },
+        subtitle: {
+            margin: '5px 0 0 0',
+            color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)'
+        },
+        roleToggle: {
+            display: 'flex',
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+            borderRadius: '9999px',
+            padding: '4px'
+        },
+        roleActive: {
+            backgroundColor: 'var(--primary-dark)',
+            color: '#ffffff',
+            padding: '8px 20px',
+            borderRadius: '9999px',
+            fontWeight: 'bold',
+            fontSize: '0.9rem'
+        },
+        grid: {
+            display: 'flex',
+            gap: '20px',
+            flexWrap: 'wrap' as const,
+            alignItems: 'start'
+        },
+        label: {
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 'bold',
+            color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)',
+            marginBottom: '5px'
+        },
+        input: {
+            width: '100%',
+            padding: '12px',
+            borderRadius: '8px',
+            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'var(--border-color)'}`,
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : '#f1f5f9',
+            fontSize: '1rem',
+            color: isDarkMode ? '#f8fafc' : 'var(--text-main)',
+            outline: 'none',
+            boxSizing: 'border-box' as const
+        },
+        cell: {
+            padding: '14px 16px',
+            color: isDarkMode ? '#f8fafc' : 'var(--text-main)'
+        },
+        tabContainer: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '15px',
+            padding: '12px 20px',
+            backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.1)' : '#f0fdf4',
+            borderRadius: '12px',
+            border: `1px solid ${isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#dcfce7'}`
+        },
+        tableWrapper: {
+            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'var(--border-color)'}`,
+            borderRadius: '12px',
+            overflow: 'hidden' as const
+        },
+        table: {
+            width: '100%',
+            borderCollapse: 'collapse' as const,
+            textAlign: 'left' as const,
+            fontSize: '0.95rem'
+        },
+        deleteButton: {
+            padding: '6px 12px',
+            backgroundColor: isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
+            color: '#ef4444',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            fontSize: '0.85rem'
+        }
+    };
+
     return (
-        <div style={containerStyle}>
-            <div style={headerSectionStyle}>
+        <div style={styles.container}>
+            <div style={styles.headerSection}>
                 <div>
-                    <h1 style={titleStyle}>Panel de Control Interno</h1>
-                    <p style={subtitleStyle}>Gestión absoluta de cuentas administrativas</p>
+                    <h1 style={styles.title}>Panel de Control Interno</h1>
+                    <p style={styles.subtitle}>Gestión absoluta de cuentas administrativas</p>
                 </div>
-                
-                <div style={roleToggleStyle}>
-                    <div style={roleActiveStyle}>Admin</div>
+
+                <div style={styles.roleToggle}>
+                    <div style={styles.roleActive}>Admin</div>
                 </div>
             </div>
 
-            <div style={gridStyle}>
+            <div style={styles.grid}>
                 <div style={{ flex: '1', minWidth: '320px' }}>
                     <Card title="Registrar Nuevo Admin">
                         <form onSubmit={handleCreateAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div>
-                                <label style={labelStyle}>Nombres</label>
-                                <input type="text" required value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} style={inputStyle} placeholder="Juan" />
+                                <label style={styles.label}>Nombres</label>
+                                <input type="text" required value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} style={styles.input} placeholder="Juan" />
                             </div>
                             <div>
-                                <label style={labelStyle}>Apellidos</label>
-                                <input type="text" required value={nuevoApellido} onChange={e => setNuevoApellido(e.target.value)} style={inputStyle} placeholder="Pérez" />
+                                <label style={styles.label}>Apellidos</label>
+                                <input type="text" required value={nuevoApellido} onChange={e => setNuevoApellido(e.target.value)} style={styles.input} placeholder="Pérez" />
                             </div>
                             <div>
-                                <label style={labelStyle}>Correo Electrónico (@admin.com)</label>
-                                <input type="email" required value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} style={inputStyle} placeholder="usuario@admin.com" />
+                                <label style={styles.label}>Correo Electrónico (@admin.com)</label>
+                                <input type="email" required value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} style={styles.input} placeholder="usuario@admin.com" />
                             </div>
                             <div>
-                                <label style={labelStyle}>Contraseña</label>
-                                <input type="password" required value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)} style={inputStyle} placeholder="Mínimo 6 caracteres" />
+                                <label style={styles.label}>Contraseña</label>
+                                <input type="password" required value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)} style={styles.input} placeholder="Mínimo 6 caracteres" />
                             </div>
 
                             {errorMsg && <p style={{ color: '#ef4444', margin: '5px 0 0 0', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorMsg}</p>}
@@ -125,38 +221,29 @@ export default function AdminPanel() {
 
                 <div style={{ flex: '2', minWidth: '450px' }}>
                     <Card title="Administradores Activos">
-                        <div style={tabContainerStyle}>
-                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary-dark)' }}>Total de Administradores:</span>
-                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary-dark)' }}>{admins.length}</span>
+                        <div style={styles.tabContainer}>
+                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: isDarkMode ? '#34d399' : 'var(--primary-dark)' }}>Total de Administradores:</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isDarkMode ? '#34d399' : 'var(--primary-dark)' }}>{admins.length}</span>
                         </div>
 
-                        <div style={tableWrapperStyle}>
-                            <table style={tableStyle}>
+                        <div style={styles.tableWrapper}>
+                            <table style={styles.table}>
                                 <thead>
-                                    <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid var(--border-color)' }}>
-                                        <th style={cellStyle}>Nombre Completo</th>
-                                        <th style={cellStyle}>Correo Electrónico</th>
-                                        <th style={{ ...cellStyle, textAlign: 'center' }}>Acciones</th>
+                                    <tr style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderBottom: `2px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'var(--border-color)'}` }}>
+                                        <th style={styles.cell}>Nombre Completo</th>
+                                        <th style={styles.cell}>Correo Electrónico</th>
+                                        <th style={{ ...styles.cell, textAlign: 'center' }}>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {admins.map((admin) => (
-                                        <tr key={admin.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                            <td style={cellStyle}>{admin.nombre}</td>
-                                            <td style={cellStyle}>{admin.email}</td>
-                                            <td style={{ ...cellStyle, textAlign: 'center' }}>
+                                        <tr key={admin.id} style={{ borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'var(--border-color)'}` }}>
+                                            <td style={styles.cell}>{admin.nombre}</td>
+                                            <td style={styles.cell}>{admin.email}</td>
+                                            <td style={{ ...styles.cell, textAlign: 'center' }}>
                                                 <button
                                                     onClick={() => handleDeleteAdmin(admin)}
-                                                    style={{
-                                                        padding: '6px 12px',
-                                                        backgroundColor: '#fee2e2',
-                                                        color: '#ef4444',
-                                                        border: 'none',
-                                                        borderRadius: '6px',
-                                                        cursor: 'pointer',
-                                                        fontWeight: 'bold',
-                                                        fontSize: '0.85rem'
-                                                    }}
+                                                    style={styles.deleteButton}
                                                 >
                                                     Eliminar
                                                 </button>
@@ -165,7 +252,7 @@ export default function AdminPanel() {
                                     ))}
                                     {admins.length === 0 && (
                                         <tr>
-                                            <td colSpan={3} style={{ ...cellStyle, textAlign: 'center', color: 'var(--text-muted)' }}>No hay administradores registrados.</td>
+                                            <td colSpan={3} style={{ ...styles.cell, textAlign: 'center', color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'var(--text-muted)' }}>No hay administradores registrados.</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -177,99 +264,3 @@ export default function AdminPanel() {
         </div>
     );
 }
-
-const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px'
-};
-
-const headerSectionStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '10px'
-};
-
-const titleStyle: React.CSSProperties = {
-    margin: 0,
-    fontSize: '2rem',
-    color: 'var(--primary-dark)'
-};
-
-const subtitleStyle: React.CSSProperties = {
-    margin: '5px 0 0 0',
-    color: 'var(--text-muted)'
-};
-
-const roleToggleStyle: React.CSSProperties = {
-    display: 'flex',
-    backgroundColor: '#e2e8f0',
-    borderRadius: '9999px',
-    padding: '4px'
-};
-
-const roleActiveStyle: React.CSSProperties = {
-    backgroundColor: 'var(--primary-dark)',
-    color: '#ffffff',
-    padding: '8px 20px',
-    borderRadius: '9999px',
-    fontWeight: 'bold',
-    fontSize: '0.9rem'
-};
-
-const gridStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '20px',
-    flexWrap: 'wrap',
-    alignItems: 'start'
-};
-
-const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    color: 'var(--text-muted)',
-    marginBottom: '5px'
-};
-
-const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px',
-    borderRadius: '8px',
-    border: '1px solid var(--border-color)',
-    backgroundColor: '#f1f5f9',
-    fontSize: '1rem',
-    color: 'var(--text-main)',
-    outline: 'none',
-    boxSizing: 'border-box'
-};
-
-const cellStyle: CSSProperties = {
-    padding: '14px 16px',
-    color: 'var(--text-main)'
-};
-
-const tabContainerStyle: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '15px',
-    padding: '12px 20px',
-    backgroundColor: '#f0fdf4',
-    borderRadius: '12px',
-    border: '1px solid #dcfce7'
-};
-
-const tableWrapperStyle: CSSProperties = {
-    border: '1px solid var(--border-color)',
-    borderRadius: '12px',
-    overflow: 'hidden'
-};
-
-const tableStyle: CSSProperties = {
-    width: '100%',
-    borderCollapse: 'collapse',
-    textAlign: 'left',
-    fontSize: '0.95rem'
-};
