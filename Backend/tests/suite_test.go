@@ -36,7 +36,7 @@ func newTestApp(t testing.TB) *testApp {
 	authMiddleware := middleware.NewAuthMiddleware(testJWTSecret)
 
 	return &testApp{
-		router: routes.NewRouter(authHandler, usuarioHandler, authMiddleware),
+		router: routes.NewRouter(authHandler, usuarioHandler, nil, authMiddleware),
 		fakes:  fakes,
 	}
 }

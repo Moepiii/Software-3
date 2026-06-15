@@ -3,7 +3,7 @@
 //Autor Leonardo Dolande
 // Se agregan pruebas para el landing pagde la pagina
 
-import React from 'react';
+
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VistaInicio } from './VistaInicio';

@@ -173,22 +173,34 @@ func SeedData(ctx context.Context, client *db.PrismaClient) {
 
 	// 4. Seed deudas para el usuario Natural (Independiente del flujo de arriba)
 	if pID != "" {
+		// Buscamos si ya tiene alguna deuda
 		activeDebts, err := client.Deuda.FindMany(
 			db.Deuda.UsuarioID.Equals(pID),
 			db.Deuda.Vigente.Equals(true),
 		).Exec(ctx)
+
 		if err == nil && len(activeDebts) == 0 {
-			_, err = client.Deuda.CreateOne(
-				db.Deuda.Monto.Set(10000.0),
+			// Crear la deuda inicial
+			nuevaDeuda, err := client.Deuda.CreateOne(
+				db.Deuda.Monto.Set(10000.0), // Monto total
 				db.Deuda.Usuario.Link(
 					db.Usuarios.ID.Equals(pID),
 				),
 				db.Deuda.Vigente.Set(true),
 			).Exec(ctx)
+
 			if err != nil {
 				log.Printf("Error sembrando deuda de prueba: %v", err)
 			} else {
-				log.Println("Deuda de prueba de 10000.0 bs sembrada para persona@persona.com")
+				// Esto es importante para que tu historial no esté vacío
+				_, err = client.Abono.CreateOne(
+					db.Abono.Monto.Set(2000.0), // Un abono de prueba
+					db.Abono.Deuda.Link(
+						db.Deuda.ID.Equals(nuevaDeuda.ID),
+					),
+				).Exec(ctx)
+
+				log.Println("Deuda de 10000.0 y abono de 2000.0 sembrados para persona@persona.com")
 			}
 		}
 	}

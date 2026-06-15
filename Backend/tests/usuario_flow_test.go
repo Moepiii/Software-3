@@ -41,7 +41,9 @@ func TestUsuarioFlow(t *testing.T) {
 	assertStatus(t, res, http.StatusOK)
 
 	// Probar pago de deuda
-	res = app.request(t, http.MethodPost, "/api/empresa/pagar", map[string]string{}, tokenEmpresa)
+	res = app.request(t, http.MethodPost, "/api/empresa/pagar", map[string]interface{}{
+		"monto": 25000.0,
+	}, tokenEmpresa)
 	assertStatus(t, res, http.StatusOK)
 
 	// Verificar que la deuda quedo en 0

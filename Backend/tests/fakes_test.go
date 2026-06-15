@@ -23,9 +23,11 @@ type memoryStore struct {
 	mu           sync.Mutex
 	usuarios     map[string]*domain.Usuario
 	deudas       []domain.Deuda
+	abonos       []domain.Abono
 	estados      []domain.EstadoConTasa
 	nextDeudaID  int
 	nextEstadoID int
+	nextAbonoID  int
 }
 
 type fakeUsuarioRepo struct {
@@ -94,12 +96,14 @@ func newBackendFakes(t testing.TB) *backendFakes {
 			{ID: "deuda-persona-pagada", UsuarioID: "V123", Monto: 5000.0, Vigente: false, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
 			{ID: "deuda-empresa-1", UsuarioID: "J123", Monto: 25000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
 		},
+		abonos: []domain.Abono{},
 		estados: []domain.EstadoConTasa{
 			{ID: "est-1", Nombre: "caracas", TasaActual: 5.0},
 			{ID: "est-2", Nombre: "miranda", TasaActual: 8.0},
 		},
 		nextDeudaID:  5,
 		nextEstadoID: 3,
+		nextAbonoID:  1,
 	}
 
 	return &backendFakes{
@@ -279,17 +283,54 @@ func (r *fakeDeudaRepo) Create(ctx context.Context, d domain.Deuda) error {
 	return nil
 }
 
-func (r *fakeDeudaRepo) MarkAllAsPaid(ctx context.Context, usuarioID string) error {
+func (r *fakeDeudaRepo) CreateAbono(ctx context.Context, deudaID string, monto float64) error {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	abono := domain.Abono{
+		ID:      fmt.Sprintf("abono-%d", r.store.nextAbonoID),
+		DeudaID: deudaID,
+		Monto:   monto,
+		Fecha:   testTimestamp,
+	}
+	r.store.nextAbonoID++
+	r.store.abonos = append(r.store.abonos, abono)
+	return nil
+}
+
+func (r *fakeDeudaRepo) GetAllAbonosByUsuario(ctx context.Context, usuarioID string) ([]domain.Abono, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	// Build a set of deuda IDs that belong to this user
+	deudaIDs := make(map[string]bool)
+	for _, d := range r.store.deudas {
+		if d.UsuarioID == usuarioID {
+			deudaIDs[d.ID] = true
+		}
+	}
+
+	result := make([]domain.Abono, 0)
+	for _, a := range r.store.abonos {
+		if deudaIDs[a.DeudaID] {
+			result = append(result, a)
+		}
+	}
+	return result, nil
+}
+
+func (r *fakeDeudaRepo) UpdateEstadoDeuda(ctx context.Context, deudaID string, vigente bool) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
 	for i := range r.store.deudas {
-		if r.store.deudas[i].UsuarioID == usuarioID {
-			r.store.deudas[i].Vigente = false
+		if r.store.deudas[i].ID == deudaID {
+			r.store.deudas[i].Vigente = vigente
 			r.store.deudas[i].UpdatedAt = testTimestamp
+			return nil
 		}
 	}
-	return nil
+	return domain.ErrInvalidInput
 }
 
 // MOCK: EstadoRepository

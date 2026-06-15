@@ -26,7 +26,7 @@ func TestAdminFlow(t *testing.T) {
 	}
 
 	// El payload ahora respeta la estructura unificada (usa 'nombre' genérico)
-	res = app.request(t, http.MethodPost, "/api/admins", map[string]string{
+	res = app.request(t, http.MethodPost, "/api/admin/create", map[string]string{
 		"email":    "admin2@mail.com",
 		"password": "123456",
 		"nombre":   "Admin Dos",
@@ -50,7 +50,7 @@ func TestAdminFlow(t *testing.T) {
 		t.Fatalf("expected created admin in list, got %+v", admins)
 	}
 
-	res = app.request(t, http.MethodDelete, "/api/users/V123", nil, adminToken)
+	res = app.request(t, http.MethodDelete, "/api/admin/delete/V123", nil, adminToken)
 	assertStatus(t, res, http.StatusOK)
 
 	// Verificacion unificada
@@ -59,6 +59,6 @@ func TestAdminFlow(t *testing.T) {
 		t.Fatalf("expected usuario V123 to be deleted, got %+v", usuario)
 	}
 
-	res = app.request(t, http.MethodDelete, "/api/users/V123", nil, adminToken)
+	res = app.request(t, http.MethodDelete, "/api/admin/delete/V123", nil, adminToken)
 	assertStatus(t, res, http.StatusNotFound)
 }

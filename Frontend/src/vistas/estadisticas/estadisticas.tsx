@@ -1,35 +1,102 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import type { LoginUser } from '../../api'; // Ajusta la ruta según tu arquitectura
+import { getEstadisticas, type EstadisticasResponse } from '../../api/usuario';
 
 interface EstadisticasProps {
   user: LoginUser;
   onBack: () => void;
 }
 
-export function Estadisticas({ user, onBack }: EstadisticasProps) {
-  // Datos mockeados basados en tu plantilla original
-  const stats = {
-    totalPaid: '2.450,00 Bs.',
-    monthlyMax: '120,00 Bs.',
-    maxMonthLabel: 'JUNIO 2024',
-    debt: '0,00 Bs.',
+export function Estadisticas({ onBack }: EstadisticasProps) {
+  const [data, setData] = useState<EstadisticasResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getEstadisticas()
+      .then(setData)
+      .catch((err: Error) => setError(err.message || 'Error al cargar estadísticas'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-background text-on-background min-h-screen flex items-center justify-center">
+        <div className="text-xl">Cargando estadísticas...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-background text-on-background min-h-screen flex flex-col items-center justify-center">
+        <div className="text-xl text-red-500 mb-4">⚠️ {error}</div>
+        <button onClick={onBack} className="bg-primary-container px-6 py-2 rounded-full text-on-primary-container font-label-bold">
+          Volver al Lobby
+        </button>
+      </div>
+    );
+  }
+
+  const statsData = data || {
+    total_abonado: 0,
+    maximo_abono: 0,
+    deuda_pendiente: 0,
+    historial: []
   };
 
-  const paymentsHistory = [
-    { month: 'ENE', height: '60%' },
-    { month: 'FEB', height: '45%' },
-    { month: 'MAR', height: '80%' },
-    { month: 'ABR', height: '55%' },
-    { month: 'MAY', height: '70%' },
-    { month: 'JUN', height: '100%', isHighlight: true },
-    { month: 'JUL', height: '40%' },
-  ];
+  const formatearMonto = (m: number) => `${m.toFixed(2).replace('.', ',')} Bs.`;
 
-  const tableRows = [
-    { date: '12 Jun 2024', category: 'Residuos Urbanos', metric: '12.5 kg CO2eq', status: 'COMPLETADO', amount: '45,00 Bs.' },
-    { date: '05 Jun 2024', category: 'Emisiones Carbono', metric: '45.0 kg CO2eq', status: 'COMPLETADO', amount: '75,00 Bs.' },
-    { date: '28 May 2024', category: 'Suministros Hídricos', metric: '150 m3 Filtrados', status: 'COMPLETADO', amount: '32,40 Bs.' },
-  ];
+  const stats = {
+    totalPaid: formatearMonto(statsData.total_abonado),
+    monthlyMax: formatearMonto(statsData.maximo_abono),
+    maxMonthLabel: 'MÁXIMO HISTÓRICO',
+    debt: formatearMonto(statsData.deuda_pendiente),
+  };
+
+  const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
+  const tableRows = statsData.historial.map((abono) => {
+    // Si abono.fecha es string (ej. "2024-06-12T...") o un objeto Date, ajustamos:
+    // Asegurarse de lidiar con un string que podría venir del backend
+    const fecha = new Date(abono.fecha);
+    // Verificar si la fecha es inválida
+    const isInvalid = isNaN(fecha.getTime());
+    const dateStr = isInvalid ? abono.fecha : `${fecha.getDate().toString().padStart(2, '0')} ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
+    return {
+      date: dateStr,
+      category: 'Abono a Deuda',
+      metric: 'Pago Registrado',
+      status: 'COMPLETADO',
+      amount: formatearMonto(abono.monto)
+    };
+  });
+
+  const pagosPorMes: Record<string, number> = {};
+  let maxPagoMes = 0;
+  
+  statsData.historial.forEach(a => {
+    const d = new Date(a.fecha);
+    if (!isNaN(d.getTime())) {
+      const mStr = meses[d.getMonth()];
+      pagosPorMes[mStr] = (pagosPorMes[mStr] || 0) + a.monto;
+      if (pagosPorMes[mStr] > maxPagoMes) maxPagoMes = pagosPorMes[mStr];
+    }
+  });
+
+  const paymentsHistory = [];
+  const hoy = new Date();
+  for (let i = 6; i >= 0; i--) {
+    let d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const mesNom = meses[d.getMonth()];
+    const val = pagosPorMes[mesNom] || 0;
+    const height = maxPagoMes > 0 ? Math.max((val / maxPagoMes) * 100, 5) + '%' : '5%';
+    paymentsHistory.push({
+      month: mesNom,
+      height,
+      isHighlight: i === 0 || (val === maxPagoMes && maxPagoMes > 0)
+    });
+  }
 
   return (
     <div className="bg-background text-on-background selection:bg-tertiary-fixed selection:text-on-tertiary-fixed font-sans min-h-screen flex flex-col">
@@ -76,7 +143,7 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
             </div>
             <div className="mt-stack-md flex items-center text-on-tertiary-container gap-1">
               <span className="material-symbols-outlined text-sm">trending_up</span>
-              <span className="font-body-sm text-body-sm">+4.2% desde el año pasado</span>
+              <span className="font-body-sm text-body-sm">Abonos realizados</span>
             </div>
           </div>
 
@@ -85,7 +152,7 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
             <div>
               <div className="flex items-center gap-2 mb-stack-sm text-on-surface-variant">
                 <span className="material-symbols-outlined">event_upcoming</span>
-                <h2 className="font-label-bold text-label-bold">MÁXIMO MENSUAL</h2>
+                <h2 className="font-label-bold text-label-bold">MÁXIMO ABONO</h2>
               </div>
               <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{stats.monthlyMax}</p>
             </div>
@@ -106,8 +173,17 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
               <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{stats.debt}</p>
             </div>
             <div className="mt-stack-md flex items-center text-primary-container dark:text-primary-fixed gap-1">
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-              <span className="font-body-sm text-body-sm text-on-secondary-container">Al día con sus pagos</span>
+              {statsData.deuda_pendiente === 0 ? (
+                <>
+                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <span className="font-body-sm text-body-sm text-on-secondary-container">Al día con sus pagos</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+                  <span className="font-body-sm text-body-sm text-on-secondary-container">Tiene deuda pendiente</span>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -118,7 +194,7 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
           <div className="bg-surface-container-lowest dark:bg-surface-dim border border-outline-variant dark:border-outline tonal-elevation-1 rounded-xl p-stack-lg">
             <div className="flex justify-between items-center mb-stack-lg">
               <div className="flex items-baseline">
-                <h3 className="font-headline-sm text-headline-sm text-on-surface">Historial de Pagos</h3>
+                <h3 className="font-headline-sm text-headline-sm text-on-surface">Historial de Pagos (Últimos 7 meses)</h3>
                 <span className="font-body-sm text-body-sm text-on-surface-variant ml-2">(Importe en Bs.)</span>
               </div>
               <div className="flex gap-2">
@@ -130,9 +206,9 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
             {/* Chart Container */}
             <div className="relative h-64 flex pt-4">
               <div className="flex flex-col justify-between h-full pr-4 pb-8 text-right select-none">
-                <span className="font-label-caps text-label-caps text-on-surface-variant">150 Bs.</span>
-                <span className="font-label-caps text-label-caps text-on-surface-variant">100 Bs.</span>
-                <span className="font-label-caps text-label-caps text-on-surface-variant">50 Bs.</span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant">{maxPagoMes.toFixed(0)} Bs.</span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant">{(maxPagoMes * 0.66).toFixed(0)} Bs.</span>
+                <span className="font-label-caps text-label-caps text-on-surface-variant">{(maxPagoMes * 0.33).toFixed(0)} Bs.</span>
                 <span className="font-label-caps text-label-caps text-on-surface-variant">0 Bs.</span>
               </div>
               <div className="relative flex-grow h-full flex items-end justify-between gap-2">
@@ -176,19 +252,27 @@ export function Estadisticas({ user, onBack }: EstadisticasProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {tableRows.map((row, index) => (
-                  <tr key={index} className="hover:bg-surface-container-low/50 dark:hover:bg-surface-variant/20 transition-colors">
-                    <td className="px-stack-md py-4 font-body-md text-body-md">{row.date}</td>
-                    <td className="px-stack-md py-4 font-body-md text-body-md">{row.category}</td>
-                    <td className="px-stack-md py-4 font-body-sm text-body-sm text-on-surface-variant">{row.metric}</td>
-                    <td className="px-stack-md py-4">
-                      <span className="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg font-label-bold text-[12px]">
-                        {row.status}
-                      </span>
+                {tableRows.length > 0 ? (
+                  tableRows.map((row, index) => (
+                    <tr key={index} className="hover:bg-surface-container-low/50 dark:hover:bg-surface-variant/20 transition-colors">
+                      <td className="px-stack-md py-4 font-body-md text-body-md">{row.date}</td>
+                      <td className="px-stack-md py-4 font-body-md text-body-md">{row.category}</td>
+                      <td className="px-stack-md py-4 font-body-sm text-body-sm text-on-surface-variant">{row.metric}</td>
+                      <td className="px-stack-md py-4">
+                        <span className="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-lg font-label-bold text-[12px]">
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-stack-md py-4 font-label-bold text-label-bold text-right">{row.amount}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-stack-md py-4 text-center font-body-md text-body-md text-on-surface-variant">
+                      No hay abonos registrados en el historial
                     </td>
-                    <td className="px-stack-md py-4 font-label-bold text-label-bold text-right">{row.amount}</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

@@ -75,16 +75,29 @@ model TasaEstado {
 
 // Lo mismo que para los usuarios xd se estaran unificando las tablas de deudas de personas y empresas en una sola
 model Deuda {
-  id         String   @id @default(uuid())
-  usuario_id String
-  monto      Float
-  vigente    Boolean  @default(true)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  usuario    Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  id              String   @id @default(uuid())
+  usuario_id      String
+  monto           Float    // Monto total de la deuda generada
+  vigente         Boolean  @default(true)
+  created_at      DateTime @default(now())
+  
+  usuario         Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  abonos          Abono[]  // Historial de pagos específicos para esta deuda
 
   @@index([usuario_id, vigente])
   @@map("deudas")
+}
+
+model Abono {
+  id         String   @id @default(uuid())
+  deuda_id   String
+  monto      Float    // El dinero real que el usuario ha abonado
+  fecha      DateTime @default(now())
+  
+  deuda      Deuda    @relation(fields: [deuda_id], references: [id], onDelete: Cascade)
+
+  @@index([deuda_id, fecha])
+  @@map("abonos")
 }
 
 model Curso {

@@ -15,6 +15,10 @@ type UsuarioHandler struct {
 	usuarioService *services.UsuarioService
 }
 
+type PayDeudaRequest struct {
+	Monto float64 `json:"monto"`
+}
+
 func NewUsuarioHandler(usuarioService *services.UsuarioService) *UsuarioHandler {
 	return &UsuarioHandler{
 		usuarioService: usuarioService,
@@ -81,11 +85,35 @@ func (h *UsuarioHandler) PayDeuda(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.usuarioService.PayDeuda(r.Context(), claims.ID)
+	var req PayDeudaRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Monto <= 0 {
+		utils.SendJSONError(w, http.StatusBadRequest, "Monto inválido")
+		return
+	}
+
+	// Ahora pasamos el monto al servicio para crear el registro en la tabla 'Abono'
+	err := h.usuarioService.RegistrarAbono(r.Context(), claims.ID, req.Monto)
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Deuda pagada exitosamente"})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Abono registrado exitosamente"})
+}
+
+func (h *UsuarioHandler) GetEstadisticas(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+		return
+	}
+
+	// El servicio hará las 4 consultas que definimos (Suma, Max, Deuda-Abonos, Historial)
+	estadisticas, err := h.usuarioService.GetEstadisticasUsuario(r.Context(), claims.ID)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, estadisticas)
 }

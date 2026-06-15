@@ -62,3 +62,25 @@ export async function realizarPago(payload?: PagarPayload): Promise<PagoResponse
     body: JSON.stringify(payload || {}),
   });
 }
+
+export type AbonoRecord = {
+  id: string;
+  deuda_id: string;
+  monto: number;
+  fecha: string;
+};
+
+export type EstadisticasResponse = {
+  total_abonado: number;
+  maximo_abono: number;
+  deuda_pendiente: number;
+  historial: AbonoRecord[];
+};
+
+/** Obtiene las estadísticas del usuario autenticado */
+export async function getEstadisticas(): Promise<EstadisticasResponse> {
+  return apiRequest<EstadisticasResponse>('/api/usuario/estadisticas', {
+    method: 'GET',
+    auth: true,
+  });
+}
