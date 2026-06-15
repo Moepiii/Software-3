@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('http://localhost:5173/');
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await page.getByRole('textbox', { name: 'Correo Electrónico' }).click();
+  await page.getByRole('textbox', { name: 'Correo Electrónico' }).fill('persona@persona.com');
+  await page.getByRole('textbox', { name: 'Contraseña' }).click();
+  await page.getByRole('textbox', { name: 'Contraseña' }).fill('123456');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: '⚙️ Configuración' }).click();
+  await page.getByRole('textbox', { name: 'Full Name' }).click();
+  await page.getByRole('textbox', { name: 'Full Name' }).fill('Juan Perez');
+  await page.getByRole('button', { name: 'save Save Changes' }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: '⚙️ Configuración' }).click();
+  await page.getByRole('textbox', { name: 'Full Name' }).click();
+  await expect(page.getByRole('textbox', { name: 'Full Name' })).toBeVisible();
+  await page.getByRole('textbox', { name: 'Full Name' }).click();
+  await page.getByRole('button', { name: 'Cancel Changes' }).click();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: '⚙️ Configuración' }).click();
+  await expect(page.getByRole('textbox', { name: 'Full Name' })).toBeVisible();
+  await page.getByRole('button', { name: 'Volver al Lobby' }).click();
+  await expect(page.getByRole('heading', { name: 'Panel de Persona' })).toBeVisible();
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.getByRole('button', { name: '⚙️ Configuración' }).click();
+  await page.getByRole('button', { name: 'logout Log Out' }).click();
+  await expect(page.getByRole('heading', { name: 'Menos residuos, menos' })).toBeVisible();
+});

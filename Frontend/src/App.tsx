@@ -7,11 +7,12 @@ import FlujoAutenticacion from './vistas/autenticacion/FlujoAutenticacion';
 import DisenoPersona from './vistas/persona/DisenoPersona';
 import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
 import DisenoAdmin from './vistas/administrador/DisenoAdmin';
+import Estadisticas from './vistas/estadisticas/estadisticas';
 import { SettingsView as VistaConfiguracion } from './vistas/autenticacion/VistaConfiguracion';
 
 import { clearToken, decodeSession, getToken, saveToken, type LoginUser } from './api';
 
-type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion';
+type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion' | 'estadisticas';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -36,6 +37,7 @@ function App() {
   const handleNavegarPanel = () => setVistaActual('panel');
   const handleNavegarLogin = () => setVistaActual('login');
   const handleNavegarRegistro = () => setVistaActual('registro');
+  const handleNavegarEstadisticas = () => setVistaActual('estadisticas');
 
   const handleActualizarUsuario = (usuarioActualizado: LoginUser) => {
     setUser(usuarioActualizado);
@@ -94,8 +96,17 @@ function App() {
     // 🔧 Corregido: user.tipo en lugar de user.userType
     if (user.tipo === 'NATURAL') {
       return (
-        <DisenoPersona onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
-          <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
+        <DisenoPersona 
+          onLogout={handleLogout} 
+          onNavigateSettings={handleNavegarConfiguracion}
+          onNavigateStats={handleNavegarEstadisticas} // 1. Le avisamos al hijo qué hacer
+        >
+          {/* 2. El padre decide qué hijo interno mostrar según el estado */}
+          {vistaActual === 'estadisticas' ? (
+            <Estadisticas user={user} onBack={handleNavegarPanel} />
+          ) : (
+            <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
+          )}
         </DisenoPersona>
       );
     }

@@ -107,12 +107,24 @@
       }
     </script>
     <style>
+        body { font-family: 'Inter', sans-serif; } 
+        
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         .tonal-elevation-1 {
             box-shadow: 0 4px 12px rgba(27, 67, 50, 0.04);
         }
+        
+        .ambient-card-shadow { 
+            box-shadow: 0 4px 12px rgba(27, 67, 50, 0.04); 
+        }
+        
+        .chart-bar-hover:hover { 
+            opacity: 0.8; 
+            cursor: pointer; 
+        }
+        
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
