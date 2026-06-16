@@ -46,6 +46,7 @@ func NewRouter(
 
 	// === Rutas de cursos ===
 	mux.HandleFunc("GET /api/cursos", authMiddleware.RequireAuth(cursoHandler.GetCursos))
+	mux.HandleFunc("POST /api/cursos/{id}/reservar", authMiddleware.RequireAuth(cursoHandler.ReservarCurso))
 	mux.HandleFunc("POST /api/cursos", authMiddleware.RequireAdmin(cursoHandler.CreateCurso))
 	mux.HandleFunc("PUT /api/cursos/{id}", authMiddleware.RequireAdmin(cursoHandler.UpdateCurso))
 	mux.HandleFunc("DELETE /api/cursos/{id}", authMiddleware.RequireAdmin(cursoHandler.DeleteCurso))

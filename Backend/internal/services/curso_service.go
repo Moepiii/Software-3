@@ -55,3 +55,10 @@ func (s *CursoService) DeleteCurso(ctx context.Context, id string) error {
 	}
 	return s.repo.Delete(ctx, id)
 }
+
+func (s *CursoService) ReservarCurso(ctx context.Context, usuarioID string, cursoID string) error {
+	if usuarioID == "" || cursoID == "" {
+		return errors.New("id de usuario y curso son requeridos")
+	}
+	return s.repo.InscribirUsuario(ctx, usuarioID, cursoID)
+}
