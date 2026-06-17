@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"Backend/internal/domain"
+	"Backend/internal/middleware"
 	"Backend/internal/services"
 	"Backend/internal/utils"
 	"encoding/json"
@@ -80,4 +81,26 @@ func (h *CursoHandler) DeleteCurso(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *CursoHandler) ReservarCurso(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		parts := strings.Split(r.URL.Path, "/")
+		id = parts[len(parts)-1]
+	}
+
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+
+	err := h.cursoService.ReservarCurso(r.Context(), claims.ID, id)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error reservando curso")
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Curso reservado exitosamente"})
 }

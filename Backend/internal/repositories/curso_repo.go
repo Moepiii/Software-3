@@ -147,3 +147,17 @@ func (r *CursoRepository) Delete(ctx context.Context, id string) error {
 	).Delete().Exec(ctx)
 	return err
 }
+
+func (r *CursoRepository) InscribirUsuario(ctx context.Context, usuarioID string, cursoID string) error {
+	_, err := r.client.Inscripcion.CreateOne(
+		db.Inscripcion.Usuario.Link(
+			db.Usuarios.ID.Equals(usuarioID),
+		),
+		db.Inscripcion.Curso.Link(
+			db.Curso.ID.Equals(cursoID),
+		),
+		db.Inscripcion.Estado.Set("activa"),
+	).Exec(ctx)
+	return err
+}
+

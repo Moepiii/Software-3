@@ -10,11 +10,13 @@ interface LayoutPersonaProps {
     onLogout?: () => void;
     onNavigateSettings?: () => void;
     onNavigateStats?: () => void;
+    onNavigateCursos?: () => void;
+    onNavigatePanel?: () => void;
 }
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function DisenoPersona({ children, onLogout, onNavigateSettings, onNavigateStats }: LayoutPersonaProps) {
+export default function DisenoPersona({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel }: LayoutPersonaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -188,7 +190,10 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
             {/* HEADER VERDE OSCURO */}
             <header style={headerStyle}>
                 <div style={headerContentStyle}>
-                    <div style={logoContainerStyle}>
+                    <div 
+                        style={{...logoContainerStyle, cursor: 'pointer'}} 
+                        onClick={() => { if (onNavigatePanel) onNavigatePanel(); }}
+                    >
                         <img src={logo} alt="Logo" style={logoImgStyle} />
                         <div style={logoTipoStyle}>EcoLogic</div>
                     </div>
@@ -197,6 +202,22 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                         <a
                             href="#"
                             style={navLinkStyle}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (onNavigatePanel) onNavigatePanel();
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
+                        >
+                            Inicio
+                        </a>
+                        <a
+                            href="#"
+                            style={navLinkStyle}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (onNavigateCursos) onNavigateCursos();
+                            }}
                             onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
                             onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
                         >

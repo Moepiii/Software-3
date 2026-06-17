@@ -9,10 +9,11 @@ import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
 import DisenoAdmin from './vistas/administrador/DisenoAdmin';
 import Estadisticas from './vistas/estadisticas/estadisticas';
 import { SettingsView as VistaConfiguracion } from './vistas/autenticacion/VistaConfiguracion';
+import CursosDisponibles from './vistas/persona/CursosDisponibles';
 
 import { clearToken, decodeSession, getToken, saveToken, type LoginUser } from './api';
 
-type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion' | 'estadisticas';
+type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion' | 'estadisticas' | 'cursos';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,6 +39,7 @@ function App() {
   const handleNavegarLogin = () => setVistaActual('login');
   const handleNavegarRegistro = () => setVistaActual('registro');
   const handleNavegarEstadisticas = () => setVistaActual('estadisticas');
+  const handleNavegarCursos = () => setVistaActual('cursos');
 
   const handleActualizarUsuario = (usuarioActualizado: LoginUser) => {
     setUser(usuarioActualizado);
@@ -99,11 +101,15 @@ function App() {
         <DisenoPersona 
           onLogout={handleLogout} 
           onNavigateSettings={handleNavegarConfiguracion}
-          onNavigateStats={handleNavegarEstadisticas} // 1. Le avisamos al hijo qué hacer
+          onNavigateStats={handleNavegarEstadisticas}
+          onNavigateCursos={handleNavegarCursos}
+          onNavigatePanel={handleNavegarPanel}
         >
           {/* 2. El padre decide qué hijo interno mostrar según el estado */}
           {vistaActual === 'estadisticas' ? (
             <Estadisticas user={user} onBack={handleNavegarPanel} />
+          ) : vistaActual === 'cursos' ? (
+            <CursosDisponibles />
           ) : (
             <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
           )}

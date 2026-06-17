@@ -72,3 +72,12 @@ export async function eliminarCurso(id: string): Promise<void> {
         auth: true,
     });
 }
+
+// Reservar un curso
+export async function reservarCurso(id: string): Promise<{message: string}> {
+    const data = await apiRequest<{message: string}>(`/api/cursos/${encodeURIComponent(id)}/reservar`, {
+        method: 'POST',
+        auth: true,
+    });
+    return data;
+}
