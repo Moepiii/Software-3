@@ -5,6 +5,13 @@ const config: Config = {
   // Especificamos el entorno DOM completo para React
   testEnvironment: 'jest-environment-jsdom', 
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
+  
+  // Añadimos los patrones para ignorar carpetas
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/' // <--- Esto le dice a Jest que ignore tu carpeta "test" por completo
+  ],
+
   moduleNameMapper: {
     // Evita que Jest choque si importas archivos CSS en tus componentes
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',

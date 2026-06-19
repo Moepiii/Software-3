@@ -12,7 +12,7 @@ test.describe('Flujo de Pago - Pago Móvil', () => {
         // ============================================
         // PASO 1: Iniciar sesión
         // ============================================
-        await page.goto('/');
+        await page.goto('http://localhost:5173/');  await page.goto('/'); 
         await expect(page.getByText('EcoLogic')).toBeVisible();
         await page.getByRole('button', { name: 'Iniciar sesión' }).click();
         await page.waitForTimeout(1000);

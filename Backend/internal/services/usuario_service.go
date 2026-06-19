@@ -1,8 +1,3 @@
-/*
-Ya se la saben xD
-
-Este archivo unifica los servicios para los usuarios persona y empresa
-*/
 package services
 
 import (
@@ -35,7 +30,7 @@ func NewUsuarioService(
 	}
 }
 
-// GetDeudaVigente ahora calcula: Monto Original - Total Abonado
+// GetDeudaVigente ahora calcula de forma precisa la suma pendiente real
 func (s *UsuarioService) GetDeudaVigente(ctx context.Context, usuarioID string) (*DeudaResponse, error) {
 	deudas, err := s.deudaRepo.FindVigentesByUsuario(ctx, usuarioID)
 	if err != nil {
@@ -47,32 +42,82 @@ func (s *UsuarioService) GetDeudaVigente(ctx context.Context, usuarioID string) 
 		totalDeuda += d.Monto
 	}
 
-	// Restamos lo que ya se ha abonado (necesitas implementar esta lógica en el repo)
-	abonos, _ := s.deudaRepo.GetAllAbonosByUsuario(ctx, usuarioID)
+	abonos, err := s.deudaRepo.GetAllAbonosByUsuario(ctx, usuarioID)
+	if err != nil {
+		return nil, err
+	}
+
 	totalAbonado := 0.0
 	for _, a := range abonos {
 		totalAbonado += a.Monto
 	}
 
+	montoPendiente := totalDeuda - totalAbonado
+	if montoPendiente < 0 {
+		montoPendiente = 0
+	}
+
 	return &DeudaResponse{
-		Monto:    totalDeuda - totalAbonado,
-		HasDeuda: (totalDeuda - totalAbonado) > 0,
+		Monto:    montoPendiente,
+		HasDeuda: montoPendiente > 0,
 	}, nil
 }
 
-// RegistrarAbono es la nueva lógica de pago
+// RegistrarAbono ahora cierra la deuda automáticamente si se salda por completo
 func (s *UsuarioService) RegistrarAbono(ctx context.Context, usuarioID string, monto float64) error {
+	if monto <= 0 {
+		return errors.New("el monto del abono debe ser mayor a cero")
+	}
+
 	deudas, err := s.deudaRepo.FindVigentesByUsuario(ctx, usuarioID)
-	if err != nil || len(deudas) == 0 {
+	if err != nil {
+		return err
+	}
+	if len(deudas) == 0 {
 		return errors.New("no hay deudas vigentes para abonar")
 	}
 
-	// Tomamos la primera deuda vigente (o implementa lógica de prioridad FIFO)
+	// Estrategia FIFO: Abonamos a la deuda más antigua que esté vigente
 	deuda := deudas[0]
-	return s.deudaRepo.CreateAbono(ctx, deuda.ID, monto)
+
+	// Buscamos cuánto se ha abonado específicamente a ESTA deuda anteriormente
+	// Nota: Para sistemas multi-deuda es ideal filtrar abonos por deuda.ID en el futuro
+	abonos, err := s.deudaRepo.GetAllAbonosByUsuario(ctx, usuarioID)
+	if err != nil {
+		return err
+	}
+
+	totalAbonadoAnterior := 0.0
+	for _, a := range abonos {
+		if a.DeudaID == deuda.ID {
+			totalAbonadoAnterior += a.Monto
+		}
+	}
+
+	saldoPendienteDeuda := deuda.Monto - totalAbonadoAnterior
+
+	if monto > saldoPendienteDeuda {
+		return errors.New("el monto del abono supera el saldo pendiente de la deuda")
+	}
+
+	// 1. Registramos el abono real en la tabla de Abonos
+	err = s.deudaRepo.CreateAbono(ctx, deuda.ID, monto)
+	if err != nil {
+		return err
+	}
+
+	// 2. Si el nuevo abono liquida la deuda, la desactivamos (Vigente = false)
+	if (totalAbonadoAnterior + monto) >= deuda.Monto {
+		err = s.deudaRepo.UpdateEstadoDeuda(ctx, deuda.ID, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// GetEstadisticasUsuario calcula los 4 KPIs solicitados
+// GetEstadisticasUsuario expone de manera limpia la data calculada para los KPIs
 func (s *UsuarioService) GetEstadisticasUsuario(ctx context.Context, usuarioID string) (map[string]interface{}, error) {
 	abonos, err := s.deudaRepo.GetAllAbonosByUsuario(ctx, usuarioID)
 	if err != nil {
@@ -88,17 +133,19 @@ func (s *UsuarioService) GetEstadisticasUsuario(ctx context.Context, usuarioID s
 		}
 	}
 
-	deuda, _ := s.GetDeudaVigente(ctx, usuarioID)
+	deudaResp, err := s.GetDeudaVigente(ctx, usuarioID)
+	if err != nil {
+		return nil, err
+	}
 
 	return map[string]interface{}{
 		"total_abonado":   totalAbonado,
 		"maximo_abono":    maxAbono,
-		"deuda_pendiente": deuda.Monto,
+		"deuda_pendiente": deudaResp.Monto,
 		"historial":       abonos,
 	}, nil
 }
 
-// Métodos anteriores se mantienen igual...
 func (s *UsuarioService) ListEstadosConTasa(ctx context.Context) ([]domain.EstadoConTasa, error) {
 	return s.estadoRepo.ListAll(ctx)
 }
