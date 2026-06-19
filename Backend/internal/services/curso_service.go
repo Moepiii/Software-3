@@ -60,5 +60,32 @@ func (s *CursoService) ReservarCurso(ctx context.Context, usuarioID string, curs
 	if usuarioID == "" || cursoID == "" {
 		return errors.New("id de usuario y curso son requeridos")
 	}
+
+	// Verificar si el curso existe y no está finalizado
+	curso, err := s.repo.GetByID(ctx, cursoID)
+	if err != nil {
+		return errors.New("curso no encontrado")
+	}
+
+	if curso.Estado == "finalizado" {
+		return errors.New("el curso ya ha finalizado y no se puede reservar")
+	}
+
+	// Verificar si ya está inscrito
+	inscrito, err := s.repo.EstaInscrito(ctx, usuarioID, cursoID)
+	if err != nil {
+		return errors.New("error al verificar inscripción")
+	}
+	if inscrito {
+		return errors.New("ya estás inscrito en este curso")
+	}
+
 	return s.repo.InscribirUsuario(ctx, usuarioID, cursoID)
+}
+
+func (s *CursoService) GetMisReservas(ctx context.Context, usuarioID string) ([]string, error) {
+	if usuarioID == "" {
+		return nil, errors.New("id de usuario es requerido")
+	}
+	return s.repo.GetInscripcionesUsuario(ctx, usuarioID)
 }

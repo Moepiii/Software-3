@@ -104,3 +104,23 @@ func (h *CursoHandler) ReservarCurso(w http.ResponseWriter, r *http.Request) {
 
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Curso reservado exitosamente"})
 }
+
+func (h *CursoHandler) GetMisReservas(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+
+	reservas, err := h.cursoService.GetMisReservas(r.Context(), claims.ID)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error obteniendo reservas")
+		return
+	}
+
+	if reservas == nil {
+		reservas = []string{}
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, reservas)
+}

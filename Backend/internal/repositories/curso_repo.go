@@ -91,6 +91,32 @@ func (r *CursoRepository) GetAll(ctx context.Context) ([]domain.Curso, error) {
 	return result, nil
 }
 
+func (r *CursoRepository) GetByID(ctx context.Context, id string) (*domain.Curso, error) {
+	c, err := r.client.Curso.FindUnique(
+		db.Curso.ID.Equals(id),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cat, _ := c.Categoria()
+	img, _ := c.Imagen()
+
+	return &domain.Curso{
+		ID:          c.ID,
+		Titulo:      c.Titulo,
+		Descripcion: c.Descripcion,
+		FechaInicio: c.FechaInicio,
+		FechaFin:    c.FechaFin,
+		Estado:      c.Estado,
+		Categoria:   &cat,
+		Imagen:      &img,
+		CreatedAt:   c.CreatedAt,
+		UpdatedAt:   c.UpdatedAt,
+	}, nil
+}
+
+
 func (r *CursoRepository) Update(ctx context.Context, id string, updates domain.UpdateCursoRequest) (*domain.Curso, error) {
 	var setParams []db.CursoSetParam
 
@@ -159,5 +185,31 @@ func (r *CursoRepository) InscribirUsuario(ctx context.Context, usuarioID string
 		db.Inscripcion.Estado.Set("activa"),
 	).Exec(ctx)
 	return err
+}
+
+func (r *CursoRepository) GetInscripcionesUsuario(ctx context.Context, usuarioID string) ([]string, error) {
+	inscripciones, err := r.client.Inscripcion.FindMany(
+		db.Inscripcion.UsuarioID.Equals(usuarioID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	
+	var ids []string
+	for _, ins := range inscripciones {
+		ids = append(ids, ins.CursoID)
+	}
+	return ids, nil
+}
+
+func (r *CursoRepository) EstaInscrito(ctx context.Context, usuarioID, cursoID string) (bool, error) {
+	inscripciones, err := r.client.Inscripcion.FindMany(
+		db.Inscripcion.UsuarioID.Equals(usuarioID),
+		db.Inscripcion.CursoID.Equals(cursoID),
+	).Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+	return len(inscripciones) > 0, nil
 }
 
