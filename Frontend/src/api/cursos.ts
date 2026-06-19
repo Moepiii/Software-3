@@ -81,3 +81,12 @@ export async function reservarCurso(id: string): Promise<{message: string}> {
     });
     return data;
 }
+
+// Obtener las reservas del usuario actual
+export async function listarMisReservas(): Promise<string[]> {
+    const data = await apiRequest<string[]>('/api/cursos/mis-reservas', {
+        method: 'GET',
+        auth: true,
+    });
+    return data;
+}

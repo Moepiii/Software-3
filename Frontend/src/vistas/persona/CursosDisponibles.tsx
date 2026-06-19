@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { listarCursos, reservarCurso, type Curso } from '../../api/cursos';
+import { listarCursos, reservarCurso, listarMisReservas, type Curso } from '../../api/cursos';
 
 interface CursosDisponiblesProps {
     isDarkMode?: boolean;
@@ -47,8 +47,12 @@ export default function CursosDisponibles({ isDarkMode = false }: CursosDisponib
         try {
             const imagenes = importarImagenes();
             setImagenesDisponibles(imagenes);
-            const data = await listarCursos();
+            const [data, reservasData] = await Promise.all([
+                listarCursos(),
+                listarMisReservas().catch(() => []) // Fallback in case it fails
+            ]);
             setCursos(Array.isArray(data) ? data : []);
+            setReservedIds(Array.isArray(reservasData) ? reservasData : []);
         } catch (e: any) {
             setErrorMsg(e.message || 'Error al cargar los cursos disponibles.');
         } finally {
