@@ -1,0 +1,15 @@
+{
+  "name": "ecologic-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "pnpm --dir Frontend run dev",
+    "build:frontend": "pnpm --dir Frontend run build",
+    "test:frontend": "pnpm --dir Frontend run test",
+    "lint:frontend": "pnpm --dir Frontend run lint",
+    "dev:backend": "cd Backend && go run cmd/server/main.go",
+    "test:backend": "cd Backend && go test ./tests -count=1 -v",
+    "db:up": "cd Backend && docker compose up -d postgres",
+    "db:down": "cd Backend && docker compose down",
+    "db:reset": "cd Backend && make db-reset"
+  }
+}

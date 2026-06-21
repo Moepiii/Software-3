@@ -1,6 +1,12 @@
 {
+	"name": "ecologic-backend",
+	"private": true,
 	"devDependencies": {
 		"prisma": "^7.8.0"
+	},
+	"scripts": {
+		"prisma:generate": "go run github.com/steebchen/prisma-client-go generate",
+		"prisma:migrate": "go run github.com/steebchen/prisma-client-go migrate dev"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": ["@prisma/engines", "prisma"]

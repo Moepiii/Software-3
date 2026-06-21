@@ -80,6 +80,7 @@ model Deuda {
   monto           Float    // Monto total de la deuda generada
   vigente         Boolean  @default(true)
   created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
   
   usuario         Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
   abonos          Abono[]  // Historial de pagos específicos para esta deuda

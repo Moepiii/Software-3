@@ -6,8 +6,16 @@
 * **PostgreSQL**
 
 # Correr el Proyecto
+
+# Paso previo
+Desde la raíz del repositorio, instala las dependencias con `pnpm`:
+
+```bash
+pnpm install
+```
+
 # Backend
-Este proyecto se maneja usando prisma y docker. Es decir que no se puede correr de golpe haciendo un go run. Antes de seguir colocate en la carpeta de backend
+Este proyecto se maneja usando prisma y docker. Antes de seguir, colocate en la carpeta de `Backend` o usa los scripts de la raíz.
 
 # Paso 1. Montar la base de datos
 Utiliza el comando
@@ -41,31 +49,16 @@ go run cmd/server/main.go
 ```
 
 # Frontend
-Posicionate en la carpeta llamada frotend
-# Paso 1. Preinstalacion Segura
-
-Debido a los problemas de hackeo se usara un gestor de paquetes distintos al comun.
-Ejecuta
+Posicionate en la carpeta llamada `Frontend` o ejecuta el script de la raíz.
 
 ```bash
-npm install -g pnpm
+pnpm --dir Frontend run dev
 ```
-Esto instalara el nuevo gesto de paquetes pnpm.
 
-Si se instalo correctamente con
-
-```bash
-pnpm -v
-```
-Deberias ver la version
-
-# Paso 2. Corre el programa.
-
-Ejecuta 
+Si prefieres usar el script raíz:
 
 ```bash
-pnpm install
-pnpm run dev
+pnpm run dev:frontend
 ```
 # EXTRA
 pnmp tiene el comando

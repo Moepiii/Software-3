@@ -34,7 +34,7 @@ db-reset:
 	go run github.com/steebchen/prisma-client-go generate
 
 dev:
-	go run main.go
+	go run cmd/server/main.go
 
 test-backend-auth:
 	go test ./tests -run TestAuthFlow -count=1 -v
