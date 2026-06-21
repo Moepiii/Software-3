@@ -184,66 +184,64 @@ Si un curso otorga `100` puntos base:
 ### 8.5 Estructura de datos por etapas del curso
 Para que la logica de puntos sea escalable, cada curso deberia modelarse con una estructura que permita saber cuanto vale, en que etapa va el usuario, cuantos puntos se liberan y cuando se considera completado.
 
+#### Tabla: relacion con las tablas existentes en la BD
+| Tabla actual | Relacion | Tabla nueva | Descripcion |
+| --- | --- | --- | --- |
+| `Curso` | 1 a N | `CursoEtapa` | Un curso puede tener varias etapas |
+| `Curso` | 1 a 1 o 1 a N | `CursoPuntos` | Define el valor base de puntos del curso |
+| `Inscripcion` | 1 a 1 | `ProgresoCurso` | Cada inscripcion conserva un unico progreso activo |
+| `ProgresoCurso` | 1 a N | `HistorialPuntos` | Cada cambio de etapa genera un registro auditable |
+
 #### Tabla: estructura base del curso
-| Campo | Tipo sugerido | Descripcion |
-| --- | --- | --- |
-| `id` | string | Identificador unico del curso |
-| `titulo` | string | Nombre visible del curso |
-| `descripcion` | string | Resumen del contenido |
-| `estado` | string | Estado del curso: planificado, activo o finalizado |
-| `fecha_inicio` | string/date | Fecha de inicio |
-| `fecha_fin` | string/date | Fecha de cierre |
-| `categoria` | string | Categoria o nivel del curso |
-| `imagen` | string | Imagen asociada al curso |
-| `puntos_base` | number | Total de puntos que otorga el curso |
-| `progreso_total` | number | Progreso objetivo, normalmente 100 |
+| Campo | Tipo sugerido | Tabla origen | Descripcion |
+| --- | --- | --- | --- |
+| `id` | string | `Curso` | Identificador unico del curso |
+| `titulo` | string | `Curso` | Nombre visible del curso |
+| `descripcion` | string | `Curso` | Resumen del contenido |
+| `estado` | string | `Curso` | Estado del curso: planificado, activo o finalizado |
+| `fecha_inicio` | string/date | `Curso` | Fecha de inicio |
+| `fecha_fin` | string/date | `Curso` | Fecha de cierre |
+| `categoria` | string | `Curso` | Categoria o nivel del curso |
+| `imagen` | string | `Curso` | Imagen asociada al curso |
+| `puntos_base` | number | `CursoPuntos` | Total de puntos que otorga el curso |
+| `progreso_total` | number | `CursoPuntos` | Progreso objetivo, normalmente 100 |
 
 #### Tabla: estructura de etapas del curso
-| Campo | Tipo sugerido | Descripcion |
-| --- | --- | --- |
-| `orden` | number | Posicion de la etapa dentro del curso |
-| `nombre` | string | Nombre visible de la etapa |
-| `porcentaje_minimo` | number | Progreso minimo para entrar en la etapa |
-| `porcentaje_maximo` | number | Progreso maximo para permanecer en la etapa |
-| `puntos_otorgados` | number | Puntos que libera esa etapa |
-| `es_final` | boolean | Indica si la etapa completa el curso |
-
-#### Tabla: ejemplo de curso con etapas
-| Orden | Etapa | Rango de progreso | Puntos otorgados | Final |
-| --- | --- | --- | --- | --- |
-| 1 | Inscripcion y bienvenida | 0% - 24% | 0 | No |
-| 2 | Modulo inicial | 25% - 49% | 25 | No |
-| 3 | Modulo intermedio | 50% - 74% | 50 | No |
-| 4 | Modulo avanzado | 75% - 99% | 75 | No |
-| 5 | Curso completado | 100% | 100 | Si |
+| Campo | Tipo sugerido | Tabla origen | Descripcion |
+| --- | --- | --- | --- |
+| `id` | string | `CursoEtapa` | Identificador unico de la etapa |
+| `curso_id` | string | `CursoEtapa` | Relacion con el curso padre |
+| `orden` | number | `CursoEtapa` | Posicion de la etapa dentro del curso |
+| `nombre` | string | `CursoEtapa` | Nombre visible de la etapa |
+| `porcentaje_minimo` | number | `CursoEtapa` | Progreso minimo para entrar en la etapa |
+| `porcentaje_maximo` | number | `CursoEtapa` | Progreso maximo para permanecer en la etapa |
+| `puntos_otorgados` | number | `CursoEtapa` | Puntos que libera esa etapa |
+| `es_final` | boolean | `CursoEtapa` | Indica si la etapa completa el curso |
 
 #### Tabla: progreso del usuario en el curso
-| Campo | Tipo sugerido | Descripcion |
-| --- | --- | --- |
-| `usuario_id` | string | Usuario autenticado que avanza en el curso |
-| `curso_id` | string | Curso al que pertenece el progreso |
-| `inscripcion_id` | string | Relacion con la inscripcion activa |
-| `progreso_pct` | number | Porcentaje actual de avance |
-| `etapa_actual` | string o number | Etapa alcanzada por el usuario |
-| `puntos_acreditados` | number | Total de puntos ya liberados para ese curso |
-| `completado` | boolean | Indica si el curso fue finalizado |
-| `fecha_ultima_actualizacion` | date/time | Ultima vez que se recalculo el progreso |
+| Campo | Tipo sugerido | Tabla origen | Descripcion |
+| --- | --- | --- | --- |
+| `id` | string | `ProgresoCurso` | Identificador unico del progreso |
+| `inscripcion_id` | string | `ProgresoCurso` | Relacion 1 a 1 con la inscripcion |
+| `usuario_id` | string | `ProgresoCurso` | Usuario autenticado que avanza en el curso |
+| `curso_id` | string | `ProgresoCurso` | Curso al que pertenece el progreso |
+| `progreso_pct` | number | `ProgresoCurso` | Porcentaje actual de avance |
+| `etapa_actual_id` | string | `ProgresoCurso` | Etapa alcanzada por el usuario |
+| `puntos_acreditados` | number | `ProgresoCurso` | Total de puntos ya liberados para ese curso |
+| `completado` | boolean | `ProgresoCurso` | Indica si el curso fue finalizado |
+| `fecha_ultima_actualizacion` | date/time | `ProgresoCurso` | Ultima vez que se recalculo el progreso |
 
-#### Tabla: regla de calculo por etapa
-| Regla | Comportamiento |
-| --- | --- |
-| Entrada a una nueva etapa | Se libera el puntaje asociado solo una vez |
-| Avance dentro de la misma etapa | No se vuelve a sumar el mismo puntaje |
-| Completar la ultima etapa | El curso se marca como completado y se libera el `puntos_base` total |
-| Validacion backend | Se compara el puntaje ya acreditado con el que corresponde a la etapa actual para evitar duplicados |
-
-#### Tabla: ejemplo de flujo de puntos
-| Progreso | Etapa alcanzada | Puntos acumulados |
-| --- | --- | --- |
-| 30% | Etapa 2 | 25 puntos |
-| 60% | Etapa 3 | 50 puntos |
-| 80% | Etapa 4 | 75 puntos |
-| 100% | Etapa 5 | 100 puntos |
+#### Tabla: historial de puntos
+| Campo | Tipo sugerido | Tabla origen | Descripcion |
+| --- | --- | --- | --- |
+| `id` | string | `HistorialPuntos` | Identificador unico del registro |
+| `progreso_curso_id` | string | `HistorialPuntos` | Progreso que origino el registro |
+| `usuario_id` | string | `HistorialPuntos` | Usuario al que se le acreditan los puntos |
+| `curso_id` | string | `HistorialPuntos` | Curso que genero los puntos |
+| `etapa_id` | string | `HistorialPuntos` | Etapa que disparo la acreditacion |
+| `puntos_ganados` | number | `HistorialPuntos` | Cantidad de puntos liberados |
+| `tipo_movimiento` | string | `HistorialPuntos` | Ejemplo: acreditacion, ajuste, reverso |
+| `creado_en` | date/time | `HistorialPuntos` | Fecha del registro |
 
 #### Recomendacion tecnica
 | Paso | Accion |
