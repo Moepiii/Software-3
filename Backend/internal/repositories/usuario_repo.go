@@ -1,12 +1,3 @@
-/*
-Parte de la refactorizacion
-
-Este archivo contiene el repositorio unificado de los usuarios de tipo persona y empresa.
-
-Tambien unifica a los usuarios con rol admin
-
-*/
-
 package repositories
 
 import (
@@ -15,203 +6,234 @@ import (
 	"context"
 )
 
-type UsuarioRepository interface {
-	Create(ctx context.Context, u domain.Usuario) error
-	FindByEmail(ctx context.Context, email string) (*domain.Usuario, error)
-	FindByIdentificacion(ctx context.Context, identificacion string) (*domain.Usuario, error)
-	EmailExists(ctx context.Context, email string) (bool, error)
-	IdentificacionExists(ctx context.Context, identificacion string) (bool, error)
-	ListAdmins(ctx context.Context) ([]domain.Usuario, error)
-	Delete(ctx context.Context, id string) error
-	UpdateEstado(ctx context.Context, id string, estadoID string) error
-	Update(ctx context.Context, id string, nombre, email string) error
-}
-
-type usuarioRepo struct {
+type UsuarioRepository struct {
 	client *db.PrismaClient
 }
 
-func NewUsuarioRepository(client *db.PrismaClient) UsuarioRepository {
-	return &usuarioRepo{client: client}
+func NewUsuarioRepository(client *db.PrismaClient) *UsuarioRepository {
+	return &UsuarioRepository{client: client}
 }
 
-func (r *usuarioRepo) Create(ctx context.Context, u domain.Usuario) error {
-	role := u.Role
-	if role == "" {
-		role = domain.RoleUser
+func (r *UsuarioRepository) GetUsuarioByID(ctx context.Context, id string) (*domain.Usuario, error) {
+	usuario, err := r.client.Usuarios.FindUnique(
+		db.Usuarios.ID.Equals(id),
+	).Exec(ctx)
+	if err != nil {
+		if err == db.ErrNotFound {
+			return nil, domain.ErrNotFound
+		}
+		return nil, err
 	}
 
-	// Opciones dinamicas (Identificacion es opcional para Admins, y el Estado puede ser nulo)
-	options := []db.UsuariosSetParam{
-		db.Usuarios.Role.Set(role),
+	var identificacion *string
+	if val, ok := usuario.Identificacion(); ok && val != "" {
+		identificacion = &val
+	}
+	var estadoID *string
+	if val, ok := usuario.EstadoID(); ok && val != "" {
+		estadoID = &val
 	}
 
-	if u.Identificacion != "" {
-		options = append(options, db.Usuarios.Identificacion.Set(u.Identificacion))
+	return &domain.Usuario{
+		ID:             usuario.ID,
+		Email:          usuario.Email,
+		Tipo:           string(usuario.Tipo),
+		Role:           usuario.Role,
+		Identificacion: identificacion,
+		Nombre:         usuario.Nombre,
+		EstadoID:       estadoID,
+		Nivel:          usuario.Nivel,
+		Experiencia:    usuario.Experiencia,
+	}, nil
+}
+
+func (r *UsuarioRepository) GetUsuarioByEmail(ctx context.Context, email string) (*domain.Usuario, error) {
+	usuario, err := r.client.Usuarios.FindUnique(
+		db.Usuarios.Email.Equals(email),
+	).Exec(ctx)
+	if err != nil {
+		if err == db.ErrNotFound {
+			return nil, domain.ErrNotFound
+		}
+		return nil, err
 	}
 
-	if u.EstadoID != nil && *u.EstadoID != "" {
-		options = append(options, db.Usuarios.Estado.Link(
-			db.Estado.ID.Equals(*u.EstadoID),
+	var identificacion *string
+	if val, ok := usuario.Identificacion(); ok && val != "" {
+		identificacion = &val
+	}
+	var estadoID *string
+	if val, ok := usuario.EstadoID(); ok && val != "" {
+		estadoID = &val
+	}
+
+	return &domain.Usuario{
+		ID:             usuario.ID,
+		Email:          usuario.Email,
+		Tipo:           string(usuario.Tipo),
+		Role:           usuario.Role,
+		Identificacion: identificacion,
+		Nombre:         usuario.Nombre,
+		EstadoID:       estadoID,
+		Nivel:          usuario.Nivel,
+		Experiencia:    usuario.Experiencia,
+	}, nil
+}
+
+// 🆕 GetUsuarioByEmailWithPassword - Obtener usuario por email incluyendo el password hash
+func (r *UsuarioRepository) GetUsuarioByEmailWithPassword(ctx context.Context, email string) (*domain.Usuario, string, error) {
+	usuario, err := r.client.Usuarios.FindUnique(
+		db.Usuarios.Email.Equals(email),
+	).Exec(ctx)
+	if err != nil {
+		if err == db.ErrNotFound {
+			return nil, "", domain.ErrNotFound
+		}
+		return nil, "", err
+	}
+
+	var identificacion *string
+	if val, ok := usuario.Identificacion(); ok && val != "" {
+		identificacion = &val
+	}
+	var estadoID *string
+	if val, ok := usuario.EstadoID(); ok && val != "" {
+		estadoID = &val
+	}
+
+	return &domain.Usuario{
+		ID:             usuario.ID,
+		Email:          usuario.Email,
+		Tipo:           string(usuario.Tipo),
+		Role:           usuario.Role,
+		Identificacion: identificacion,
+		Nombre:         usuario.Nombre,
+		EstadoID:       estadoID,
+		Nivel:          usuario.Nivel,
+		Experiencia:    usuario.Experiencia,
+	}, usuario.PasswordHash, nil
+}
+
+func (r *UsuarioRepository) CreateUsuario(ctx context.Context, usuario *domain.Usuario, passwordHash string) (*domain.Usuario, error) {
+	created, err := r.client.Usuarios.CreateOne(
+		db.Usuarios.Email.Set(usuario.Email),
+		db.Usuarios.PasswordHash.Set(passwordHash),
+		db.Usuarios.Tipo.Set(db.TipoUsuario(usuario.Tipo)),
+		db.Usuarios.Nombre.Set(usuario.Nombre),
+		db.Usuarios.Role.Set(usuario.Role),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var identificacion *string
+	if val, ok := created.Identificacion(); ok && val != "" {
+		identificacion = &val
+	}
+	var estadoID *string
+	if val, ok := created.EstadoID(); ok && val != "" {
+		estadoID = &val
+	}
+
+	return &domain.Usuario{
+		ID:             created.ID,
+		Email:          created.Email,
+		Tipo:           string(created.Tipo),
+		Role:           created.Role,
+		Identificacion: identificacion,
+		Nombre:         created.Nombre,
+		EstadoID:       estadoID,
+		Nivel:          created.Nivel,
+		Experiencia:    created.Experiencia,
+	}, nil
+}
+
+func (r *UsuarioRepository) UpdateUsuario(ctx context.Context, id string, usuario *domain.Usuario) (*domain.Usuario, error) {
+	params := []db.UsuariosSetParam{}
+
+	if usuario.Email != "" {
+		params = append(params, db.Usuarios.Email.Set(usuario.Email))
+	}
+	if usuario.Nombre != "" {
+		params = append(params, db.Usuarios.Nombre.Set(usuario.Nombre))
+	}
+	if usuario.Identificacion != nil && *usuario.Identificacion != "" {
+		params = append(params, db.Usuarios.Identificacion.Set(*usuario.Identificacion))
+	}
+	if usuario.EstadoID != nil && *usuario.EstadoID != "" {
+		params = append(params, db.Usuarios.Estado.Link(
+			db.Estado.ID.Equals(*usuario.EstadoID),
 		))
 	}
 
-	_, err := r.client.Usuarios.CreateOne(
-		db.Usuarios.Email.Set(u.Email),
-		db.Usuarios.PasswordHash.Set(u.PasswordHash),
-		db.Usuarios.Tipo.Set(db.TipoUsuario(u.Tipo)), // NATURAL, JURIDICO, o ADMIN
-		db.Usuarios.Nombre.Set(u.Nombre),
-		options...,
-	).Exec(ctx)
-
-	return err
-}
-
-func (r *usuarioRepo) FindByEmail(ctx context.Context, email string) (*domain.Usuario, error) {
-	m, err := r.client.Usuarios.FindUnique(
-		db.Usuarios.Email.Equals(email),
-	).With(
-		db.Usuarios.Estado.Fetch(),
-	).Exec(ctx)
-
-	if err != nil {
-		if err == db.ErrNotFound {
-			return nil, nil
-		}
-		return nil, err
+	if len(params) == 0 {
+		return r.GetUsuarioByID(ctx, id)
 	}
-	return usuarioFromModel(m), nil
-}
 
-func (r *usuarioRepo) FindByIdentificacion(ctx context.Context, identificacion string) (*domain.Usuario, error) {
-	m, err := r.client.Usuarios.FindUnique(
-		db.Usuarios.Identificacion.Equals(identificacion),
-	).With(
-		db.Usuarios.Estado.Fetch(),
-	).Exec(ctx)
-
-	if err != nil {
-		if err == db.ErrNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return usuarioFromModel(m), nil
-}
-
-func (r *usuarioRepo) EmailExists(ctx context.Context, email string) (bool, error) {
-	_, err := r.client.Usuarios.FindUnique(
-		db.Usuarios.Email.Equals(email),
-	).Exec(ctx)
-
-	if err != nil {
-		if err == db.ErrNotFound {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
-func (r *usuarioRepo) IdentificacionExists(ctx context.Context, identificacion string) (bool, error) {
-	_, err := r.client.Usuarios.FindUnique(
-		db.Usuarios.Identificacion.Equals(identificacion),
-	).Exec(ctx)
-
-	if err != nil {
-		if err == db.ErrNotFound {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
-func (r *usuarioRepo) ListAdmins(ctx context.Context) ([]domain.Usuario, error) {
-	models, err := r.client.Usuarios.FindMany(
-		db.Usuarios.Role.Equals(domain.RoleAdmin),
-	).With(
-		db.Usuarios.Estado.Fetch(),
-	).Exec(ctx)
-
+	updated, err := r.client.Usuarios.FindUnique(
+		db.Usuarios.ID.Equals(id),
+	).Update(params...).Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	usuarios := make([]domain.Usuario, 0, len(models))
-	for _, m := range models {
-		usuarios = append(usuarios, *usuarioFromModel(&m))
+	var identificacion *string
+	if val, ok := updated.Identificacion(); ok && val != "" {
+		identificacion = &val
 	}
-	return usuarios, nil
+	var estadoID *string
+	if val, ok := updated.EstadoID(); ok && val != "" {
+		estadoID = &val
+	}
+
+	return &domain.Usuario{
+		ID:             updated.ID,
+		Email:          updated.Email,
+		Tipo:           string(updated.Tipo),
+		Role:           updated.Role,
+		Identificacion: identificacion,
+		Nombre:         updated.Nombre,
+		EstadoID:       estadoID,
+		Nivel:          updated.Nivel,
+		Experiencia:    updated.Experiencia,
+	}, nil
 }
 
-func (r *usuarioRepo) Delete(ctx context.Context, id string) error {
+func (r *UsuarioRepository) DeleteUsuario(ctx context.Context, id string) error {
 	_, err := r.client.Usuarios.FindUnique(
 		db.Usuarios.ID.Equals(id),
 	).Delete().Exec(ctx)
-
-	if err != nil && err == db.ErrNotFound {
-		return domain.ErrUserNotFound
-	}
 	return err
 }
 
-func (r *usuarioRepo) UpdateEstado(ctx context.Context, id string, estadoID string) error {
-	var err error
-	if estadoID == "" {
-		_, err = r.client.Usuarios.FindUnique(
-			db.Usuarios.ID.Equals(id),
-		).Update(
-			db.Usuarios.Estado.Unlink(),
-		).Exec(ctx)
-	} else {
-		_, err = r.client.Usuarios.FindUnique(
-			db.Usuarios.ID.Equals(id),
-		).Update(
-			db.Usuarios.Estado.Link(
-				db.Estado.ID.Equals(estadoID),
-			),
-		).Exec(ctx)
-	}
-	return err
-}
-
-func (r *usuarioRepo) Update(ctx context.Context, id string, nombre, email string) error {
-	_, err := r.client.Usuarios.FindUnique(
-		db.Usuarios.ID.Equals(id),
-	).Update(
-		db.Usuarios.Nombre.Set(nombre),
-		db.Usuarios.Email.Set(email),
-	).Exec(ctx)
-
-	if err != nil && err == db.ErrNotFound {
-		return domain.ErrUserNotFound
-	}
-	return err
-}
-
-// Helper para mapear el modelo de Prisma al struct de Dominio
-func usuarioFromModel(m *db.UsuariosModel) *domain.Usuario {
-	u := &domain.Usuario{
-		ID:           m.ID,
-		Email:        m.Email,
-		PasswordHash: m.PasswordHash,
-		Tipo:         string(m.Tipo),
-		Nombre:       m.Nombre,
-		Role:         m.Role,
-		CreatedAt:    m.CreatedAt.String(),
-		UpdatedAt:    m.UpdatedAt.String(),
+func (r *UsuarioRepository) GetUsuarios(ctx context.Context) ([]domain.Usuario, error) {
+	usuarios, err := r.client.Usuarios.FindMany().Exec(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	if val, ok := m.Identificacion(); ok {
-		u.Identificacion = val
-	}
-	if val, ok := m.EstadoID(); ok {
-		u.EstadoID = &val
-	}
-	if est, ok := m.Estado(); ok && est != nil {
-		u.EstadoNombre = &est.Nombre
-	}
+	var result []domain.Usuario
+	for _, u := range usuarios {
+		var identificacion *string
+		if val, ok := u.Identificacion(); ok && val != "" {
+			identificacion = &val
+		}
+		var estadoID *string
+		if val, ok := u.EstadoID(); ok && val != "" {
+			estadoID = &val
+		}
 
-	return u
+		result = append(result, domain.Usuario{
+			ID:             u.ID,
+			Email:          u.Email,
+			Tipo:           string(u.Tipo),
+			Role:           u.Role,
+			Identificacion: identificacion,
+			Nombre:         u.Nombre,
+			EstadoID:       estadoID,
+			Nivel:          u.Nivel,
+			Experiencia:    u.Experiencia,
+		})
+	}
+	return result, nil
 }

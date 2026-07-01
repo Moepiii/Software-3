@@ -1,92 +1,86 @@
-// Frontend/src/api/cursos.ts
 import { apiRequest } from './client';
 
-export type Curso = {
+export interface Curso {
     id: string;
     titulo: string;
     descripcion: string;
     fechaInicio: string;
     fechaFin: string;
-    estado: 'activo' | 'planificado' | 'finalizado';
-    imagen?: string;
+    estado: string;
     categoria?: string;
-    createdAt?: string;
-    updatedAt?: string;
-};
+    imagen?: string;
+}
 
-export type CreateCursoPayload = {
+export interface CreateCursoRequest {
     titulo: string;
     descripcion: string;
     fechaInicio: string;
     fechaFin: string;
+    estado: string;
     categoria?: string;
     imagen?: string;
-};
+}
 
-export type UpdateCursoPayload = Partial<CreateCursoPayload> & {
-    estado?: 'activo' | 'planificado' | 'finalizado';
-};
+export interface UpdateCursoRequest {
+    titulo?: string;
+    descripcion?: string;
+    fechaInicio?: string;
+    fechaFin?: string;
+    estado?: string;
+    categoria?: string;
+    imagen?: string;
+}
 
-// Obtener todos los cursos
 export async function listarCursos(): Promise<Curso[]> {
-    const data = await apiRequest<Curso[]>('/api/cursos', {
-        method: 'GET',
-        auth: true,
-    });
-    return data;
+    return apiRequest<Curso[]>('/api/cursos', { auth: true });
 }
 
-// Obtener un curso por ID
-export async function obtenerCurso(id: string): Promise<Curso> {
-    const data = await apiRequest<Curso>(`/api/cursos/${encodeURIComponent(id)}`, {
-        method: 'GET',
-        auth: true,
-    });
-    return data;
+export async function listarMisReservas(): Promise<string[]> {
+    return apiRequest<string[]>('/api/cursos/mis-reservas', { auth: true });
 }
 
-// Crear un nuevo curso
-export async function crearCurso(payload: CreateCursoPayload): Promise<Curso> {
-    const data = await apiRequest<Curso>('/api/cursos', {
+export async function listarMisCursos(): Promise<Curso[]> {
+    return apiRequest<Curso[]>('/api/cursos/mis-cursos', { auth: true });
+}
+
+export async function reservarCurso(cursoId: string): Promise<void> {
+    await apiRequest(`/api/cursos/${cursoId}/reservar`, {
+        method: 'POST',
+        auth: true
+    });
+}
+
+export async function crearCurso(data: CreateCursoRequest): Promise<Curso> {
+    return apiRequest<Curso>('/api/cursos', {
         method: 'POST',
         auth: true,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
     });
-    return data;
 }
 
-// Actualizar un curso existente
-export async function actualizarCurso(id: string, payload: UpdateCursoPayload): Promise<Curso> {
-    const data = await apiRequest<Curso>(`/api/cursos/${encodeURIComponent(id)}`, {
+export async function actualizarCurso(id: string, data: UpdateCursoRequest): Promise<Curso> {
+    return apiRequest<Curso>(`/api/cursos/${id}`, {
         method: 'PUT',
         auth: true,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
     });
-    return data;
 }
 
-// Eliminar un curso
 export async function eliminarCurso(id: string): Promise<void> {
-    await apiRequest(`/api/cursos/${encodeURIComponent(id)}`, {
+    await apiRequest(`/api/cursos/${id}`, {
         method: 'DELETE',
         auth: true,
     });
 }
 
-// Reservar un curso
-export async function reservarCurso(id: string): Promise<{message: string}> {
-    const data = await apiRequest<{message: string}>(`/api/cursos/${encodeURIComponent(id)}/reservar`, {
+// 🆕 Finalizar curso (solo admin)
+export async function finalizarCurso(cursoId: string): Promise<{
+    message: string;
+    usuarios_afectados: number;
+    experiencia_ganada: number
+}> {
+    return apiRequest(`/api/cursos/${cursoId}/finalizar`, {
         method: 'POST',
         auth: true,
     });
-    return data;
-}
-
-// Obtener las reservas del usuario actual
-export async function listarMisReservas(): Promise<string[]> {
-    const data = await apiRequest<string[]>('/api/cursos/mis-reservas', {
-        method: 'GET',
-        auth: true,
-    });
-    return data;
 }

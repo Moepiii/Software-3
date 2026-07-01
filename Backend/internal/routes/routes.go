@@ -1,8 +1,3 @@
-/*
-Este archivo define el enrutador principal de la aplicación. Configura todas
-las rutas HTTP, aplica middlewares de autenticación/autorización y habilita
-CORS para las peticiones del frontend.
-*/
 package routes
 
 import (
@@ -41,13 +36,18 @@ func NewRouter(
 	mux.HandleFunc("PUT /api/persona/estado", authMiddleware.RequireAuth(usuarioHandler.UpdateEstadoUsuario))
 	mux.HandleFunc("PUT /api/empresa/estado", authMiddleware.RequireAuth(usuarioHandler.UpdateEstadoUsuario))
 
-	// Estadísticas del usuario autenticado (nuevo módulo)
+	// Estadísticas del usuario autenticado
 	mux.HandleFunc("GET /api/usuario/estadisticas", authMiddleware.RequireAuth(usuarioHandler.GetEstadisticas))
+	// 🆕 Experiencia del usuario
+	mux.HandleFunc("GET /api/usuario/experiencia", authMiddleware.RequireAuth(usuarioHandler.GetExperiencia))
 
 	// === Rutas de cursos ===
 	mux.HandleFunc("GET /api/cursos", authMiddleware.RequireAuth(cursoHandler.GetCursos))
 	mux.HandleFunc("GET /api/cursos/mis-reservas", authMiddleware.RequireAuth(cursoHandler.GetMisReservas))
+	mux.HandleFunc("GET /api/cursos/mis-cursos", authMiddleware.RequireAuth(cursoHandler.GetMisCursos))
 	mux.HandleFunc("POST /api/cursos/{id}/reservar", authMiddleware.RequireAuth(cursoHandler.ReservarCurso))
+	// 🆕 Ruta para finalizar curso (solo admin)
+	mux.HandleFunc("POST /api/cursos/{id}/finalizar", authMiddleware.RequireAdmin(cursoHandler.FinalizarCurso))
 	mux.HandleFunc("POST /api/cursos", authMiddleware.RequireAdmin(cursoHandler.CreateCurso))
 	mux.HandleFunc("PUT /api/cursos/{id}", authMiddleware.RequireAdmin(cursoHandler.UpdateCurso))
 	mux.HandleFunc("DELETE /api/cursos/{id}", authMiddleware.RequireAdmin(cursoHandler.DeleteCurso))

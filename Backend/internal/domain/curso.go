@@ -1,26 +1,22 @@
 package domain
 
-import "time"
-
 type Curso struct {
-	ID          string    `json:"id"`
-	Titulo      string    `json:"titulo"`
-	Descripcion string    `json:"descripcion"`
-	FechaInicio string    `json:"fechaInicio"`
-	FechaFin    string    `json:"fechaFin"`
-	Estado      string    `json:"estado"`
-	Categoria   *string   `json:"categoria,omitempty"`
-	Imagen      *string   `json:"imagen,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          string  `json:"id"`
+	Titulo      string  `json:"titulo"`
+	Descripcion string  `json:"descripcion"`
+	FechaInicio string  `json:"fechaInicio"`
+	FechaFin    string  `json:"fechaFin"`
+	Estado      string  `json:"estado"`
+	Categoria   *string `json:"categoria,omitempty"`
+	Imagen      *string `json:"imagen,omitempty"`
 }
 
 type CreateCursoRequest struct {
-	Titulo      string  `json:"titulo" validate:"required"`
-	Descripcion string  `json:"descripcion" validate:"required"`
-	FechaInicio string  `json:"fechaInicio" validate:"required"`
-	FechaFin    string  `json:"fechaFin" validate:"required"`
-	Estado      string  `json:"estado" validate:"required"`
+	Titulo      string  `json:"titulo"`
+	Descripcion string  `json:"descripcion"`
+	FechaInicio string  `json:"fechaInicio"`
+	FechaFin    string  `json:"fechaFin"`
+	Estado      string  `json:"estado"`
 	Categoria   *string `json:"categoria,omitempty"`
 	Imagen      *string `json:"imagen,omitempty"`
 }
@@ -33,4 +29,16 @@ type UpdateCursoRequest struct {
 	Estado      *string `json:"estado,omitempty"`
 	Categoria   *string `json:"categoria,omitempty"`
 	Imagen      *string `json:"imagen,omitempty"`
+}
+
+// 🆕 Request para finalizar curso
+type FinalizarCursoRequest struct {
+	CursoID string `json:"cursoId"`
+}
+
+// 🆕 Respuesta con experiencia ganada
+type FinalizarCursoResponse struct {
+	Message           string `json:"message"`
+	UsuariosAfectados int    `json:"usuarios_afectados"`
+	ExperienciaGanada int    `json:"experiencia_ganada"`
 }

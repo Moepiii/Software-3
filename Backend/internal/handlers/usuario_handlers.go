@@ -1,6 +1,3 @@
-/*
-Este archivo tiene la unificacion de los handlers de las personas y empresas en uno solo
-*/
 package handlers
 
 import (
@@ -15,35 +12,60 @@ type UsuarioHandler struct {
 	usuarioService *services.UsuarioService
 }
 
-type PayDeudaRequest struct {
-	Monto float64 `json:"monto"`
-}
-
 func NewUsuarioHandler(usuarioService *services.UsuarioService) *UsuarioHandler {
-	return &UsuarioHandler{
-		usuarioService: usuarioService,
-	}
+	return &UsuarioHandler{usuarioService: usuarioService}
 }
 
+// GetDeudaActual - Obtener la deuda vigente del usuario autenticado
 func (h *UsuarioHandler) GetDeudaActual(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
 		return
 	}
 
-	// El claim.ID contiene la Identificación (Cédula o RIF) o el UUID según como lo guardes en el token
-	resp, err := h.usuarioService.GetDeudaVigente(r.Context(), claims.ID)
+	deuda, err := h.usuarioService.GetDeudaActual(r.Context(), claims.ID)
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.SendJSONResponse(w, http.StatusOK, resp)
+	utils.SendJSONResponse(w, http.StatusOK, deuda)
 }
 
+// PayDeuda - Realizar un pago de la deuda
+func (h *UsuarioHandler) PayDeuda(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+
+	var req struct {
+		Monto float64 `json:"monto"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendJSONError(w, http.StatusBadRequest, "Petición inválida")
+		return
+	}
+
+	if req.Monto <= 0 {
+		utils.SendJSONError(w, http.StatusBadRequest, "El monto debe ser mayor a 0")
+		return
+	}
+
+	deuda, err := h.usuarioService.PayDeuda(r.Context(), claims.ID, req.Monto)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, deuda)
+}
+
+// GetEstados - Obtener todos los estados con sus tasas actuales
 func (h *UsuarioHandler) GetEstados(w http.ResponseWriter, r *http.Request) {
-	estados, err := h.usuarioService.ListEstadosConTasa(r.Context())
+	estados, err := h.usuarioService.GetEstados(r.Context())
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -52,68 +74,70 @@ func (h *UsuarioHandler) GetEstados(w http.ResponseWriter, r *http.Request) {
 	utils.SendJSONResponse(w, http.StatusOK, estados)
 }
 
-type UpdateUsuarioEstadoRequest struct {
-	EstadoID string `json:"estado_id"`
-}
-
+// UpdateEstadoUsuario - Actualizar el estado del usuario autenticado
 func (h *UsuarioHandler) UpdateEstadoUsuario(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
 		return
 	}
 
-	var req UpdateUsuarioEstadoRequest
+	var req struct {
+		EstadoID string `json:"estado_id"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendJSONError(w, http.StatusBadRequest, "Payload inválido")
+		utils.SendJSONError(w, http.StatusBadRequest, "Petición inválida")
 		return
 	}
 
-	err := h.usuarioService.UpdateEstado(r.Context(), claims.ID, req.EstadoID)
+	if req.EstadoID == "" {
+		utils.SendJSONError(w, http.StatusBadRequest, "El estado_id es requerido")
+		return
+	}
+
+	err := h.usuarioService.UpdateEstadoUsuario(r.Context(), claims.ID, req.EstadoID)
 	if err != nil {
-		utils.SendJSONError(w, http.StatusBadRequest, err.Error())
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Estado actualizado correctamente"})
 }
 
-func (h *UsuarioHandler) PayDeuda(w http.ResponseWriter, r *http.Request) {
-	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
-		return
-	}
-
-	var req PayDeudaRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Monto <= 0 {
-		utils.SendJSONError(w, http.StatusBadRequest, "Monto inválido")
-		return
-	}
-
-	// Ahora pasamos el monto al servicio para crear el registro en la tabla 'Abono'
-	err := h.usuarioService.RegistrarAbono(r.Context(), claims.ID, req.Monto)
-	if err != nil {
-		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Abono registrado exitosamente"})
-}
-
+// GetEstadisticas - Obtener estadísticas del usuario
 func (h *UsuarioHandler) GetEstadisticas(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFromContext(r.Context())
-	if !ok {
-		utils.SendJSONError(w, http.StatusUnauthorized, "No autorizado")
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
 		return
 	}
 
-	// El servicio hará las 4 consultas que definimos (Suma, Max, Deuda-Abonos, Historial)
-	estadisticas, err := h.usuarioService.GetEstadisticasUsuario(r.Context(), claims.ID)
+	stats, err := h.usuarioService.GetEstadisticas(r.Context(), claims.ID)
 	if err != nil {
 		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.SendJSONResponse(w, http.StatusOK, estadisticas)
+	utils.SendJSONResponse(w, http.StatusOK, stats)
+}
+
+// 🆕 GetExperiencia - Obtener experiencia y nivel del usuario
+func (h *UsuarioHandler) GetExperiencia(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+
+	usuario, err := h.usuarioService.GetUsuarioByID(r.Context(), claims.ID)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error obteniendo usuario")
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, map[string]int{
+		"nivel":       usuario.Nivel,
+		"experiencia": usuario.Experiencia,
+		"maximoNivel": 1000,
+	})
 }

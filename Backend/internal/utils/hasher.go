@@ -1,12 +1,8 @@
-/*
-Autor: Baudilio Velasquez
-
-Este archivo agrupa las funciones de seguridad para contrasenas. Usa bcrypt
-para guardar hashes seguros y comparar claves sin exponer texto plano.
-*/
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
 
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

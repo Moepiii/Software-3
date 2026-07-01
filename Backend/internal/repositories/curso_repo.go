@@ -14,57 +14,65 @@ func NewCursoRepository(client *db.PrismaClient) *CursoRepository {
 	return &CursoRepository{client: client}
 }
 
-func (r *CursoRepository) Create(ctx context.Context, curso domain.Curso) (*domain.Curso, error) {
-	var categoria *string
-	var imagen *string
-
-	if curso.Categoria != nil && *curso.Categoria != "" {
-		categoria = curso.Categoria
-	}
-	if curso.Imagen != nil && *curso.Imagen != "" {
-		imagen = curso.Imagen
+func (r *CursoRepository) CreateCurso(ctx context.Context, req domain.CreateCursoRequest) (*domain.Curso, error) {
+	estado := req.Estado
+	if estado == "" {
+		estado = "planificado"
 	}
 
-	options := []db.CursoSetParam{
-		db.Curso.Estado.Set(curso.Estado),
-	}
-
-	if categoria != nil {
-		options = append(options, db.Curso.Categoria.Set(*categoria))
-	}
-	if imagen != nil {
-		options = append(options, db.Curso.Imagen.Set(*imagen))
-	}
-
-	created, err := r.client.Curso.CreateOne(
-		db.Curso.Titulo.Set(curso.Titulo),
-		db.Curso.Descripcion.Set(curso.Descripcion),
-		db.Curso.FechaInicio.Set(curso.FechaInicio),
-		db.Curso.FechaFin.Set(curso.FechaFin),
-		options...,
+	curso, err := r.client.Curso.CreateOne(
+		db.Curso.Titulo.Set(req.Titulo),
+		db.Curso.Descripcion.Set(req.Descripcion),
+		db.Curso.FechaInicio.Set(req.FechaInicio),
+		db.Curso.FechaFin.Set(req.FechaFin),
+		db.Curso.Estado.Set(estado),
 	).Exec(ctx)
+
 	if err != nil {
 		return nil, err
 	}
 
-	cat, _ := created.Categoria()
-	img, _ := created.Imagen()
+	if (req.Categoria != nil && *req.Categoria != "") || (req.Imagen != nil && *req.Imagen != "") {
+		updateParams := []db.CursoSetParam{}
+		if req.Categoria != nil && *req.Categoria != "" {
+			updateParams = append(updateParams, db.Curso.Categoria.Set(*req.Categoria))
+		}
+		if req.Imagen != nil && *req.Imagen != "" {
+			updateParams = append(updateParams, db.Curso.Imagen.Set(*req.Imagen))
+		}
+
+		if len(updateParams) > 0 {
+			curso, err = r.client.Curso.FindUnique(
+				db.Curso.ID.Equals(curso.ID),
+			).Update(updateParams...).Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	var categoria *string
+	if val, ok := curso.Categoria(); ok && val != "" {
+		categoria = &val
+	}
+	var imagen *string
+	if val, ok := curso.Imagen(); ok && val != "" {
+		imagen = &val
+	}
 
 	return &domain.Curso{
-		ID:          created.ID,
-		Titulo:      created.Titulo,
-		Descripcion: created.Descripcion,
-		FechaInicio: created.FechaInicio,
-		FechaFin:    created.FechaFin,
-		Estado:      created.Estado,
-		Categoria:   &cat,
-		Imagen:      &img,
-		CreatedAt:   created.CreatedAt,
-		UpdatedAt:   created.UpdatedAt,
+		ID:          curso.ID,
+		Titulo:      curso.Titulo,
+		Descripcion: curso.Descripcion,
+		FechaInicio: curso.FechaInicio,
+		FechaFin:    curso.FechaFin,
+		Estado:      curso.Estado,
+		Categoria:   categoria,
+		Imagen:      imagen,
 	}, nil
 }
 
-func (r *CursoRepository) GetAll(ctx context.Context) ([]domain.Curso, error) {
+func (r *CursoRepository) GetCursos(ctx context.Context) ([]domain.Curso, error) {
 	cursos, err := r.client.Curso.FindMany().Exec(ctx)
 	if err != nil {
 		return nil, err
@@ -72,8 +80,14 @@ func (r *CursoRepository) GetAll(ctx context.Context) ([]domain.Curso, error) {
 
 	var result []domain.Curso
 	for _, c := range cursos {
-		cat, _ := c.Categoria()
-		img, _ := c.Imagen()
+		var categoria *string
+		if val, ok := c.Categoria(); ok && val != "" {
+			categoria = &val
+		}
+		var imagen *string
+		if val, ok := c.Imagen(); ok && val != "" {
+			imagen = &val
+		}
 
 		result = append(result, domain.Curso{
 			ID:          c.ID,
@@ -82,99 +96,73 @@ func (r *CursoRepository) GetAll(ctx context.Context) ([]domain.Curso, error) {
 			FechaInicio: c.FechaInicio,
 			FechaFin:    c.FechaFin,
 			Estado:      c.Estado,
-			Categoria:   &cat,
-			Imagen:      &img,
-			CreatedAt:   c.CreatedAt,
-			UpdatedAt:   c.UpdatedAt,
+			Categoria:   categoria,
+			Imagen:      imagen,
 		})
 	}
 	return result, nil
 }
 
-func (r *CursoRepository) GetByID(ctx context.Context, id string) (*domain.Curso, error) {
-	c, err := r.client.Curso.FindUnique(
+func (r *CursoRepository) UpdateCurso(ctx context.Context, id string, req domain.UpdateCursoRequest) (*domain.Curso, error) {
+	params := []db.CursoSetParam{}
+	if req.Titulo != nil {
+		params = append(params, db.Curso.Titulo.Set(*req.Titulo))
+	}
+	if req.Descripcion != nil {
+		params = append(params, db.Curso.Descripcion.Set(*req.Descripcion))
+	}
+	if req.FechaInicio != nil {
+		params = append(params, db.Curso.FechaInicio.Set(*req.FechaInicio))
+	}
+	if req.FechaFin != nil {
+		params = append(params, db.Curso.FechaFin.Set(*req.FechaFin))
+	}
+	if req.Estado != nil {
+		params = append(params, db.Curso.Estado.Set(*req.Estado))
+	}
+	if req.Categoria != nil {
+		params = append(params, db.Curso.Categoria.Set(*req.Categoria))
+	}
+	if req.Imagen != nil {
+		params = append(params, db.Curso.Imagen.Set(*req.Imagen))
+	}
+
+	curso, err := r.client.Curso.FindUnique(
 		db.Curso.ID.Equals(id),
-	).Exec(ctx)
+	).Update(params...).Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	cat, _ := c.Categoria()
-	img, _ := c.Imagen()
+	var categoria *string
+	if val, ok := curso.Categoria(); ok && val != "" {
+		categoria = &val
+	}
+	var imagen *string
+	if val, ok := curso.Imagen(); ok && val != "" {
+		imagen = &val
+	}
 
 	return &domain.Curso{
-		ID:          c.ID,
-		Titulo:      c.Titulo,
-		Descripcion: c.Descripcion,
-		FechaInicio: c.FechaInicio,
-		FechaFin:    c.FechaFin,
-		Estado:      c.Estado,
-		Categoria:   &cat,
-		Imagen:      &img,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
+		ID:          curso.ID,
+		Titulo:      curso.Titulo,
+		Descripcion: curso.Descripcion,
+		FechaInicio: curso.FechaInicio,
+		FechaFin:    curso.FechaFin,
+		Estado:      curso.Estado,
+		Categoria:   categoria,
+		Imagen:      imagen,
 	}, nil
 }
 
-
-func (r *CursoRepository) Update(ctx context.Context, id string, updates domain.UpdateCursoRequest) (*domain.Curso, error) {
-	var setParams []db.CursoSetParam
-
-	if updates.Titulo != nil {
-		setParams = append(setParams, db.Curso.Titulo.Set(*updates.Titulo))
-	}
-	if updates.Descripcion != nil {
-		setParams = append(setParams, db.Curso.Descripcion.Set(*updates.Descripcion))
-	}
-	if updates.FechaInicio != nil {
-		setParams = append(setParams, db.Curso.FechaInicio.Set(*updates.FechaInicio))
-	}
-	if updates.FechaFin != nil {
-		setParams = append(setParams, db.Curso.FechaFin.Set(*updates.FechaFin))
-	}
-	if updates.Estado != nil {
-		setParams = append(setParams, db.Curso.Estado.Set(*updates.Estado))
-	}
-	if updates.Categoria != nil {
-		setParams = append(setParams, db.Curso.Categoria.Set(*updates.Categoria))
-	}
-	if updates.Imagen != nil {
-		setParams = append(setParams, db.Curso.Imagen.Set(*updates.Imagen))
-	}
-
-	updated, err := r.client.Curso.FindUnique(
-		db.Curso.ID.Equals(id),
-	).Update(setParams...).Exec(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	cat, _ := updated.Categoria()
-	img, _ := updated.Imagen()
-
-	return &domain.Curso{
-		ID:          updated.ID,
-		Titulo:      updated.Titulo,
-		Descripcion: updated.Descripcion,
-		FechaInicio: updated.FechaInicio,
-		FechaFin:    updated.FechaFin,
-		Estado:      updated.Estado,
-		Categoria:   &cat,
-		Imagen:      &img,
-		CreatedAt:   updated.CreatedAt,
-		UpdatedAt:   updated.UpdatedAt,
-	}, nil
-}
-
-func (r *CursoRepository) Delete(ctx context.Context, id string) error {
+func (r *CursoRepository) DeleteCurso(ctx context.Context, id string) error {
 	_, err := r.client.Curso.FindUnique(
 		db.Curso.ID.Equals(id),
 	).Delete().Exec(ctx)
 	return err
 }
 
-func (r *CursoRepository) InscribirUsuario(ctx context.Context, usuarioID string, cursoID string) error {
+func (r *CursoRepository) ReservarCurso(ctx context.Context, usuarioID, cursoID string) error {
 	_, err := r.client.Inscripcion.CreateOne(
 		db.Inscripcion.Usuario.Link(
 			db.Usuarios.ID.Equals(usuarioID),
@@ -187,14 +175,14 @@ func (r *CursoRepository) InscribirUsuario(ctx context.Context, usuarioID string
 	return err
 }
 
-func (r *CursoRepository) GetInscripcionesUsuario(ctx context.Context, usuarioID string) ([]string, error) {
+func (r *CursoRepository) GetMisReservas(ctx context.Context, usuarioID string) ([]string, error) {
 	inscripciones, err := r.client.Inscripcion.FindMany(
 		db.Inscripcion.UsuarioID.Equals(usuarioID),
 	).Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var ids []string
 	for _, ins := range inscripciones {
 		ids = append(ids, ins.CursoID)
@@ -202,14 +190,120 @@ func (r *CursoRepository) GetInscripcionesUsuario(ctx context.Context, usuarioID
 	return ids, nil
 }
 
-func (r *CursoRepository) EstaInscrito(ctx context.Context, usuarioID, cursoID string) (bool, error) {
+func (r *CursoRepository) GetMisCursos(ctx context.Context, usuarioID string) ([]domain.Curso, error) {
 	inscripciones, err := r.client.Inscripcion.FindMany(
 		db.Inscripcion.UsuarioID.Equals(usuarioID),
-		db.Inscripcion.CursoID.Equals(cursoID),
+		db.Inscripcion.Estado.Equals("activa"),
+	).With(
+		db.Inscripcion.Curso.Fetch(),
 	).Exec(ctx)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return len(inscripciones) > 0, nil
+
+	var cursos []domain.Curso
+	for _, ins := range inscripciones {
+		cursoModel := ins.Curso()
+		if cursoModel != nil {
+			var categoria *string
+			if val, ok := cursoModel.Categoria(); ok && val != "" {
+				categoria = &val
+			}
+			var imagen *string
+			if val, ok := cursoModel.Imagen(); ok && val != "" {
+				imagen = &val
+			}
+
+			cursos = append(cursos, domain.Curso{
+				ID:          cursoModel.ID,
+				Titulo:      cursoModel.Titulo,
+				Descripcion: cursoModel.Descripcion,
+				FechaInicio: cursoModel.FechaInicio,
+				FechaFin:    cursoModel.FechaFin,
+				Estado:      cursoModel.Estado,
+				Categoria:   categoria,
+				Imagen:      imagen,
+			})
+		}
+	}
+	return cursos, nil
 }
 
+// 🆕 FinalizarCurso - Marcar curso como finalizado y dar experiencia a los usuarios inscritos
+func (r *CursoRepository) FinalizarCurso(ctx context.Context, cursoID string) (int, error) {
+	// 1. Obtener todos los usuarios inscritos en el curso con estado "activa"
+	inscripciones, err := r.client.Inscripcion.FindMany(
+		db.Inscripcion.CursoID.Equals(cursoID),
+		db.Inscripcion.Estado.Equals("activa"),
+	).With(
+		db.Inscripcion.Usuario.Fetch(),
+	).Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(inscripciones) == 0 {
+		// Actualizar el curso a finalizado aunque no tenga inscripciones
+		_, err = r.client.Curso.FindUnique(
+			db.Curso.ID.Equals(cursoID),
+		).Update(
+			db.Curso.Estado.Set("finalizado"),
+		).Exec(ctx)
+		return 0, err
+	}
+
+	// 2. Actualizar el estado del curso a "finalizado"
+	_, err = r.client.Curso.FindUnique(
+		db.Curso.ID.Equals(cursoID),
+	).Update(
+		db.Curso.Estado.Set("finalizado"),
+	).Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	// 3. Dar 100 EXP a cada usuario inscrito y marcar inscripción como completada
+	experienciaGanada := 100
+	usuariosAfectados := 0
+
+	for _, ins := range inscripciones {
+		usuario := ins.Usuario()
+		if usuario == nil {
+			continue
+		}
+
+		// Obtener experiencia actual
+		expActual := usuario.Experiencia
+
+		// Sumar experiencia
+		nuevaExp := expActual + experienciaGanada
+
+		// Calcular nuevo nivel (1000 EXP por nivel)
+		nuevoNivel := nuevaExp / 1000
+
+		// Actualizar usuario
+		_, err = r.client.Usuarios.FindUnique(
+			db.Usuarios.ID.Equals(usuario.ID),
+		).Update(
+			db.Usuarios.Experiencia.Set(nuevaExp),
+			db.Usuarios.Nivel.Set(nuevoNivel),
+		).Exec(ctx)
+		if err != nil {
+			continue
+		}
+
+		// Marcar inscripción como completada
+		_, err = r.client.Inscripcion.FindUnique(
+			db.Inscripcion.ID.Equals(ins.ID),
+		).Update(
+			db.Inscripcion.Estado.Set("completada"),
+		).Exec(ctx)
+		if err != nil {
+			continue
+		}
+
+		usuariosAfectados++
+	}
+
+	return usuariosAfectados, nil
+}

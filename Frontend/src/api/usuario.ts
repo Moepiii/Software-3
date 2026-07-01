@@ -1,86 +1,70 @@
 import { apiRequest } from './client';
 
-// ─── Tipos ───────────────────────────────────────────────────────────────────
-
-export type DeudaResponse = {
+export interface DeudaResponse {
+  id: string;
   monto: number;
-  has_deuda: boolean;
-};
+  vigente: boolean;
+  usuario_id: string;
+}
 
-export type EstadoResponse = {
+export interface EstadoResponse {
   id: string;
   nombre: string;
   tasa_actual: number;
-};
+}
 
-export type UpdateEstadoPayload = {
+export interface UpdateEstadoRequest {
   estado_id: string;
-};
+}
 
-export type PagarPayload = {
+export interface PaymentRequest {
   monto: number;
-};
-
-export type PagoResponse = {
-  message: string;
-};
-
-// ─── Funciones de API ─────────────────────────────────────────────────────────
-
-/** Obtiene la deuda vigente del usuario autenticado */
-export async function getDeudaActual(): Promise<DeudaResponse> {
-  // Nota: El backend redirige internamente ambas rutas (persona/empresa) al mismo handler unificado.
-  // Usamos el endpoint de 'persona' por defecto para ambos, ya que funcionalmente son idénticos.
-  return apiRequest<DeudaResponse>('/api/persona/deuda', {
-    method: 'GET',
-    auth: true,
-  });
 }
 
-/** Lista todos los estados disponibles con su tasa actual */
-export async function getEstados(): Promise<EstadoResponse[]> {
-  return apiRequest<EstadoResponse[]>('/api/estados', {
-    method: 'GET',
-    auth: true,
-  });
-}
-
-/** Actualiza el estado del usuario autenticado */
-export async function updateEstado(payload: UpdateEstadoPayload): Promise<void> {
-  await apiRequest('/api/persona/estado', {
-    method: 'PUT',
-    auth: true,
-    body: JSON.stringify(payload),
-  });
-}
-
-/** Registra un pago parcial o total de la deuda */
-export async function realizarPago(payload?: PagarPayload): Promise<PagoResponse> {
-  return apiRequest<PagoResponse>('/api/persona/pagar', {
-    method: 'POST',
-    auth: true,
-    body: JSON.stringify(payload || {}),
-  });
-}
-
-export type AbonoRecord = {
-  id: string;
-  deuda_id: string;
-  monto: number;
-  fecha: string;
-};
-
-export type EstadisticasResponse = {
+export interface EstadisticasResponse {
   total_abonado: number;
   maximo_abono: number;
   deuda_pendiente: number;
-  historial: AbonoRecord[];
-};
+  historial: Array<{
+    fecha: string;
+    monto: number;
+  }>;
+}
 
-/** Obtiene las estadísticas del usuario autenticado */
-export async function getEstadisticas(): Promise<EstadisticasResponse> {
-  return apiRequest<EstadisticasResponse>('/api/usuario/estadisticas', {
-    method: 'GET',
+export async function getDeudaActual(): Promise<DeudaResponse> {
+  return apiRequest<DeudaResponse>('/api/persona/deuda', { auth: true });
+}
+
+export async function getEstados(): Promise<EstadoResponse[]> {
+  return apiRequest<EstadoResponse[]>('/api/estados', { auth: true });
+}
+
+export async function updateEstado(data: UpdateEstadoRequest): Promise<void> {
+  await apiRequest('/api/persona/estado', {
+    method: 'PUT',
     auth: true,
+    body: JSON.stringify(data),
   });
+}
+
+export async function realizarPago(data: PaymentRequest): Promise<DeudaResponse> {
+  return apiRequest<DeudaResponse>('/api/persona/pagar', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify(data),
+  });
+}
+
+// 🆕 Obtener experiencia del usuario
+export async function getExperiencia(): Promise<{
+  nivel: number;
+  experiencia: number;
+  maximoNivel: number;
+}> {
+  return apiRequest('/api/usuario/experiencia', { auth: true });
+}
+
+// 🆕 Obtener estadísticas del usuario
+export async function getEstadisticas(): Promise<EstadisticasResponse> {
+  return apiRequest<EstadisticasResponse>('/api/usuario/estadisticas', { auth: true });
 }

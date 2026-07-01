@@ -1,9 +1,3 @@
-/*
-Este archivo contiene el servicio de autenticación y gestión de cuentas de usuarios.
-Coordina las reglas de negocio globales como el registro de contribuyentes (Naturales/Jurídicos),
-el inicio de sesión, la actualización de perfiles y la administración del sistema, operando
-sobre el repositorio unificado de Usuarios.
-*/
 package services
 
 import (
@@ -11,28 +5,19 @@ import (
 	"Backend/internal/repositories"
 	"Backend/internal/utils"
 	"context"
-	"strings"
+	"errors"
 )
 
 type AuthService struct {
-	usuarioRepo repositories.UsuarioRepository
+	usuarioRepo *repositories.UsuarioRepository
 	jwtSecret   string
 }
 
-func NewAuthService(usuarioRepo repositories.UsuarioRepository, jwtSecret string) *AuthService {
+func NewAuthService(usuarioRepo *repositories.UsuarioRepository, jwtSecret string) *AuthService {
 	return &AuthService{
 		usuarioRepo: usuarioRepo,
 		jwtSecret:   jwtSecret,
 	}
-}
-
-// STRUCTURES & DTOS (Garantizan compatibilidad limpia con el transporte)
-type RegisterRequest struct {
-	Identificacion string `json:"identificacion"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	Nombre         string `json:"nombre"`
-	Tipo           string // domain.TipoNatural o domain.TipoJuridico
 }
 
 type LoginRequest struct {
@@ -40,93 +25,41 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type RegisterRequest struct {
+	Email          string `json:"email"`
+	Password       string `json:"password"`
+	Nombre         string `json:"nombre"`
+	Identificacion string `json:"identificacion"`
+	Tipo           string `json:"tipo"` // NATURAL, JURIDICO
+}
+
 type LoginResponse struct {
 	Token string         `json:"token"`
 	User  domain.Usuario `json:"user"`
 }
 
-type UpdateUsuarioRequest struct {
-	Nombre string `json:"nombre"`
-	Email  string `json:"email"`
-}
-
-type CreateAdminRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Nombre   string `json:"nombre"`
-}
-
-// METODOS DE CONTRIBUYENTES
-
-// Register centraliza la logica de negocio de creacion de cuentas de personas y empresas
-func (s *AuthService) Register(ctx context.Context, req RegisterRequest) error {
-	req.Email = normalizeEmail(req.Email)
-	req.Identificacion = strings.TrimSpace(req.Identificacion)
-	req.Nombre = strings.TrimSpace(req.Nombre)
-
-	if req.Email == "" || req.Identificacion == "" || req.Nombre == "" || req.Password == "" {
-		return domain.ErrInvalidInput
-	}
-
-	// 1. Validar unicidad del Email
-	existsEmail, err := s.usuarioRepo.EmailExists(ctx, req.Email)
-	if err != nil {
-		return err
-	}
-	if existsEmail {
-		return domain.ErrEmailAlreadyExists
-	}
-
-	// 2. Validar unicidad de la Identificacion (Cedula o RIF)
-	existsIdent, err := s.usuarioRepo.IdentificacionExists(ctx, req.Identificacion)
-	if err != nil {
-		return err
-	}
-	if existsIdent {
-		return domain.ErrIdentificacionAlreadyExists
-	}
-
-	// 3. Hashear clave de forma segura
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return err
-	}
-
-	// 4. Mapear al modelo de dominio unico (Corregido a PasswordHash y Nombre como valor)
-	nuevoUsuario := domain.Usuario{
-		Identificacion: req.Identificacion,
-		Email:          req.Email,
-		PasswordHash:   hashedPassword,
-		Nombre:         req.Nombre,
-		Tipo:           req.Tipo,
-		Role:           domain.RoleUser,
-	}
-
-	return s.usuarioRepo.Create(ctx, nuevoUsuario)
-}
-
-// Login autentica credenciales sin importar el tipo o rol del usuario
 func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
-	req.Email = normalizeEmail(req.Email)
-	if req.Email == "" || req.Password == "" {
-		return nil, domain.ErrInvalidInput
+	// Validar email
+	if req.Email == "" {
+		return nil, errors.New("email es requerido")
 	}
 
-	usuario, err := s.usuarioRepo.FindByEmail(ctx, req.Email)
+	// Buscar usuario por email (con password hash)
+	usuario, passwordHash, err := s.usuarioRepo.GetUsuarioByEmailWithPassword(ctx, req.Email)
 	if err != nil {
+		if err == domain.ErrNotFound {
+			return nil, errors.New("credenciales inválidas")
+		}
 		return nil, err
 	}
-	if usuario == nil {
-		return nil, domain.ErrInvalidCredentials
+
+	// Verificar contraseña
+	if !utils.CheckPasswordHash(req.Password, passwordHash) {
+		return nil, errors.New("credenciales inválidas")
 	}
 
-	// Corregido: se compara contra usuario.PasswordHash (corrigiendo bugcito)
-	if !utils.CheckPasswordHash(req.Password, usuario.PasswordHash) {
-		return nil, domain.ErrInvalidCredentials
-	}
-
-	// Generar JWT usando los campos unificados de la tabla unica
-	token, err := utils.GenerateJWT(usuario.Email, usuario.Tipo, usuario.ID, usuario.Role, s.jwtSecret)
+	// Generar token
+	token, err := utils.GenerateJWT(usuario.ID, usuario.Email, usuario.Role, usuario.Tipo, s.jwtSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -137,80 +70,84 @@ func (s *AuthService) Login(ctx context.Context, req LoginRequest) (*LoginRespon
 	}, nil
 }
 
-// UpdateUsuario gestiona la actualizacion de datos compartidos por el perfil
-func (s *AuthService) UpdateUsuario(ctx context.Context, id string, req UpdateUsuarioRequest) error {
-	req.Email = normalizeEmail(req.Email)
-	req.Nombre = strings.TrimSpace(req.Nombre)
-	id = strings.TrimSpace(id)
-
-	if req.Nombre == "" || req.Email == "" || id == "" {
-		return domain.ErrInvalidInput
+func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*LoginResponse, error) {
+	// Validar email
+	if req.Email == "" {
+		return nil, errors.New("email es requerido")
 	}
 
-	// Validar si el nuevo correo ya pertenece a otro usuario del sistema
-	usuarioExistente, err := s.usuarioRepo.FindByEmail(ctx, req.Email)
-	if err != nil {
-		return err
-	}
-	if usuarioExistente != nil && usuarioExistente.ID != id {
-		return domain.ErrEmailAlreadyExists
+	// Validar contraseña
+	if len(req.Password) < 6 {
+		return nil, errors.New("la contraseña debe tener al menos 6 caracteres")
 	}
 
-	return s.usuarioRepo.Update(ctx, id, req.Nombre, req.Email)
-}
-
-// METODOS DE ADMINISTRACIÓN
-
-// ListAdmins obtiene la lista de todos los administradores del sistema
-func (s *AuthService) ListAdmins(ctx context.Context) ([]domain.Usuario, error) {
-	// Corregido: Llamada directa al método definido en tu interfaz
-	return s.usuarioRepo.ListAdmins(ctx)
-}
-
-// CreateAdmin registra un nuevo usuario de gestion interna con rol administrativo
-func (s *AuthService) CreateAdmin(ctx context.Context, req CreateAdminRequest) error {
-	req.Email = normalizeEmail(req.Email)
-	req.Nombre = strings.TrimSpace(req.Nombre)
-
-	if req.Email == "" || req.Nombre == "" || req.Password == "" {
-		return domain.ErrInvalidInput
+	// Validar tipo
+	if req.Tipo != domain.TipoNatural && req.Tipo != domain.TipoJuridico {
+		return nil, errors.New("tipo de usuario inválido")
 	}
 
-	exists, err := s.usuarioRepo.EmailExists(ctx, req.Email)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return domain.ErrEmailAlreadyExists
+	// Verificar si el email ya existe
+	_, err := s.usuarioRepo.GetUsuarioByEmail(ctx, req.Email)
+	if err == nil {
+		return nil, errors.New("el email ya está registrado")
+	} else if err != domain.ErrNotFound {
+		return nil, err
 	}
 
+	// Hash de la contraseña
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Corregido a PasswordHash y Nombre como valor (corrigiendo bugcito)
-	admin := domain.Usuario{
-		Email:        req.Email,
-		PasswordHash: hashedPassword,
-		Nombre:       req.Nombre,
-		Tipo:         domain.TipoAdmin,
-		Role:         domain.RoleAdmin,
+	// Crear usuario
+	identificacion := req.Identificacion
+	usuario := &domain.Usuario{
+		Email:          req.Email,
+		Nombre:         req.Nombre,
+		Tipo:           req.Tipo,
+		Role:           domain.RoleUser,
+		Identificacion: &identificacion,
+		Nivel:          0,
+		Experiencia:    0,
 	}
 
-	return s.usuarioRepo.Create(ctx, admin)
+	created, err := s.usuarioRepo.CreateUsuario(ctx, usuario, hashedPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generar token
+	token, err := utils.GenerateJWT(created.ID, created.Email, created.Role, created.Tipo, s.jwtSecret)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginResponse{
+		Token: token,
+		User:  *created,
+	}, nil
 }
 
-// DeleteUser da de baja una cuenta del sistema por su identificador unico
-func (s *AuthService) DeleteUser(ctx context.Context, id string) error {
-	id = strings.TrimSpace(id)
-	if id == "" {
-		return domain.ErrInvalidInput
+// UpdateProfile - Actualizar perfil de usuario
+func (s *AuthService) UpdateProfile(ctx context.Context, userID string, updates map[string]interface{}) (*domain.Usuario, error) {
+	usuario, err := s.usuarioRepo.GetUsuarioByID(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
-	return s.usuarioRepo.Delete(ctx, id)
-}
 
-// HELPERS INTERNOS
-func normalizeEmail(email string) string {
-	return strings.ToLower(strings.TrimSpace(email))
+	if nombre, ok := updates["nombre"].(string); ok && nombre != "" {
+		usuario.Nombre = nombre
+	}
+	if email, ok := updates["email"].(string); ok && email != "" {
+		usuario.Email = email
+	}
+	if identificacion, ok := updates["identificacion"].(string); ok && identificacion != "" {
+		usuario.Identificacion = &identificacion
+	}
+	if estadoID, ok := updates["estado_id"].(string); ok && estadoID != "" {
+		usuario.EstadoID = &estadoID
+	}
+
+	return s.usuarioRepo.UpdateUsuario(ctx, userID, usuario)
 }

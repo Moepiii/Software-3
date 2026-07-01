@@ -47,7 +47,6 @@ func (h *CursoHandler) GetCursos(w http.ResponseWriter, r *http.Request) {
 func (h *CursoHandler) UpdateCurso(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
-		// Fallback for older Go routers or if PathValue fails, though PathValue is in Go 1.22+
 		parts := strings.Split(r.URL.Path, "/")
 		id = parts[len(parts)-1]
 	}
@@ -123,4 +122,45 @@ func (h *CursoHandler) GetMisReservas(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.SendJSONResponse(w, http.StatusOK, reservas)
+}
+
+func (h *CursoHandler) GetMisCursos(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok || claims.ID == "" {
+		utils.SendJSONError(w, http.StatusUnauthorized, "Usuario no autenticado")
+		return
+	}
+
+	cursos, err := h.cursoService.GetMisCursos(r.Context(), claims.ID)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error obteniendo tus cursos")
+		return
+	}
+
+	if cursos == nil {
+		cursos = []domain.Curso{}
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, cursos)
+}
+
+// 🆕 FinalizarCurso - Handler para finalizar un curso (solo admin)
+func (h *CursoHandler) FinalizarCurso(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		parts := strings.Split(r.URL.Path, "/")
+		id = parts[len(parts)-1]
+	}
+
+	usuariosAfectados, err := h.cursoService.FinalizarCurso(r.Context(), id)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, "Error finalizando curso: "+err.Error())
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, map[string]interface{}{
+		"message":            "Curso finalizado exitosamente",
+		"usuarios_afectados": usuariosAfectados,
+		"experiencia_ganada": 100,
+	})
 }

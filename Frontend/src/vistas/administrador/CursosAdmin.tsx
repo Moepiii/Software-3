@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Button from '../../componentes/Boton';
 import type { Curso } from '../../api/cursos';
-import { listarCursos, crearCurso, actualizarCurso, eliminarCurso } from '../../api/cursos';
+import { listarCursos, crearCurso, actualizarCurso, eliminarCurso, finalizarCurso } from '../../api/cursos';
 
 // Función para obtener todas las imágenes de la carpeta
 const importarImagenes = () => {
@@ -71,7 +71,10 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
     const handleCrearCurso = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await crearCurso(formData);
+            await crearCurso({
+                ...formData,
+                estado: 'planificado'
+            });
             await cargarCursos();
             resetFormulario();
             alert('¡Curso creado exitosamente! Aparecerá en "Planificado"');
@@ -122,6 +125,20 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
         }
     };
 
+    // 🆕 Función para finalizar curso (botón amarillo)
+    const handleFinalizarCurso = async (curso: Curso) => {
+        if (confirm(`¿Finalizar el curso "${curso.titulo}"? Se darán 100 EXP a todos los usuarios inscritos.`)) {
+            try {
+                const resultado = await finalizarCurso(curso.id);
+                await cargarCursos();
+                alert(`✅ ¡Curso finalizado!\n\n📊 Usuarios afectados: ${resultado.usuarios_afectados}\n⭐ Experiencia ganada: ${resultado.experiencia_ganada} EXP por usuario`);
+            } catch (error) {
+                console.error(error);
+                alert('Hubo un error al finalizar el curso');
+            }
+        }
+    };
+
     const handleEditarClick = (curso: Curso) => {
         setCursoEditando(curso);
         const imagenExistente = imagenesDisponibles.find(img => img.nombre === curso.imagen);
@@ -144,6 +161,7 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
 
     const cursosActivos = cursos.filter(c => c.estado === 'activo');
     const cursosPlanificados = cursos.filter(c => c.estado === 'planificado');
+    const cursosFinalizados = cursos.filter(c => c.estado === 'finalizado');
 
     const styles = {
         container: {
@@ -270,6 +288,10 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
             backgroundColor: '#f59e0b',
             color: '#ffffff'
         },
+        badgeFinalizado: {
+            backgroundColor: '#6b7280',
+            color: '#ffffff'
+        },
         cardContent: {
             padding: '20px'
         },
@@ -334,13 +356,26 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
         botonOficializar: {
             flex: 1,
             padding: '8px',
-            backgroundColor: '#8b5cf6', // Morado
+            backgroundColor: '#8b5cf6',
             border: 'none',
             borderRadius: '8px',
             color: '#ffffff',
             cursor: 'pointer',
             fontSize: '0.85rem',
             fontWeight: '500'
+        },
+        // 🆕 Botón Finalizar - AMARILLO
+        botonFinalizar: {
+            flex: 1,
+            padding: '8px',
+            backgroundColor: '#f59e0b',
+            border: 'none',
+            borderRadius: '8px',
+            color: '#ffffff',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
         },
         seccionTitulo: {
             fontSize: '1.5rem',
@@ -508,6 +543,10 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
                                     <button style={styles.botonEditar} onClick={() => handleEditarClick(curso)}>
                                         Editar
                                     </button>
+                                    {/* 🆕 Botón Finalizar (amarillo) SOLO para cursos activos */}
+                                    <button style={styles.botonFinalizar} onClick={() => handleFinalizarCurso(curso)}>
+                                        Finalizar
+                                    </button>
                                     <button style={styles.botonEliminar} onClick={() => handleEliminarCurso(curso)}>
                                         Eliminar
                                     </button>
@@ -551,6 +590,43 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
                                     <button style={styles.botonOficializar} onClick={() => handleOficializarCurso(curso)}>
                                         Oficializar
                                     </button>
+                                    <button style={styles.botonEliminar} onClick={() => handleEliminarCurso(curso)}>
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* 🆕 Cursos Finalizados */}
+            <h2 style={styles.seccionTitulo}>Finalizados</h2>
+            <div style={styles.grid}>
+                {cursosFinalizados.length === 0 ? (
+                    <div style={styles.vacio}>No hay cursos finalizados</div>
+                ) : (
+                    cursosFinalizados.map(curso => (
+                        <div key={curso.id} style={styles.cursoCard}>
+                            <div style={{
+                                ...styles.cardImage,
+                                backgroundImage: `url(${getImagenUrl(curso.imagen || '')})`
+                            }}>
+                                <div style={{ ...styles.badge, ...styles.badgeFinalizado }}>
+                                    FINALIZADO
+                                </div>
+                                <div style={styles.cardOverlay}>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Curso Completado</div>
+                                </div>
+                            </div>
+                            <div style={styles.cardContent}>
+                                <h3 style={styles.cursoTitulo}>{curso.titulo}</h3>
+                                <p style={styles.cursoDescripcion}>{curso.descripcion}</p>
+                                <p style={styles.cursoFecha}>📅 {curso.fechaInicio} - {curso.fechaFin}</p>
+                                {curso.categoria && (
+                                    <span style={styles.cursoCategoria}>{curso.categoria}</span>
+                                )}
+                                <div style={styles.buttonGroup}>
                                     <button style={styles.botonEliminar} onClick={() => handleEliminarCurso(curso)}>
                                         Eliminar
                                     </button>

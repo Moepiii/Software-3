@@ -43,6 +43,10 @@ model Usuarios {
   created_at     DateTime    @default(now())
   updated_at     DateTime    @updatedAt
   
+  // 🆕 CAMPOS DE GAMIFICACIÓN
+  nivel          Int         @default(0)
+  experiencia    Int         @default(0)
+  
   // Relaciones
   estado_id      String?
   estado         Estado?       @relation(fields: [estado_id], references: [id], onDelete: SetNull)

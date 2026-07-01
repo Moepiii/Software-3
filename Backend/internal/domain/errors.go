@@ -1,22 +1,27 @@
-/*
-Autor: Baudilio Velasquez
-
-Este archivo centraliza los errores de negocio del backend. Permite que los
-servicios expresen fallos conocidos y que los handlers los traduzcan a codigos
-HTTP consistentes.
-
-*Agregado error unificado de identificacion (cedula o rif) que ya existe*
-*/
 package domain
 
 import "errors"
 
+// Errores comunes
 var (
-	ErrEmailAlreadyExists          = errors.New("email already registered")
-	ErrIdentificacionAlreadyExists = errors.New("identificacion already exists") // Unificando ErrCedula y ErrRif
-	ErrInvalidCredentials          = errors.New("invalid email or password")
-	ErrUserNotFound                = errors.New("user not found")
-	ErrInvalidInput                = errors.New("invalid input")
-	ErrUnauthorized                = errors.New("unauthorized")
-	ErrForbidden                   = errors.New("forbidden")
+	ErrNotFound        = errors.New("recurso no encontrado")
+	ErrUnauthorized    = errors.New("no autorizado")
+	ErrForbidden       = errors.New("acceso denegado")
+	ErrInvalidEmail    = errors.New("email inválido")
+	ErrInvalidPassword = errors.New("contraseña inválida")
+	ErrUserExists      = errors.New("el usuario ya existe")
+	ErrUserNotFound    = errors.New("usuario no encontrado")
+)
+
+// Roles
+const (
+	RoleAdmin = "admin"
+	RoleUser  = "user"
+)
+
+// Tipos de usuario
+const (
+	TipoNatural  = "NATURAL"
+	TipoJuridico = "JURIDICO"
+	TipoAdmin    = "ADMIN"
 )

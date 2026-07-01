@@ -6,96 +6,79 @@ import (
 	"context"
 )
 
-type DeudaRepository interface {
-	FindVigentesByUsuario(ctx context.Context, usuarioID string) ([]domain.Deuda, error)
-	Create(ctx context.Context, d domain.Deuda) error
-	// Registrar un abono a una deuda específica
-	CreateAbono(ctx context.Context, deudaID string, monto float64) error
-	// Obtener todos los abonos de un usuario para las estadísticas
-	GetAllAbonosByUsuario(ctx context.Context, usuarioID string) ([]domain.Abono, error)
-	// Cambiar estado de vigencia de una deuda
-	UpdateEstadoDeuda(ctx context.Context, deudaID string, vigente bool) error
-}
-
-type deudaRepo struct {
+type DeudaRepository struct {
 	client *db.PrismaClient
 }
 
-func NewDeudaRepository(client *db.PrismaClient) DeudaRepository {
-	return &deudaRepo{client: client}
+func NewDeudaRepository(client *db.PrismaClient) *DeudaRepository {
+	return &DeudaRepository{client: client}
 }
 
-func (r *deudaRepo) FindVigentesByUsuario(ctx context.Context, usuarioID string) ([]domain.Deuda, error) {
-	models, err := r.client.Deuda.FindMany(
+func (r *DeudaRepository) GetDeudaActual(ctx context.Context, usuarioID string) (*domain.Deuda, error) {
+	deuda, err := r.client.Deuda.FindFirst(
 		db.Deuda.UsuarioID.Equals(usuarioID),
 		db.Deuda.Vigente.Equals(true),
 	).Exec(ctx)
-
 	if err != nil {
+		if err == db.ErrNotFound {
+			return &domain.Deuda{
+				Monto:   0,
+				Vigente: false,
+			}, nil
+		}
 		return nil, err
 	}
 
-	result := make([]domain.Deuda, 0, len(models))
-	for _, m := range models {
-		result = append(result, domain.Deuda{
-			ID:        m.ID,
-			UsuarioID: m.UsuarioID,
-			Monto:     m.Monto,
-			Vigente:   m.Vigente,
-			CreatedAt: m.CreatedAt.String(),
-		})
+	return &domain.Deuda{
+		ID:        deuda.ID,
+		UsuarioID: deuda.UsuarioID,
+		Monto:     deuda.Monto,
+		Vigente:   deuda.Vigente,
+	}, nil
+}
+
+func (r *DeudaRepository) PayDeuda(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
+	// Obtener deuda actual
+	deuda, err := r.GetDeudaActual(ctx, usuarioID)
+	if err != nil {
+		return nil, err
 	}
-	return result, nil
-}
+	if deuda.ID == "" {
+		return nil, domain.ErrNotFound
+	}
 
-func (r *deudaRepo) Create(ctx context.Context, d domain.Deuda) error {
-	_, err := r.client.Deuda.CreateOne(
-		db.Deuda.Monto.Set(d.Monto),
-		db.Deuda.Usuario.Link(db.Usuarios.ID.Equals(d.UsuarioID)),
-		db.Deuda.Vigente.Set(true),
-	).Exec(ctx)
-	return err
-}
-
-// Crear un nuevo abono
-func (r *deudaRepo) CreateAbono(ctx context.Context, deudaID string, monto float64) error {
-	_, err := r.client.Abono.CreateOne(
+	// Crear abono
+	_, err = r.client.Abono.CreateOne(
 		db.Abono.Monto.Set(monto),
 		db.Abono.Deuda.Link(
-			db.Deuda.ID.Equals(deudaID),
+			db.Deuda.ID.Equals(deuda.ID),
 		),
 	).Exec(ctx)
-	return err
-}
-
-// Obtener historial de abonos de un usuario (a través de sus deudas)
-func (r *deudaRepo) GetAllAbonosByUsuario(ctx context.Context, usuarioID string) ([]domain.Abono, error) {
-	models, err := r.client.Abono.FindMany(
-		db.Abono.Deuda.Where(db.Deuda.UsuarioID.Equals(usuarioID)),
-	).OrderBy(db.Abono.Fecha.Order(db.SortOrderDesc)).Exec(ctx)
-
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]domain.Abono, 0, len(models))
-	for _, m := range models {
-		result = append(result, domain.Abono{
-			ID:      m.ID,
-			DeudaID: m.DeudaID,
-			Monto:   m.Monto,
-			Fecha:   m.Fecha.String(),
-		})
+	// Calcular nuevo monto de deuda
+	nuevoMonto := deuda.Monto - monto
+	if nuevoMonto < 0 {
+		nuevoMonto = 0
 	}
-	return result, nil
-}
 
-// Cambiar estado de vigencia de una deuda
-func (r *deudaRepo) UpdateEstadoDeuda(ctx context.Context, deudaID string, vigente bool) error {
-	_, err := r.client.Deuda.FindUnique(
-		db.Deuda.ID.Equals(deudaID),
+	// Actualizar deuda
+	updated, err := r.client.Deuda.FindUnique(
+		db.Deuda.ID.Equals(deuda.ID),
 	).Update(
-		db.Deuda.Vigente.Set(vigente),
+		db.Deuda.Monto.Set(nuevoMonto),
+		db.Deuda.Vigente.Set(nuevoMonto > 0),
 	).Exec(ctx)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Deuda{
+		ID:        updated.ID,
+		UsuarioID: updated.UsuarioID,
+		Monto:     updated.Monto,
+		Vigente:   updated.Vigente,
+	}, nil
 }

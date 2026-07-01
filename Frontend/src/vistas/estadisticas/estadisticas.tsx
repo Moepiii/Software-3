@@ -1,22 +1,81 @@
 import { useState, useEffect } from 'react';
-import type { LoginUser } from '../../api'; // Ajusta la ruta según tu arquitectura
-import { getEstadisticas, type EstadisticasResponse } from '../../api/usuario';
+import type { LoginUser } from '../../api';
+import { getEstadisticas, getExperiencia } from '../../api/usuario';
 
 interface EstadisticasProps {
   user: LoginUser;
   onBack: () => void;
 }
 
-export function Estadisticas({ onBack }: EstadisticasProps) {
+// Definir el tipo de respuesta para estadísticas
+interface EstadisticasResponse {
+  total_abonado: number;
+  maximo_abono: number;
+  deuda_pendiente: number;
+  historial: Array<{
+    fecha: string;
+    monto: number;
+  }>;
+}
+
+// Definir el tipo de experiencia
+interface ExperienciaResponse {
+  nivel: number;
+  experiencia: number;
+  maximoNivel: number;
+}
+
+export function Estadisticas({ user, onBack }: EstadisticasProps) {
   const [data, setData] = useState<EstadisticasResponse | null>(null);
+  const [experiencia, setExperiencia] = useState<ExperienciaResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getEstadisticas()
-      .then(setData)
-      .catch((err: Error) => setError(err.message || 'Error al cargar estadísticas'))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [statsData, expData] = await Promise.all([
+          getEstadisticas(),
+          getExperiencia()
+        ]);
+
+        // Asegurar que statsData tenga valores por defecto
+        setData({
+          total_abonado: statsData?.total_abonado || 0,
+          maximo_abono: statsData?.maximo_abono || 0,
+          deuda_pendiente: statsData?.deuda_pendiente || 0,
+          historial: statsData?.historial || []
+        });
+
+        setExperiencia({
+          nivel: expData?.nivel || 0,
+          experiencia: expData?.experiencia || 0,
+          maximoNivel: expData?.maximoNivel || 1000
+        });
+
+        setError(null);
+      } catch (err: any) {
+        console.error('Error al cargar datos:', err);
+        setError(err.message || 'Error al cargar estadísticas');
+        // Establecer datos vacíos para evitar errores
+        setData({
+          total_abonado: 0,
+          maximo_abono: 0,
+          deuda_pendiente: 0,
+          historial: []
+        });
+        setExperiencia({
+          nivel: 0,
+          experiencia: 0,
+          maximoNivel: 1000
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
@@ -31,13 +90,17 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
     return (
       <div className="bg-background text-on-background min-h-screen flex flex-col items-center justify-center">
         <div className="text-xl text-red-500 mb-4">⚠️ {error}</div>
-        <button onClick={onBack} className="bg-primary-container px-6 py-2 rounded-full text-on-primary-container font-label-bold">
+        <button
+          onClick={onBack}
+          className="bg-primary-container px-6 py-2 rounded-full text-on-primary-container font-label-bold"
+        >
           Volver al Lobby
         </button>
       </div>
     );
   }
 
+  // Datos seguros con valores por defecto
   const statsData = data || {
     total_abonado: 0,
     maximo_abono: 0,
@@ -45,22 +108,32 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
     historial: []
   };
 
-  const formatearMonto = (m: number) => `${m.toFixed(2).replace('.', ',')} Bs.`;
+  const expData = experiencia || {
+    nivel: 0,
+    experiencia: 0,
+    maximoNivel: 1000
+  };
+
+  const formatearMonto = (m: number) => {
+    // Asegurar que m sea un número
+    const valor = typeof m === 'number' ? m : 0;
+    return `${valor.toFixed(2).replace('.', ',')} Bs.`;
+  };
 
   const stats = {
     totalPaid: formatearMonto(statsData.total_abonado),
     monthlyMax: formatearMonto(statsData.maximo_abono),
     maxMonthLabel: 'MÁXIMO HISTÓRICO',
     debt: formatearMonto(statsData.deuda_pendiente),
+    nivel: expData.nivel || 0,
+    experiencia: expData.experiencia || 0,
+    maximoNivel: expData.maximoNivel || 1000,
   };
 
   const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 
-  const tableRows = statsData.historial.map((abono) => {
-    // Si abono.fecha es string (ej. "2024-06-12T...") o un objeto Date, ajustamos:
-    // Asegurarse de lidiar con un string que podría venir del backend
+  const tableRows = (statsData.historial || []).map((abono) => {
     const fecha = new Date(abono.fecha);
-    // Verificar si la fecha es inválida
     const isInvalid = isNaN(fecha.getTime());
     const dateStr = isInvalid ? abono.fecha : `${fecha.getDate().toString().padStart(2, '0')} ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
     return {
@@ -68,18 +141,19 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
       category: 'Abono a Deuda',
       metric: 'Pago Registrado',
       status: 'COMPLETADO',
-      amount: formatearMonto(abono.monto)
+      amount: formatearMonto(abono.monto || 0)
     };
   });
 
   const pagosPorMes: Record<string, number> = {};
   let maxPagoMes = 0;
-  
-  statsData.historial.forEach(a => {
+
+  (statsData.historial || []).forEach(a => {
     const d = new Date(a.fecha);
     if (!isNaN(d.getTime())) {
       const mStr = meses[d.getMonth()];
-      pagosPorMes[mStr] = (pagosPorMes[mStr] || 0) + a.monto;
+      const monto = a.monto || 0;
+      pagosPorMes[mStr] = (pagosPorMes[mStr] || 0) + monto;
       if (pagosPorMes[mStr] > maxPagoMes) maxPagoMes = pagosPorMes[mStr];
     }
   });
@@ -98,10 +172,14 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
     });
   }
 
+  // Calcular porcentaje de experiencia
+  const maximoExp = expData.maximoNivel || 1000;
+  const porcentajeExp = Math.min(((expData.experiencia || 0) / maximoExp) * 100, 100);
+
   return (
     <div className="bg-background text-on-background selection:bg-tertiary-fixed selection:text-on-tertiary-fixed font-sans min-h-screen flex flex-col">
-      
-      {/* TopNavBar - Idéntico a tu layout global */}
+
+      {/* TopNavBar */}
       <header className="bg-surface-container-lowest dark:bg-surface-dim border-b border-outline-variant dark:border-outline w-full h-20 sticky top-0 z-50">
         <div className="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full">
           <div className="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed flex items-center gap-2 cursor-pointer" onClick={onBack}>
@@ -110,7 +188,10 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-bold hover:opacity-90 active:scale-95 duration-100 transition-all cursor-pointer" onClick={onBack}>
+            <button
+              className="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-bold hover:opacity-90 active:scale-95 duration-100 transition-all cursor-pointer"
+              onClick={onBack}
+            >
               Volver al Lobby
             </button>
           </div>
@@ -119,7 +200,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
 
       {/* Main Content Area */}
       <main className="flex-grow max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop w-full py-stack-lg">
-        
+
         {/* Title & Breadcrumbs */}
         <div className="mb-stack-lg">
           <div className="flex items-center gap-2 text-on-surface-variant mb-unit">
@@ -130,6 +211,31 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
           <h1 className="font-display-lg text-display-lg text-primary dark:text-primary-fixed-dim">Estadísticas Financieras</h1>
         </div>
 
+        {/* 🆕 Tarjeta de Gamificación - Nivel y Experiencia */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-stack-lg">
+          <div className="md:col-span-2 bg-surface-container-lowest dark:bg-surface-dim border border-outline-variant dark:border-outline tonal-elevation-1 rounded-xl p-stack-md">
+            <div className="flex items-center gap-2 mb-stack-sm text-on-surface-variant">
+              <span className="material-symbols-outlined">stars</span>
+              <h2 className="font-label-bold text-label-bold">PROGRESO</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">Nv. {expData.nivel || 0}</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">{expData.experiencia || 0} / {expData.maximoNivel || 1000} EXP</p>
+              </div>
+              <div className="flex-1">
+                <div className="w-full h-3 bg-surface-container-low rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-tertiary-fixed rounded-full transition-all duration-500"
+                    style={{ width: `${porcentajeExp}%` }}
+                  />
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 text-right">{porcentajeExp.toFixed(0)}% completado</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Summary Section: Bento Style Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-lg">
           {/* Total Pagado */}
@@ -139,7 +245,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
                 <span className="material-symbols-outlined">payments</span>
                 <h2 className="font-label-bold text-label-bold">TOTAL PAGADO</h2>
               </div>
-              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{stats.totalPaid}</p>
+              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{formatearMonto(statsData.total_abonado || 0)}</p>
             </div>
             <div className="mt-stack-md flex items-center text-on-tertiary-container gap-1">
               <span className="material-symbols-outlined text-sm">trending_up</span>
@@ -154,7 +260,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
                 <span className="material-symbols-outlined">event_upcoming</span>
                 <h2 className="font-label-bold text-label-bold">MÁXIMO ABONO</h2>
               </div>
-              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{stats.monthlyMax}</p>
+              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{formatearMonto(statsData.maximo_abono || 0)}</p>
             </div>
             <div className="mt-stack-md">
               <span className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-bold text-[12px]">
@@ -170,10 +276,10 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
                 <span className="material-symbols-outlined">account_balance_wallet</span>
                 <h2 className="font-label-bold text-label-bold">DEUDA ACUMULADA</h2>
               </div>
-              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{stats.debt}</p>
+              <p className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">{formatearMonto(statsData.deuda_pendiente || 0)}</p>
             </div>
             <div className="mt-stack-md flex items-center text-primary-container dark:text-primary-fixed gap-1">
-              {statsData.deuda_pendiente === 0 ? (
+              {(statsData.deuda_pendiente || 0) === 0 ? (
                 <>
                   <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   <span className="font-body-sm text-body-sm text-on-secondary-container">Al día con sus pagos</span>
@@ -202,7 +308,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
                 <button className="material-symbols-outlined p-1 hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer">more_vert</button>
               </div>
             </div>
-            
+
             {/* Chart Container */}
             <div className="relative h-64 flex pt-4">
               <div className="flex flex-col justify-between h-full pr-4 pb-8 text-right select-none">
@@ -218,13 +324,12 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
                   <div className="border-b border-outline-variant/20 w-full h-0"></div>
                   <div className="border-b border-outline-variant w-full h-0"></div>
                 </div>
-                
+
                 {paymentsHistory.map((bar, index) => (
                   <div key={index} className="flex flex-col items-center flex-1 h-full z-10">
-                    <div 
-                      className={`w-full rounded-t-lg transition-all duration-200 hover:scale-y-105 origin-bottom cursor-pointer ${
-                        bar.isHighlight ? 'bg-tertiary-fixed-dim' : 'bg-primary-container dark:bg-primary-fixed-dim'
-                      }`}
+                    <div
+                      className={`w-full rounded-t-lg transition-all duration-200 hover:scale-y-105 origin-bottom cursor-pointer ${bar.isHighlight ? 'bg-tertiary-fixed-dim' : 'bg-primary-container dark:bg-primary-fixed-dim'
+                        }`}
                       style={{ height: bar.height }}
                     ></div>
                     <span className="font-label-caps text-label-caps mt-4 text-on-surface-variant">{bar.month}</span>
@@ -284,7 +389,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
         </section>
       </main>
 
-      {/* Footer - Sincronizado exactamente con el tuyo */}
+      {/* Footer */}
       <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
         <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
