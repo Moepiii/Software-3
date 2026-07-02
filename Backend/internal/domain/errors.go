@@ -9,6 +9,7 @@ var (
 	ErrForbidden       = errors.New("acceso denegado")
 	ErrInvalidEmail    = errors.New("email inválido")
 	ErrInvalidPassword = errors.New("contraseña inválida")
+	ErrInvalidInput    = errors.New("entrada inválida")
 	ErrUserExists      = errors.New("el usuario ya existe")
 	ErrUserNotFound    = errors.New("usuario no encontrado")
 )

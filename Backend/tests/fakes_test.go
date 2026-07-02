@@ -4,6 +4,7 @@ import (
 	"Backend/internal/domain"
 	"Backend/internal/utils"
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -22,6 +23,7 @@ type backendFakes struct {
 type memoryStore struct {
 	mu           sync.Mutex
 	usuarios     map[string]*domain.Usuario
+	passwords    map[string]string
 	deudas       []domain.Deuda
 	abonos       []domain.Abono
 	estados      []domain.EstadoConTasa
@@ -44,57 +46,54 @@ type fakeEstadoRepo struct {
 
 const testTimestamp = "2026-06-05T00:00:00Z"
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func newBackendFakes(t testing.TB) *backendFakes {
 	t.Helper()
 
 	estadoID := "est-1"
-	estadoNombre := "caracas"
 
 	store := &memoryStore{
 		usuarios: map[string]*domain.Usuario{
 			"ADM-1": {
 				ID:             "u1",
-				Identificacion: "ADM-1",
+				Identificacion: strPtr("ADM-1"),
 				Email:          "admin@mail.com",
-				PasswordHash:   testPasswordHash(t, "123456"),
 				Nombre:         "Admin Sistema",
 				Tipo:           domain.TipoAdmin,
 				Role:           domain.RoleAdmin,
-				CreatedAt:      testTimestamp,
-				UpdatedAt:      testTimestamp,
 			},
 			"V123": {
 				ID:             "u2",
-				Identificacion: "V123",
+				Identificacion: strPtr("V123"),
 				Email:          "persona@mail.com",
-				PasswordHash:   testPasswordHash(t, "123456"),
 				Nombre:         "Juan Perez",
 				Tipo:           domain.TipoNatural,
 				Role:           domain.RoleUser,
 				EstadoID:       &estadoID,
-				EstadoNombre:   &estadoNombre,
-				CreatedAt:      testTimestamp,
-				UpdatedAt:      testTimestamp,
 			},
 			"J123": {
 				ID:             "u3",
-				Identificacion: "J123",
+				Identificacion: strPtr("J123"),
 				Email:          "empresa@mail.com",
-				PasswordHash:   testPasswordHash(t, "123456"),
 				Nombre:         "EcoCorp",
 				Tipo:           domain.TipoJuridico,
 				Role:           domain.RoleUser,
 				EstadoID:       &estadoID,
-				EstadoNombre:   &estadoNombre,
-				CreatedAt:      testTimestamp,
-				UpdatedAt:      testTimestamp,
 			},
 		},
+		passwords: map[string]string{
+			"u1": testPasswordHash(t, "123456"),
+			"u2": testPasswordHash(t, "123456"),
+			"u3": testPasswordHash(t, "123456"),
+		},
 		deudas: []domain.Deuda{
-			{ID: "deuda-persona-1", UsuarioID: "V123", Monto: 4000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-			{ID: "deuda-persona-2", UsuarioID: "V123", Monto: 6000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-			{ID: "deuda-persona-pagada", UsuarioID: "V123", Monto: 5000.0, Vigente: false, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
-			{ID: "deuda-empresa-1", UsuarioID: "J123", Monto: 25000.0, Vigente: true, CreatedAt: testTimestamp, UpdatedAt: testTimestamp},
+			{ID: "deuda-persona-1", UsuarioID: "V123", Monto: 4000.0, Vigente: true},
+			{ID: "deuda-persona-2", UsuarioID: "V123", Monto: 6000.0, Vigente: true},
+			{ID: "deuda-persona-pagada", UsuarioID: "V123", Monto: 5000.0, Vigente: false},
+			{ID: "deuda-empresa-1", UsuarioID: "J123", Monto: 25000.0, Vigente: true},
 		},
 		abonos: []domain.Abono{},
 		estados: []domain.EstadoConTasa{
@@ -105,6 +104,7 @@ func newBackendFakes(t testing.TB) *backendFakes {
 		nextEstadoID: 3,
 		nextAbonoID:  1,
 	}
+
 
 	return &backendFakes{
 		store:       store,
@@ -137,21 +137,24 @@ func (r *fakeUsuarioRepo) Create(ctx context.Context, u domain.Usuario) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	if u.Identificacion != "" {
-		if _, ok := r.store.usuarios[u.Identificacion]; ok {
-			return domain.ErrIdentificacionAlreadyExists
+	if u.Identificacion != nil && *u.Identificacion != "" {
+		if _, ok := r.store.usuarios[*u.Identificacion]; ok {
+			return errors.New("identificacion already exists")
 		}
 	}
-	if usuarioEmailExistsLocked(r.store, u.Email) {
-		return domain.ErrEmailAlreadyExists
+	for _, existUser := range r.store.usuarios {
+		if existUser.Email == u.Email {
+			return errors.New("email already exists")
+		}
 	}
 	if u.Role == "" {
 		u.Role = domain.RoleUser
 	}
-	r.store.applyUsuarioStateLocked(&u)
 
-	// Usamos Identificacion como llave del mapa, si está vacia (ej. un admin raro), usamos email
-	key := u.Identificacion
+	key := ""
+	if u.Identificacion != nil {
+		key = *u.Identificacion
+	}
 	if key == "" {
 		key = u.Email
 	}
@@ -175,22 +178,36 @@ func (r *fakeUsuarioRepo) FindByIdentificacion(ctx context.Context, id string) (
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	return cloneUsuario(r.store.usuarios[id]), nil
+	for _, u := range r.store.usuarios {
+		if u.Identificacion != nil && *u.Identificacion == id {
+			return cloneUsuario(u), nil
+		}
+	}
+	return nil, nil
 }
 
 func (r *fakeUsuarioRepo) EmailExists(ctx context.Context, email string) (bool, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	return usuarioEmailExistsLocked(r.store, email), nil
+	for _, u := range r.store.usuarios {
+		if sameEmail(u.Email, email) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (r *fakeUsuarioRepo) IdentificacionExists(ctx context.Context, id string) (bool, error) {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	_, ok := r.store.usuarios[id]
-	return ok, nil
+	for _, u := range r.store.usuarios {
+		if u.Identificacion != nil && *u.Identificacion == id {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (r *fakeUsuarioRepo) ListAdmins(ctx context.Context) ([]domain.Usuario, error) {
@@ -204,7 +221,15 @@ func (r *fakeUsuarioRepo) ListAdmins(ctx context.Context) ([]domain.Usuario, err
 		}
 	}
 	sort.Slice(admins, func(i, j int) bool {
-		return admins[i].Identificacion < admins[j].Identificacion
+		valI := ""
+		if admins[i].Identificacion != nil {
+			valI = *admins[i].Identificacion
+		}
+		valJ := ""
+		if admins[j].Identificacion != nil {
+			valJ = *admins[j].Identificacion
+		}
+		return valI < valJ
 	})
 	return admins, nil
 }
@@ -213,10 +238,18 @@ func (r *fakeUsuarioRepo) Delete(ctx context.Context, id string) error {
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	if _, ok := r.store.usuarios[id]; !ok {
-		return domain.ErrUserNotFound
+	keyToDelete := ""
+	for k, u := range r.store.usuarios {
+		if u.ID == id || (u.Identificacion != nil && *u.Identificacion == id) {
+			keyToDelete = k
+			break
+		}
 	}
-	delete(r.store.usuarios, id)
+
+	if keyToDelete == "" {
+		return domain.ErrNotFound
+	}
+	delete(r.store.usuarios, keyToDelete)
 	return nil
 }
 
@@ -224,21 +257,21 @@ func (r *fakeUsuarioRepo) UpdateEstado(ctx context.Context, id string, estadoID 
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	u, ok := r.store.usuarios[id]
-	if !ok {
-		return domain.ErrUserNotFound
+	var u *domain.Usuario
+	for _, user := range r.store.usuarios {
+		if user.ID == id || (user.Identificacion != nil && *user.Identificacion == id) {
+			u = user
+			break
+		}
+	}
+	if u == nil {
+		return domain.ErrNotFound
 	}
 	if estadoID == "" {
 		u.EstadoID = nil
-		u.EstadoNombre = nil
 		return nil
 	}
-	nombre, ok := r.store.stateNameByIDLocked(estadoID)
-	if !ok {
-		return domain.ErrInvalidInput
-	}
 	u.EstadoID = stringPtr(estadoID)
-	u.EstadoNombre = stringPtr(nombre)
 	return nil
 }
 
@@ -246,14 +279,114 @@ func (r *fakeUsuarioRepo) Update(ctx context.Context, id string, nombre string, 
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	u, ok := r.store.usuarios[id]
-	if !ok {
-		return domain.ErrUserNotFound
+	var u *domain.Usuario
+	for _, user := range r.store.usuarios {
+		if user.ID == id || (user.Identificacion != nil && *user.Identificacion == id) {
+			u = user
+			break
+		}
+	}
+	if u == nil {
+		return domain.ErrNotFound
 	}
 	u.Nombre = nombre
 	u.Email = email
-	u.UpdatedAt = testTimestamp
 	return nil
+}
+
+func (r *fakeUsuarioRepo) GetUsuarioByID(ctx context.Context, id string) (*domain.Usuario, error) {
+	return r.FindByIdentificacion(ctx, id)
+}
+
+func (r *fakeUsuarioRepo) GetUsuarioByEmail(ctx context.Context, email string) (*domain.Usuario, error) {
+	return r.FindByEmail(ctx, email)
+}
+
+func (r *fakeUsuarioRepo) GetUsuarioByEmailWithPassword(ctx context.Context, email string) (*domain.Usuario, string, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	for _, u := range r.store.usuarios {
+		if sameEmail(u.Email, email) {
+			hash := r.store.passwords[u.ID]
+			return cloneUsuario(u), hash, nil
+		}
+	}
+	return nil, "", domain.ErrNotFound
+}
+
+func (r *fakeUsuarioRepo) CreateUsuario(ctx context.Context, u *domain.Usuario, passwordHash string) (*domain.Usuario, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	for _, existUser := range r.store.usuarios {
+		if sameEmail(existUser.Email, u.Email) {
+			return nil, errors.New("email already exists")
+		}
+	}
+
+	newID := fmt.Sprintf("u%d", len(r.store.usuarios)+1)
+	u.ID = newID
+
+	key := ""
+	if u.Identificacion != nil {
+		key = *u.Identificacion
+	}
+	if key == "" {
+		key = u.Email
+	}
+	r.store.usuarios[key] = cloneUsuario(u)
+	r.store.passwords[newID] = passwordHash
+	return cloneUsuario(u), nil
+}
+
+func (r *fakeUsuarioRepo) UpdateUsuario(ctx context.Context, id string, updates *domain.Usuario) (*domain.Usuario, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	var target *domain.Usuario
+	for _, u := range r.store.usuarios {
+		if u.ID == id || (u.Identificacion != nil && *u.Identificacion == id) {
+			target = u
+			break
+		}
+	}
+
+	if target == nil {
+		return nil, domain.ErrNotFound
+	}
+
+	if updates.Nombre != "" {
+		target.Nombre = updates.Nombre
+	}
+	if updates.Email != "" {
+		target.Email = updates.Email
+	}
+	if updates.Identificacion != nil {
+		target.Identificacion = updates.Identificacion
+	}
+	if updates.EstadoID != nil {
+		target.EstadoID = updates.EstadoID
+	}
+	target.Nivel = updates.Nivel
+	target.Experiencia = updates.Experiencia
+
+	return cloneUsuario(target), nil
+}
+
+func (r *fakeUsuarioRepo) DeleteUsuario(ctx context.Context, id string) error {
+	return r.Delete(ctx, id)
+}
+
+func (r *fakeUsuarioRepo) GetUsuarios(ctx context.Context) ([]domain.Usuario, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	var result []domain.Usuario
+	for _, u := range r.store.usuarios {
+		result = append(result, *cloneUsuario(u))
+	}
+	return result, nil
 }
 
 // MOCK: DeudaRepository
@@ -302,7 +435,6 @@ func (r *fakeDeudaRepo) GetAllAbonosByUsuario(ctx context.Context, usuarioID str
 	r.store.mu.Lock()
 	defer r.store.mu.Unlock()
 
-	// Build a set of deuda IDs that belong to this user
 	deudaIDs := make(map[string]bool)
 	for _, d := range r.store.deudas {
 		if d.UsuarioID == usuarioID {
@@ -326,14 +458,136 @@ func (r *fakeDeudaRepo) UpdateEstadoDeuda(ctx context.Context, deudaID string, v
 	for i := range r.store.deudas {
 		if r.store.deudas[i].ID == deudaID {
 			r.store.deudas[i].Vigente = vigente
-			r.store.deudas[i].UpdatedAt = testTimestamp
 			return nil
 		}
 	}
 	return domain.ErrInvalidInput
 }
 
+func (r *fakeDeudaRepo) GetDeudaActual(ctx context.Context, usuarioID string) (*domain.Deuda, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	for _, d := range r.store.deudas {
+		if d.UsuarioID == usuarioID && d.Vigente {
+			return &domain.Deuda{
+				ID:        d.ID,
+				UsuarioID: d.UsuarioID,
+				Monto:     d.Monto,
+				Vigente:   d.Vigente,
+			}, nil
+		}
+	}
+
+	return &domain.Deuda{
+		Monto:   0,
+		Vigente: false,
+	}, nil
+}
+
+func (r *fakeDeudaRepo) PayDeuda(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	var targetDeuda *domain.Deuda
+	for i := range r.store.deudas {
+		if r.store.deudas[i].UsuarioID == usuarioID && r.store.deudas[i].Vigente {
+			targetDeuda = &r.store.deudas[i]
+			break
+		}
+	}
+
+	if targetDeuda == nil {
+		return nil, domain.ErrNotFound
+	}
+
+	abono := domain.Abono{
+		ID:      fmt.Sprintf("abono-%d", r.store.nextAbonoID),
+		DeudaID: targetDeuda.ID,
+		Monto:   monto,
+		Fecha:   testTimestamp,
+	}
+	r.store.nextAbonoID++
+	r.store.abonos = append(r.store.abonos, abono)
+
+	targetDeuda.Monto -= monto
+	if targetDeuda.Monto <= 0 {
+		targetDeuda.Monto = 0
+		targetDeuda.Vigente = false
+	}
+
+	return &domain.Deuda{
+		ID:        targetDeuda.ID,
+		UsuarioID: targetDeuda.UsuarioID,
+		Monto:     targetDeuda.Monto,
+		Vigente:   targetDeuda.Vigente,
+	}, nil
+}
+
+func (r *fakeDeudaRepo) UpdateUserDebt(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	var targetDeuda *domain.Deuda
+	for i := range r.store.deudas {
+		if r.store.deudas[i].UsuarioID == usuarioID && r.store.deudas[i].Vigente {
+			targetDeuda = &r.store.deudas[i]
+			break
+		}
+	}
+
+	if targetDeuda == nil {
+		if monto <= 0 {
+			return &domain.Deuda{Monto: 0, Vigente: false}, nil
+		}
+		newID := fmt.Sprintf("deuda-%d", r.store.nextDeudaID)
+		r.store.nextDeudaID++
+		newD := domain.Deuda{
+			ID:        newID,
+			UsuarioID: usuarioID,
+			Monto:     monto,
+			Vigente:   true,
+		}
+		r.store.deudas = append(r.store.deudas, newD)
+		return &newD, nil
+	}
+
+	if monto <= 0 {
+		targetDeuda.Monto = 0
+		targetDeuda.Vigente = false
+	} else {
+		targetDeuda.Monto = monto
+		targetDeuda.Vigente = true
+	}
+
+	return &domain.Deuda{
+		ID:        targetDeuda.ID,
+		UsuarioID: targetDeuda.UsuarioID,
+		Monto:     targetDeuda.Monto,
+		Vigente:   targetDeuda.Vigente,
+	}, nil
+}
+
+
 // MOCK: EstadoRepository
+
+func (r *fakeEstadoRepo) GetEstadosWithTasa(ctx context.Context) ([]domain.Estado, error) {
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	var result []domain.Estado
+	for _, e := range r.store.estados {
+		result = append(result, domain.Estado{
+			ID:         e.ID,
+			Nombre:     e.Nombre,
+			TasaActual: e.TasaActual,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].ID < result[j].ID
+	})
+	return result, nil
+}
 
 func (r *fakeEstadoRepo) ListAll(ctx context.Context) ([]domain.EstadoConTasa, error) {
 	r.store.mu.Lock()
@@ -407,16 +661,6 @@ func usuarioEmailExistsLocked(store *memoryStore, email string) bool {
 	return false
 }
 
-func (s *memoryStore) applyUsuarioStateLocked(u *domain.Usuario) {
-	if u.EstadoID == nil || *u.EstadoID == "" {
-		return
-	}
-	nombre, ok := s.stateNameByIDLocked(*u.EstadoID)
-	if ok {
-		u.EstadoNombre = stringPtr(nombre)
-	}
-}
-
 func (s *memoryStore) stateNameByIDLocked(id string) (string, bool) {
 	for _, e := range s.estados {
 		if e.ID == id {
@@ -441,7 +685,6 @@ func cloneUsuario(u *domain.Usuario) *domain.Usuario {
 	}
 	cu := *u
 	cu.EstadoID = cloneStringPtr(u.EstadoID)
-	cu.EstadoNombre = cloneStringPtr(u.EstadoNombre)
 	return &cu
 }
 
@@ -451,3 +694,4 @@ func cloneStringPtr(value *string) *string {
 	}
 	return stringPtr(*value)
 }
+

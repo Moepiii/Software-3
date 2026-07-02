@@ -2,18 +2,18 @@ package services
 
 import (
 	"Backend/internal/domain"
-	"Backend/internal/repositories"
 	"Backend/internal/utils"
 	"context"
 	"errors"
 )
 
+
 type AuthService struct {
-	usuarioRepo *repositories.UsuarioRepository
+	usuarioRepo UsuarioRepository
 	jwtSecret   string
 }
 
-func NewAuthService(usuarioRepo *repositories.UsuarioRepository, jwtSecret string) *AuthService {
+func NewAuthService(usuarioRepo UsuarioRepository, jwtSecret string) *AuthService {
 	return &AuthService{
 		usuarioRepo: usuarioRepo,
 		jwtSecret:   jwtSecret,

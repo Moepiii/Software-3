@@ -42,3 +42,29 @@ export async function deleteUser(id: string): Promise<void> {
     auth: true,
   });
 }
+
+export type UsuarioConDeuda = {
+  id: string;
+  nombre: string;
+  email: string;
+  identificacion?: string;
+  tipo: string;
+  deuda_monto: number;
+  deuda_vigente: boolean;
+};
+
+export async function listUsuariosConDeuda(): Promise<UsuarioConDeuda[]> {
+  return apiRequest<UsuarioConDeuda[]>('/api/admin/usuarios', {
+    method: 'GET',
+    auth: true,
+  });
+}
+
+export async function updateUserDebt(usuarioID: string, monto: number): Promise<void> {
+  await apiRequest('/api/admin/deuda', {
+    method: 'POST',
+    auth: true,
+    body: JSON.stringify({ usuario_id: usuarioID, monto }),
+  });
+}
+

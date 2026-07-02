@@ -56,6 +56,9 @@ func NewRouter(
 	mux.HandleFunc("GET /api/admins", authMiddleware.RequireAdmin(authHandler.ListAdmins))
 	mux.HandleFunc("POST /api/admin/create", authMiddleware.RequireAdmin(authHandler.CreateAdmin))
 	mux.HandleFunc("DELETE /api/admin/delete/{id}", authMiddleware.RequireAdmin(authHandler.DeleteUser))
+	mux.HandleFunc("GET /api/admin/usuarios", authMiddleware.RequireAdmin(usuarioHandler.GetUsuariosConDeuda))
+	mux.HandleFunc("POST /api/admin/deuda", authMiddleware.RequireAdmin(usuarioHandler.UpdateUserDebt))
+
 
 	// Envolver con middleware CORS
 	return corsMiddleware(mux)

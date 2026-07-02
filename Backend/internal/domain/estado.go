@@ -5,3 +5,10 @@ type Estado struct {
 	Nombre     string  `json:"nombre"`
 	TasaActual float64 `json:"tasa_actual"`
 }
+
+type EstadoConTasa struct {
+	ID         string  `json:"id"`
+	Nombre     string  `json:"nombre"`
+	TasaActual float64 `json:"tasa_actual"`
+}
+

@@ -91,7 +91,7 @@ func decodeJSONResponse[T any](t testing.TB, res *httptest.ResponseRecorder) T {
 
 func (a *testApp) tokenFor(t testing.TB, email string, tipo string, id string, role string) string {
 	t.Helper()
-	token, err := utils.GenerateJWT(email, tipo, id, role, testJWTSecret)
+	token, err := utils.GenerateJWT(id, email, role, tipo, testJWTSecret)
 	if err != nil {
 		t.Fatalf("GenerateJWT returned error: %v", err)
 	}
@@ -115,7 +115,7 @@ func (a *testApp) adminToken(t testing.TB) string {
 
 func containsUser(users []domain.Usuario, id string) bool {
 	for _, user := range users {
-		if user.Identificacion == id {
+		if user.Identificacion != nil && *user.Identificacion == id {
 			return true
 		}
 	}

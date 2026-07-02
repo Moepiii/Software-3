@@ -82,3 +82,71 @@ func (r *DeudaRepository) PayDeuda(ctx context.Context, usuarioID string, monto 
 		Vigente:   updated.Vigente,
 	}, nil
 }
+
+func (r *DeudaRepository) UpdateUserDebt(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
+	deuda, err := r.client.Deuda.FindFirst(
+		db.Deuda.UsuarioID.Equals(usuarioID),
+		db.Deuda.Vigente.Equals(true),
+	).Exec(ctx)
+
+	if err != nil {
+		if err == db.ErrNotFound {
+			if monto <= 0 {
+				return &domain.Deuda{Monto: 0, Vigente: false}, nil
+			}
+			nuevaDeuda, err := r.client.Deuda.CreateOne(
+				db.Deuda.Monto.Set(monto),
+				db.Deuda.Usuario.Link(
+					db.Usuarios.ID.Equals(usuarioID),
+				),
+				db.Deuda.Vigente.Set(true),
+			).Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+			return &domain.Deuda{
+				ID:        nuevaDeuda.ID,
+				UsuarioID: nuevaDeuda.UsuarioID,
+				Monto:     nuevaDeuda.Monto,
+				Vigente:   nuevaDeuda.Vigente,
+			}, nil
+		}
+		return nil, err
+	}
+
+	if monto <= 0 {
+		updated, err := r.client.Deuda.FindUnique(
+			db.Deuda.ID.Equals(deuda.ID),
+		).Update(
+			db.Deuda.Monto.Set(0),
+			db.Deuda.Vigente.Set(false),
+		).Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &domain.Deuda{
+			ID:        updated.ID,
+			UsuarioID: updated.UsuarioID,
+			Monto:     updated.Monto,
+			Vigente:   updated.Vigente,
+		}, nil
+	}
+
+	updated, err := r.client.Deuda.FindUnique(
+		db.Deuda.ID.Equals(deuda.ID),
+	).Update(
+		db.Deuda.Monto.Set(monto),
+		db.Deuda.Vigente.Set(true),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Deuda{
+		ID:        updated.ID,
+		UsuarioID: updated.UsuarioID,
+		Monto:     updated.Monto,
+		Vigente:   updated.Vigente,
+	}, nil
+}
+

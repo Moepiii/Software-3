@@ -141,3 +141,44 @@ func (h *UsuarioHandler) GetExperiencia(w http.ResponseWriter, r *http.Request) 
 		"maximoNivel": 1000,
 	})
 }
+
+// GetUsuariosConDeuda - Listar todos los usuarios con su deuda correspondiente (solo admin)
+func (h *UsuarioHandler) GetUsuariosConDeuda(w http.ResponseWriter, r *http.Request) {
+	usuarios, err := h.usuarioService.GetUsuariosConDeuda(r.Context())
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.SendJSONResponse(w, http.StatusOK, usuarios)
+}
+
+// UpdateUserDebt - Establecer o modificar la deuda de un usuario (solo admin)
+func (h *UsuarioHandler) UpdateUserDebt(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UsuarioID string  `json:"usuario_id"`
+		Monto     float64 `json:"monto"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendJSONError(w, http.StatusBadRequest, "Petición inválida")
+		return
+	}
+
+	if req.UsuarioID == "" {
+		utils.SendJSONError(w, http.StatusBadRequest, "El usuario_id es requerido")
+		return
+	}
+
+	if req.Monto < 0 {
+		utils.SendJSONError(w, http.StatusBadRequest, "El monto no puede ser negativo")
+		return
+	}
+
+	deuda, err := h.usuarioService.UpdateUserDebt(r.Context(), req.UsuarioID, req.Monto)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.SendJSONResponse(w, http.StatusOK, deuda)
+}
+

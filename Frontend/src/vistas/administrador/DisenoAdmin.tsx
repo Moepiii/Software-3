@@ -6,6 +6,7 @@ import facebookIcon from '../../assets/facebook.png';
 import whatsappIcon from '../../assets/whatsapp.png';
 import AdminPanel from './PanelAdmin';
 import CursosAdmin from './CursosAdmin';
+import DeudasAdmin from './DeudasAdmin';
 
 interface LayoutAdminProps {
     children?: ReactNode;
@@ -15,7 +16,7 @@ interface LayoutAdminProps {
 export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [vistaActual, setVistaActual] = useState<'admins' | 'cursos'>('admins');
+    const [vistaActual, setVistaActual] = useState<'admins' | 'cursos' | 'deudas'>('admins');
 
     useEffect(() => {
         if (isDarkMode) {
@@ -53,11 +54,13 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
         if (children) {
             return children;
         }
-        return vistaActual === 'admins' ? (
-            <AdminPanel isDarkMode={isDarkMode} />
-        ) : (
-            <CursosAdmin isDarkMode={isDarkMode} />
-        );
+        if (vistaActual === 'admins') {
+            return <AdminPanel isDarkMode={isDarkMode} />;
+        } else if (vistaActual === 'cursos') {
+            return <CursosAdmin isDarkMode={isDarkMode} />;
+        } else {
+            return <DeudasAdmin isDarkMode={isDarkMode} />;
+        }
     };
 
     // HEADER - Verde oscuro fijo (igual que DisenoPersona)
@@ -305,6 +308,14 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
                         >
                             Cursos
                         </a>
+                        <a
+                            style={navLinkStyle(vistaActual === 'deudas')}
+                            onClick={() => setVistaActual('deudas')}
+                            onMouseEnter={(e) => { if (vistaActual !== 'deudas') e.currentTarget.style.color = '#ffffff'; }}
+                            onMouseLeave={(e) => { if (vistaActual !== 'deudas') e.currentTarget.style.color = '#e5e7eb'; }}
+                        >
+                            Deudas
+                        </a>
                     </nav>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -362,6 +373,15 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
                         style={menuOptionStyle}
                     >
                         📚 Cursos
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            setVistaActual('deudas');
+                        }}
+                        style={menuOptionStyle}
+                    >
+                        💰 Deudas
                     </button>
                     <button style={menuOptionStyle}>📊 Estadísticas</button>
                     <button style={menuOptionStyle}>⚙️ Configuración</button>

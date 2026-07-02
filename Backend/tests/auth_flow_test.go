@@ -32,7 +32,7 @@ func TestAuthFlow(t *testing.T) {
 	}
 
 	// Validacion adaptada al modelo generico de Usuario
-	if personaLogin.User.Identificacion != "V999" || personaLogin.User.Tipo != domain.TipoNatural {
+	if personaLogin.User.Identificacion == nil || *personaLogin.User.Identificacion != "V999" || personaLogin.User.Tipo != domain.TipoNatural {
 		t.Fatalf("unexpected persona login user: %+v", personaLogin.User)
 	}
 
@@ -56,9 +56,10 @@ func TestAuthFlow(t *testing.T) {
 	}
 
 	// Validacion adaptada al modelo generico de Usuario
-	if empresaLogin.User.Identificacion != "J999" || empresaLogin.User.Tipo != domain.TipoJuridico {
+	if empresaLogin.User.Identificacion == nil || *empresaLogin.User.Identificacion != "J999" || empresaLogin.User.Tipo != domain.TipoJuridico {
 		t.Fatalf("unexpected empresa login user: %+v", empresaLogin.User)
 	}
+
 
 	res = app.request(t, http.MethodPost, "/api/login", map[string]string{
 		"email":    "nueva.persona@mail.com",
