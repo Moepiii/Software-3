@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { listarCursos, reservarCurso, listarMisReservas, type Curso } from '../../api/cursos';
 
 interface CursosDisponiblesProps {

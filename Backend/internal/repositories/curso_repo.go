@@ -35,6 +35,9 @@ func (r *CursoRepository) Create(ctx context.Context, curso domain.Curso) (*doma
 	if imagen != nil {
 		options = append(options, db.Curso.Imagen.Set(*imagen))
 	}
+	if curso.PuntosBase > 0 {
+		options = append(options, db.Curso.PuntosBase.Set(curso.PuntosBase))
+	}
 
 	created, err := r.client.Curso.CreateOne(
 		db.Curso.Titulo.Set(curso.Titulo),
@@ -59,6 +62,7 @@ func (r *CursoRepository) Create(ctx context.Context, curso domain.Curso) (*doma
 		Estado:      created.Estado,
 		Categoria:   &cat,
 		Imagen:      &img,
+		PuntosBase:  created.PuntosBase,
 		CreatedAt:   created.CreatedAt,
 		UpdatedAt:   created.UpdatedAt,
 	}, nil
@@ -84,6 +88,7 @@ func (r *CursoRepository) GetAll(ctx context.Context) ([]domain.Curso, error) {
 			Estado:      c.Estado,
 			Categoria:   &cat,
 			Imagen:      &img,
+			PuntosBase:  c.PuntosBase,
 			CreatedAt:   c.CreatedAt,
 			UpdatedAt:   c.UpdatedAt,
 		})
@@ -111,11 +116,11 @@ func (r *CursoRepository) GetByID(ctx context.Context, id string) (*domain.Curso
 		Estado:      c.Estado,
 		Categoria:   &cat,
 		Imagen:      &img,
+		PuntosBase:  c.PuntosBase,
 		CreatedAt:   c.CreatedAt,
 		UpdatedAt:   c.UpdatedAt,
 	}, nil
 }
-
 
 func (r *CursoRepository) Update(ctx context.Context, id string, updates domain.UpdateCursoRequest) (*domain.Curso, error) {
 	var setParams []db.CursoSetParam
@@ -141,6 +146,9 @@ func (r *CursoRepository) Update(ctx context.Context, id string, updates domain.
 	if updates.Imagen != nil {
 		setParams = append(setParams, db.Curso.Imagen.Set(*updates.Imagen))
 	}
+	if updates.PuntosBase != nil && *updates.PuntosBase > 0 {
+		setParams = append(setParams, db.Curso.PuntosBase.Set(*updates.PuntosBase))
+	}
 
 	updated, err := r.client.Curso.FindUnique(
 		db.Curso.ID.Equals(id),
@@ -162,6 +170,7 @@ func (r *CursoRepository) Update(ctx context.Context, id string, updates domain.
 		Estado:      updated.Estado,
 		Categoria:   &cat,
 		Imagen:      &img,
+		PuntosBase:  updated.PuntosBase,
 		CreatedAt:   updated.CreatedAt,
 		UpdatedAt:   updated.UpdatedAt,
 	}, nil
@@ -194,7 +203,7 @@ func (r *CursoRepository) GetInscripcionesUsuario(ctx context.Context, usuarioID
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var ids []string
 	for _, ins := range inscripciones {
 		ids = append(ids, ins.CursoID)
@@ -212,4 +221,3 @@ func (r *CursoRepository) EstaInscrito(ctx context.Context, usuarioID, cursoID s
 	}
 	return len(inscripciones) > 0, nil
 }
-

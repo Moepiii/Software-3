@@ -10,10 +10,11 @@ import DisenoAdmin from './vistas/administrador/DisenoAdmin';
 import Estadisticas from './vistas/estadisticas/estadisticas';
 import { SettingsView as VistaConfiguracion } from './vistas/autenticacion/VistaConfiguracion';
 import CursosDisponibles from './vistas/persona/CursosDisponibles';
+import MisPuntos from './vistas/puntos/MisPuntos';
 
 import { clearToken, decodeSession, getToken, saveToken, type LoginUser } from './api';
 
-type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion' | 'estadisticas' | 'cursos';
+type VistaActual = 'inicio' | 'login' | 'registro' | 'panel' | 'configuracion' | 'estadisticas' | 'cursos' | 'puntos';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,6 +41,7 @@ function App() {
   const handleNavegarRegistro = () => setVistaActual('registro');
   const handleNavegarEstadisticas = () => setVistaActual('estadisticas');
   const handleNavegarCursos = () => setVistaActual('cursos');
+  const handleNavegarPuntos = () => setVistaActual('puntos');
 
   const handleActualizarUsuario = (usuarioActualizado: LoginUser) => {
     setUser(usuarioActualizado);
@@ -104,12 +106,15 @@ function App() {
           onNavigateStats={handleNavegarEstadisticas}
           onNavigateCursos={handleNavegarCursos}
           onNavigatePanel={handleNavegarPanel}
+          onNavigatePuntos={handleNavegarPuntos}
         >
           {/* 2. El padre decide qué hijo interno mostrar según el estado */}
           {vistaActual === 'estadisticas' ? (
             <Estadisticas user={user} onBack={handleNavegarPanel} />
           ) : vistaActual === 'cursos' ? (
             <CursosDisponibles />
+          ) : vistaActual === 'puntos' ? (
+            <MisPuntos />
           ) : (
             <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
           )}
@@ -120,8 +125,12 @@ function App() {
     // 🔧 Corregido: user.tipo en lugar de user.userType
     if (user.tipo === 'JURIDICO') {
       return (
-        <DisenoEmpresa onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
-          <PanelEmpresa onLogout={handleLogout} />
+        <DisenoEmpresa
+          onLogout={handleLogout}
+          onNavigateSettings={handleNavegarConfiguracion}
+          onNavigatePuntos={handleNavegarPuntos}
+        >
+          {vistaActual === 'puntos' ? <MisPuntos /> : <PanelEmpresa onLogout={handleLogout} />}
         </DisenoEmpresa>
       );
     }

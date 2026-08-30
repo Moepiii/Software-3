@@ -48,6 +48,7 @@ model Usuarios {
   estado         Estado?       @relation(fields: [estado_id], references: [id], onDelete: SetNull)
   deudas         Deuda[]
   inscripciones  Inscripcion[]
+  historial_puntos HistorialPuntos[]
 
   @@map("usuarios")
 }
@@ -110,11 +111,13 @@ model Curso {
   estado      String   @default("planificado") // activo, planificado, finalizado
   categoria   String?
   imagen      String?
+  puntos_base Int      @default(100)
 
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   inscripciones Inscripcion[]
+  historial_puntos HistorialPuntos[]
 
   @@map("cursos")
 }
@@ -124,14 +127,37 @@ model Inscripcion {
   usuario_id String
   curso_id   String
   estado     String   @default("activa") // activa, cancelada, completada
+  progreso_pct       Int @default(0)
+  puntos_acreditados Int @default(0)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   usuario    Usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
   curso      Curso    @relation(fields: [curso_id], references: [id], onDelete: Cascade)
+  historial_puntos HistorialPuntos[]
 
   @@unique([usuario_id, curso_id])
   @@index([curso_id])
   @@index([usuario_id])
   @@map("inscripciones")
+}
+
+model HistorialPuntos {
+  id                String   @id @default(uuid())
+  usuario_id        String
+  curso_id          String
+  inscripcion_id    String
+  progreso_pct      Int
+  puntos_ganados    Int
+  total_acreditado  Int
+  tipo_movimiento   String   @default("acreditacion")
+  created_at        DateTime @default(now())
+
+  usuario           Usuarios    @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  curso             Curso       @relation(fields: [curso_id], references: [id], onDelete: Cascade)
+  inscripcion       Inscripcion @relation(fields: [inscripcion_id], references: [id], onDelete: Cascade)
+
+  @@unique([inscripcion_id, progreso_pct])
+  @@index([usuario_id, created_at])
+  @@map("historial_puntos")
 }

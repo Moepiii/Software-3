@@ -10,6 +10,7 @@ export type Curso = {
     estado: 'activo' | 'planificado' | 'finalizado';
     imagen?: string;
     categoria?: string;
+    puntos_base: number;
     createdAt?: string;
     updatedAt?: string;
 };
@@ -21,6 +22,7 @@ export type CreateCursoPayload = {
     fechaFin: string;
     categoria?: string;
     imagen?: string;
+    puntos_base?: number;
 };
 
 export type UpdateCursoPayload = Partial<CreateCursoPayload> & {

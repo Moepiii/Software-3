@@ -46,7 +46,7 @@ Para esta primera version se adoptan estas decisiones:
 1. Los puntos seran **persistidos en backend**.
 2. Las reglas de nivel y descuento seran **fijas**.
 3. La seccion estara disponible para usuarios autenticados de tipo **NATURAL** y **JURIDICO**.
-4. El credito de puntos se asociara a **cursos completados**, no a reservas.
+4. El credito de puntos se asociara a **hitos de avance del curso** (25%, 50%, 75% y 100%), nunca a la reserva.
 5. El frontend solo mostrara el resumen; el backend resolvera el nivel, progreso y descuento.
 
 ## 5. Estado actual del codigo
@@ -81,6 +81,8 @@ La vista `Mis Puntos` deberia renderizar al menos:
 - `Progreso al siguiente nivel`
 - `Descuento aplicable`
 - `Descripcion breve del beneficio`
+- cursos activos con su progreso y puntos parciales,
+- cursos completados con el total acreditado.
 
 ### Estados de la vista
 - **Carga**: mostrar skeleton o mensaje de carga.
@@ -124,10 +126,10 @@ La vista debe:
 - evitar depender de rutas nuevas o router global.
 
 ### 8.2 Backend
-Se necesita una fuente de verdad para puntos. Hay dos piezas probables:
-
-1. una tabla principal de acumulado de puntos por usuario,
-2. una tabla de movimientos o acreditaciones para auditar como se sumaron.
+La fuente de verdad sera `HistorialPuntos`. El total se obtiene sumando sus
+movimientos, por lo que no se mantiene un saldo duplicado que pueda quedar
+desincronizado. `Inscripcion.puntos_acreditados` solo conserva el acumulado del
+curso para calcular de forma idempotente el siguiente incremento.
 
 La implementacion final deberia exponer un endpoint autenticado, por ejemplo:
 
@@ -143,9 +145,12 @@ Ese endpoint debe devolver algo equivalente a:
 - mensaje o label del beneficio.
 
 ### 8.3 Evento de acreditacion
-Como hoy no hay un flujo formal de "curso completado", el plan requiere agregar el minimo necesario para registrar ese evento.
+Como hoy no hay un seguimiento automático del contenido, se agrega el mecanismo
+mínimo `PUT /api/admin/cursos/progreso`. Solo un administrador puede registrar el
+avance de una inscripción. La operación actualiza la inscripción y crea el
+movimiento de puntos en una misma transacción.
 
-La idea es no mezclarlo con `ReservarCurso`. Reservar un curso es solo inscripcion; completar el curso es el momento en que se acreditan puntos.
+La reserva sigue siendo solo una inscripción y no acredita puntos.
 
 ### 8.4 Logica de puntos segun avance del curso
 Para que el sistema realmente recompense el progreso y no solo el cierre final, se propone manejar una regla de acumulacion por etapas del curso.
@@ -182,6 +187,25 @@ Si un curso otorga `100` puntos base:
 - Si el proyecto aun no tiene un sistema real de seguimiento de avance, el primer corte puede arrancar con una sola marca de `completado` y dejar preparado el modelo para etapas futuras.
 
 ### 8.5 Estructura de datos por etapas del curso
+#### Decision final para la primera version
+La propuesta original de crear `CursoEtapa`, `CursoPuntos` y `ProgresoCurso` es
+viable, pero prematura: el proyecto todavía no modela módulos o contenido de un
+curso. Para HU-27 se adopta una estructura menor que conserva el mismo
+comportamiento y permite evolucionar después:
+
+| Tabla | Cambio | Responsabilidad |
+| --- | --- | --- |
+| `Curso` | `puntos_base` | Valor total configurable del curso |
+| `Inscripcion` | `progreso_pct`, `puntos_acreditados` | Avance actual y total ya liberado para evitar duplicados |
+| `HistorialPuntos` | Nueva tabla | Bitácora inmutable de cada acreditación |
+
+Los hitos 25/50/75/100 permanecen como reglas fijas de backend. Cuando exista
+contenido modular real, podrán migrarse a `CursoEtapa` sin cambiar el contrato de
+`GET /api/usuario/puntos` ni la pantalla.
+
+> Las tablas detalladas siguientes quedan como diseño futuro, no como requisito
+> de la primera entrega de HU-27.
+
 Para que la logica de puntos sea escalable, cada curso deberia modelarse con una estructura que permita saber cuanto vale, en que etapa va el usuario, cuantos puntos se liberan y cuando se considera completado.
 
 #### Tabla: relacion con las tablas existentes en la BD
@@ -327,3 +351,17 @@ La implementacion se considerara correcta si:
 
 ## 15. Resultado esperado
 Al terminar, el sistema debe permitir que un usuario autenticado entre a `Mis Puntos` y vea un resumen confiable de su avance, su nivel actual y el descuento que obtiene por su actividad de capacitacion.
+
+## 16. Contratos implementados
+### Consulta autenticada
+- `GET /api/usuario/puntos`
+- Disponible para usuarios naturales y juridicos autenticados.
+- Devuelve puntos totales, nivel, descuento, progreso, puntos faltantes y estado de nivel maximo.
+- Clasifica las inscripciones no canceladas en `cursos_activos` y `cursos_completados`.
+
+### Acreditacion administrativa
+- `PUT /api/admin/cursos/progreso`
+- Payload: `usuario_id`, `curso_id`, `progreso_pct`.
+- Valida un progreso entre 0 y 100.
+- No resta puntos si el avance retrocede ni duplica puntos dentro del mismo hito.
+- Marca la inscripcion como `completada` al llegar a 100%.

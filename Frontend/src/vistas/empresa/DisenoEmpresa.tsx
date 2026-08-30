@@ -5,11 +5,12 @@ interface LayoutEmpresaProps {
     children: ReactNode;
     onLogout?: () => void;
     onNavigateSettings?: () => void;
+    onNavigatePuntos?: () => void;
 }
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }: LayoutEmpresaProps) {
+export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, onNavigatePuntos }: LayoutEmpresaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -168,6 +169,13 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Estadísticas</button>
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Facturación</button>
                     <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Empleados</button>
+                    <button
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            if (onNavigatePuntos) onNavigatePuntos();
+                        }}
+                        style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}
+                    >Mis Puntos</button>
                     <button
                         onClick={() => {
                             setIsMenuOpen(false);

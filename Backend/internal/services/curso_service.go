@@ -33,6 +33,7 @@ func (s *CursoService) CreateCurso(ctx context.Context, req domain.CreateCursoRe
 		Estado:      estado,
 		Categoria:   req.Categoria,
 		Imagen:      req.Imagen,
+		PuntosBase:  req.PuntosBase,
 	}
 
 	return s.repo.Create(ctx, curso)
