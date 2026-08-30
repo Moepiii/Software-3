@@ -41,10 +41,11 @@ func main() {
 	deudaRepo := repositories.NewDeudaRepository(client)
 	estadoRepo := repositories.NewEstadoRepository(client)
 	cursoRepo := repositories.NewCursoRepository(client)
+	puntosRepo := repositories.NewPuntosRepository(client)
 
 	// Servicios
 	authService := services.NewAuthService(usuarioRepo, cfg.JWTSecret)
-	usuarioService := services.NewUsuarioService(usuarioRepo, deudaRepo, estadoRepo)
+	usuarioService := services.NewUsuarioService(usuarioRepo, deudaRepo, estadoRepo, puntosRepo)
 	cursoService := services.NewCursoService(cursoRepo)
 
 	// Handlers

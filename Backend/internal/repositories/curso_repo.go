@@ -32,8 +32,11 @@ func (r *CursoRepository) CreateCurso(ctx context.Context, req domain.CreateCurs
 		return nil, err
 	}
 
-	if (req.Categoria != nil && *req.Categoria != "") || (req.Imagen != nil && *req.Imagen != "") {
+	if req.PuntosBase > 0 || (req.Categoria != nil && *req.Categoria != "") || (req.Imagen != nil && *req.Imagen != "") {
 		updateParams := []db.CursoSetParam{}
+		if req.PuntosBase > 0 {
+			updateParams = append(updateParams, db.Curso.PuntosBase.Set(req.PuntosBase))
+		}
 		if req.Categoria != nil && *req.Categoria != "" {
 			updateParams = append(updateParams, db.Curso.Categoria.Set(*req.Categoria))
 		}
@@ -62,6 +65,7 @@ func (r *CursoRepository) CreateCurso(ctx context.Context, req domain.CreateCurs
 
 	return &domain.Curso{
 		ID:          curso.ID,
+		PuntosBase:  curso.PuntosBase,
 		Titulo:      curso.Titulo,
 		Descripcion: curso.Descripcion,
 		FechaInicio: curso.FechaInicio,
@@ -91,6 +95,7 @@ func (r *CursoRepository) GetCursos(ctx context.Context) ([]domain.Curso, error)
 
 		result = append(result, domain.Curso{
 			ID:          c.ID,
+			PuntosBase:  c.PuntosBase,
 			Titulo:      c.Titulo,
 			Descripcion: c.Descripcion,
 			FechaInicio: c.FechaInicio,
@@ -105,6 +110,9 @@ func (r *CursoRepository) GetCursos(ctx context.Context) ([]domain.Curso, error)
 
 func (r *CursoRepository) UpdateCurso(ctx context.Context, id string, req domain.UpdateCursoRequest) (*domain.Curso, error) {
 	params := []db.CursoSetParam{}
+	if req.PuntosBase != nil && *req.PuntosBase > 0 {
+		params = append(params, db.Curso.PuntosBase.Set(*req.PuntosBase))
+	}
 	if req.Titulo != nil {
 		params = append(params, db.Curso.Titulo.Set(*req.Titulo))
 	}
@@ -145,6 +153,7 @@ func (r *CursoRepository) UpdateCurso(ctx context.Context, id string, req domain
 
 	return &domain.Curso{
 		ID:          curso.ID,
+		PuntosBase:  curso.PuntosBase,
 		Titulo:      curso.Titulo,
 		Descripcion: curso.Descripcion,
 		FechaInicio: curso.FechaInicio,
@@ -216,6 +225,7 @@ func (r *CursoRepository) GetMisCursos(ctx context.Context, usuarioID string) ([
 
 			cursos = append(cursos, domain.Curso{
 				ID:          cursoModel.ID,
+				PuntosBase:  cursoModel.PuntosBase,
 				Titulo:      cursoModel.Titulo,
 				Descripcion: cursoModel.Descripcion,
 				FechaInicio: cursoModel.FechaInicio,
@@ -270,6 +280,11 @@ func (r *CursoRepository) FinalizarCurso(ctx context.Context, cursoID string) (i
 		usuario := ins.Usuario()
 		if usuario == nil {
 			continue
+		}
+
+		// Completar los puntos pendientes sin alterar la recompensa de gamificación.
+		if _, err := NewPuntosRepository(r.client).AcreditarProgreso(ctx, usuario.ID, cursoID, 100); err != nil {
+			return usuariosAfectados, err
 		}
 
 		// Obtener experiencia actual

@@ -9,6 +9,7 @@ type Curso struct {
 	Estado      string  `json:"estado"`
 	Categoria   *string `json:"categoria,omitempty"`
 	Imagen      *string `json:"imagen,omitempty"`
+	PuntosBase  int     `json:"puntos_base"`
 }
 
 type CreateCursoRequest struct {
@@ -19,6 +20,7 @@ type CreateCursoRequest struct {
 	Estado      string  `json:"estado"`
 	Categoria   *string `json:"categoria,omitempty"`
 	Imagen      *string `json:"imagen,omitempty"`
+	PuntosBase  int     `json:"puntos_base,omitempty"`
 }
 
 type UpdateCursoRequest struct {
@@ -29,6 +31,7 @@ type UpdateCursoRequest struct {
 	Estado      *string `json:"estado,omitempty"`
 	Categoria   *string `json:"categoria,omitempty"`
 	Imagen      *string `json:"imagen,omitempty"`
+	PuntosBase  *int    `json:"puntos_base,omitempty"`
 }
 
 // 🆕 Request para finalizar curso

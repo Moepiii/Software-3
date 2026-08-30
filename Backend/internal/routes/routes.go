@@ -40,6 +40,7 @@ func NewRouter(
 	mux.HandleFunc("GET /api/usuario/estadisticas", authMiddleware.RequireAuth(usuarioHandler.GetEstadisticas))
 	// 🆕 Experiencia del usuario
 	mux.HandleFunc("GET /api/usuario/experiencia", authMiddleware.RequireAuth(usuarioHandler.GetExperiencia))
+	mux.HandleFunc("GET /api/usuario/puntos", authMiddleware.RequireAuth(usuarioHandler.GetPuntos))
 
 	// === Rutas de cursos ===
 	mux.HandleFunc("GET /api/cursos", authMiddleware.RequireAuth(cursoHandler.GetCursos))
@@ -59,6 +60,7 @@ func NewRouter(
 	mux.HandleFunc("GET /api/admin/usuarios", authMiddleware.RequireAdmin(usuarioHandler.GetUsuariosConDeuda))
 	mux.HandleFunc("POST /api/admin/deuda", authMiddleware.RequireAdmin(usuarioHandler.UpdateUserDebt))
 
+	mux.HandleFunc("PUT /api/admin/cursos/progreso", authMiddleware.RequireAdmin(usuarioHandler.AcreditarProgresoCurso))
 
 	// Envolver con middleware CORS
 	return corsMiddleware(mux)

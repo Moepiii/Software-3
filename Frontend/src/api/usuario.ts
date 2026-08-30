@@ -73,3 +73,35 @@ export async function getExperiencia(): Promise<{
 export async function getEstadisticas(): Promise<EstadisticasResponse> {
   return apiRequest<EstadisticasResponse>('/api/usuario/estadisticas', { auth: true });
 }
+
+export type ResumenPuntosResponse = {
+  puntos_totales: number;
+  nivel_actual: string;
+  descuento_porcentaje: number;
+  progreso_actual: number;
+  progreso_objetivo: number;
+  progreso_porcentaje: number;
+  puntos_faltantes: number;
+  siguiente_nivel?: string;
+  nivel_maximo: boolean;
+  beneficio: string;
+  cursos_activos: CursoPuntosResumen[];
+  cursos_completados: CursoPuntosResumen[];
+};
+
+export type CursoPuntosResumen = {
+  curso_id: string;
+  titulo: string;
+  estado: string;
+  progreso_pct: number;
+  puntos_acreditados: number;
+  puntos_base: number;
+};
+
+/** Obtiene el nivel, progreso y beneficio fiscal del usuario autenticado. */
+export async function getResumenPuntos(): Promise<ResumenPuntosResponse> {
+  return apiRequest<ResumenPuntosResponse>('/api/usuario/puntos', {
+    method: 'GET',
+    auth: true,
+  });
+}

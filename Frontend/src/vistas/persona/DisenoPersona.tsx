@@ -13,11 +13,12 @@ interface LayoutPersonaProps {
     onNavigateStats?: () => void;
     onNavigateCursos?: () => void;
     onNavigatePanel?: () => void;
+    onNavigatePuntos?: () => void;
 }
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function DisenoPersona({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel }: LayoutPersonaProps) {
+export default function DisenoPersona({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel, onNavigatePuntos }: LayoutPersonaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -236,6 +237,16 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                         >
                             Estadísticas
                         </a>
+                        <a
+                            href="#"
+                            style={navLinkStyle}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (onNavigatePuntos) onNavigatePuntos();
+                            }}
+                        >
+                            Mis Puntos
+                        </a>
                     </nav>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -284,6 +295,15 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                         style={menuOptionStyle(isDarkMode)}
                     >
                         ⚙️ Configuración
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            if (onNavigatePuntos) onNavigatePuntos();
+                        }}
+                        style={menuOptionStyle(isDarkMode)}
+                    >
+                        🌱 Mis Puntos
                     </button>
                     <button onClick={handleLogoutClick} style={{ ...menuOptionStyle(isDarkMode), color: '#ef4444' }}>
                         🚪 Cerrar sesión

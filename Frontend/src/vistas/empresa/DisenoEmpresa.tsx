@@ -10,11 +10,12 @@ interface LayoutEmpresaProps {
     onNavigateStats?: () => void;
     onNavigateCursos?: () => void;
     onNavigatePanel?: () => void;
+    onNavigatePuntos?: () => void;
 }
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel }: LayoutEmpresaProps) {
+export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel, onNavigatePuntos }: LayoutEmpresaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -164,6 +165,13 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
                     <button onClick={() => { setIsMenuOpen(false); onNavigatePanel?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Inicio</button>
                     <button onClick={() => { setIsMenuOpen(false); onNavigateCursos?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Cursos</button>
                     <button onClick={() => { setIsMenuOpen(false); onNavigateStats?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Estadísticas</button>
+                    <button
+                        onClick={() => {
+                            setIsMenuOpen(false);
+                            if (onNavigatePuntos) onNavigatePuntos();
+                        }}
+                        style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}
+                    >Mis Puntos</button>
                     <button
                         onClick={() => {
                             setIsMenuOpen(false);

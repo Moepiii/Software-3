@@ -9,6 +9,7 @@ export interface Curso {
     estado: string;
     categoria?: string;
     imagen?: string;
+    puntos_base: number;
 }
 
 export interface CreateCursoRequest {
@@ -19,6 +20,7 @@ export interface CreateCursoRequest {
     estado: string;
     categoria?: string;
     imagen?: string;
+    puntos_base?: number;
 }
 
 export interface UpdateCursoRequest {
@@ -29,6 +31,7 @@ export interface UpdateCursoRequest {
     estado?: string;
     categoria?: string;
     imagen?: string;
+    puntos_base?: number;
 }
 
 export async function listarCursos(): Promise<Curso[]> {
