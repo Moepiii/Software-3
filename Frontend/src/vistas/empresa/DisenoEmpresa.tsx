@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import logo from '../../assets/logo.png';
+import Footer from '../../componentes/Footer';
 
 interface LayoutEmpresaProps {
     children: ReactNode;
@@ -56,37 +58,28 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <header style={{
-                backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-                padding: '1rem 2rem',
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'var(--border-color)'}`,
-                backdropFilter: 'blur(10px)',
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <div style={{ fontSize: '1.35rem', fontWeight: 800, color: isDarkMode ? '#ffffff' : 'var(--primary-900)', fontFamily: 'var(--font-display)' }}>
-                            EcoTax
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: isDarkMode ? 'rgba(255,255,255,0.72)' : 'var(--text-muted)' }}>
-                            Empresa
-                        </div>
+            <header style={{ backgroundColor: '#065a46', padding: '1rem 2rem', position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={onNavigatePanel}>
+                        <img src={logo} alt="Logo" style={{ height: '45px', width: 'auto', borderRadius: '12px', filter: 'brightness(0) invert(1)' }} />
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-display)', letterSpacing: '0.02em' }}>EcoLogic</div>
                     </div>
+                    <nav style={{ display: 'flex', gap: '2rem' }}>
+                        <a href="#" onClick={(event) => { event.preventDefault(); onNavigatePanel?.(); }} style={{ color: '#e5e7eb', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 }}>Inicio</a>
+                        <a href="#" onClick={(event) => { event.preventDefault(); onNavigateCursos?.(); }} style={{ color: '#e5e7eb', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 }}>Cursos</a>
+                        <a href="#" onClick={(event) => { event.preventDefault(); onNavigateStats?.(); }} style={{ color: '#e5e7eb', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 500 }}>Estadísticas</a>
+                    </nav>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <button onClick={() => setIsDarkMode(!isDarkMode)} style={{
-                            padding: '8px 12px',
+                            padding: '8px',
                             borderRadius: '9999px',
-                            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.18)' : 'var(--border-color)'}`,
-                            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)',
-                            color: isDarkMode ? '#ffffff' : 'var(--text-main)',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            color: '#ffffff',
                             cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            height: '36px',
-                            boxShadow: isDarkMode ? 'none' : 'var(--shadow-sm)',
-                        }}>
-                            {isDarkMode ? 'Light' : 'Dark'}
+                            fontSize: '1.2rem', width: '36px', height: '36px',
+                        }} title={isDarkMode ? 'Modo claro' : 'Modo oscuro'}>
+                            {isDarkMode ? '☀️' : '🌙'}
                         </button>
                         <button
                             id="user-menu-button"
@@ -94,9 +87,9 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
                             style={{
                                 padding: '8px 12px',
                                 borderRadius: '9999px',
-                                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.18)' : 'var(--border-color)'}`,
-                                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)',
-                                color: isDarkMode ? '#ffffff' : 'var(--text-main)',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                color: '#ffffff',
                                 cursor: 'pointer',
                                 fontSize: '0.85rem',
                                 height: '36px',
@@ -186,6 +179,7 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
             <main style={{ flex: 1, padding: '2rem', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
                 {childrenWithProps}
             </main>
+            <Footer />
         </div>
     );
 }

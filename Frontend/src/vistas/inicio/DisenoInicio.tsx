@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import logo from '../../assets/logo.png';
 // Importa tus imágenes de redes sociales
-import instagramIcon from '../../assets/instagram.png';
-import facebookIcon from '../../assets/facebook.png';
-import whatsappIcon from '../../assets/whatsapp.png';
+import Footer from '../../componentes/Footer';
 
 interface DisenoInicioProps {
   children: ReactNode;
@@ -111,46 +109,6 @@ export default function DisenoInicio({ children, onRegister, onLogin }: DisenoIn
     transition: 'all 0.2s'
   };
 
-  const footerStyle: React.CSSProperties = {
-    backgroundColor: '#065a46',
-    color: '#ffffff',
-    padding: '2rem',
-    marginTop: 'auto',
-    borderTop: '1px solid rgba(255,255,255,0.1)'
-  };
-
-  const footerContentStyle: React.CSSProperties = {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '2rem'
-  };
-
-  const socialIconStyle: React.CSSProperties = {
-    width: '32px',
-    height: '32px',
-    objectFit: 'contain',
-    transition: 'all 0.2s',
-    cursor: 'pointer',
-    filter: 'brightness(0) invert(1)' // Hace las imágenes blancas
-  };
-
-  const footerLinksStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '1.5rem',
-    flexWrap: 'wrap'
-  };
-
-  const footerLinkStyle: React.CSSProperties = {
-    color: '#d1d5db',
-    textDecoration: 'none',
-    fontSize: '0.85rem',
-    transition: 'color 0.2s'
-  };
-
   // Pasar isDarkMode a los hijos
   const childrenWithProps = React.Children.map(children, (child) => {
     if (React.isValidElement(child)) {
@@ -204,95 +162,7 @@ export default function DisenoInicio({ children, onRegister, onLogin }: DisenoIn
         {childrenWithProps}
       </main>
 
-      {/* FOOTER - Imágenes de redes sociales a la izquierda */}
-      <footer style={footerStyle}>
-        <div style={footerContentStyle}>
-          {/* Redes Sociales - alineadas a la izquierda */}
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'flex' }}
-              title="Instagram"
-            >
-              <img
-                src={instagramIcon}
-                alt="Instagram"
-                style={socialIconStyle}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              />
-            </a>
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'flex' }}
-              title="Facebook"
-            >
-              <img
-                src={facebookIcon}
-                alt="Facebook"
-                style={socialIconStyle}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              />
-            </a>
-            <a
-              href="https://whatsapp.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'flex' }}
-              title="WhatsApp"
-            >
-              <img
-                src={whatsappIcon}
-                alt="WhatsApp"
-                style={socialIconStyle}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              />
-            </a>
-          </div>
-
-          {/* Enlaces legales - a la derecha */}
-          <div style={footerLinksStyle}>
-            <a
-              href="#"
-              style={footerLinkStyle}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
-            >
-              Política de Privacidad
-            </a>
-            <a
-              href="#"
-              style={footerLinkStyle}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
-            >
-              Términos de Servicio
-            </a>
-            <a
-              href="#"
-              style={footerLinkStyle}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
-            >
-              Reportes Anuales
-            </a>
-            <a
-              href="#"
-              style={footerLinkStyle}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
-            >
-              Contáctanos
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

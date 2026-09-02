@@ -7,6 +7,7 @@ import whatsappIcon from '../../assets/whatsapp.png';
 import AdminPanel from './PanelAdmin';
 import CursosAdmin from './CursosAdmin';
 import DeudasAdmin from './DeudasAdmin';
+import Footer from '../../componentes/Footer';
 
 interface LayoutAdminProps {
     children?: ReactNode;
@@ -400,7 +401,7 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
             </main>
 
             {/* FOOTER VERDE OSCURO CON REDES SOCIALES */}
-            <footer style={footerStyle}>
+            {false ? <footer style={footerStyle}>
                 <div style={footerContentStyle}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <a
@@ -485,7 +486,7 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
                         </a>
                     </div>
                 </div>
-            </footer>
+            </footer> : <Footer />}
         </div>
     );
 }

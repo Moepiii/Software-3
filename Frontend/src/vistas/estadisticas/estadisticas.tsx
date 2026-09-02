@@ -389,23 +389,6 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
-        <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-          <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div>
-            <p className="text-body-sm font-body-sm text-on-primary dark:text-on-primary-container opacity-80 mt-2">
-              © 2026 EcoLogic. Stewardship through fiscal responsibility.
-            </p>
-          </div>
-          <div className="flex space-x-8">
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Annual Reports</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Contact Us</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

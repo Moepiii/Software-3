@@ -4,6 +4,7 @@ import logo from '../../assets/logo.png';
 import instagramIcon from '../../assets/instagram.png';
 import facebookIcon from '../../assets/facebook.png';
 import whatsappIcon from '../../assets/whatsapp.png';
+import Footer from '../../componentes/Footer';
 
 interface LayoutPersonaProps {
     children: ReactNode;
@@ -235,14 +236,6 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                         >
                             Estadísticas
                         </a>
-                        <a
-                            href="#"
-                            style={navLinkStyle}
-                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = '#e5e7eb'}
-                        >
-                            Información
-                        </a>
                     </nav>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -316,7 +309,7 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
             </main>
 
             {/* FOOTER VERDE OSCURO CON REDES SOCIALES */}
-            <footer style={footerStyle}>
+            {false ? <footer style={footerStyle}>
                 <div style={footerContentStyle}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <a
@@ -401,7 +394,7 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                         </a>
                     </div>
                 </div>
-            </footer>
+            </footer> : <Footer />}
         </div>
     );
 }

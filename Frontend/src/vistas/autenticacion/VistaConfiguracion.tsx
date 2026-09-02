@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import type { LoginUser } from '../../api';
 import { updatePersona, updateEmpresa } from '../../api';
+import Footer from '../../componentes/Footer';
 
 interface SettingsViewProps {
   user: LoginUser;
@@ -249,7 +250,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
       </main>
 
       {/* Footer */}
-      <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
+      {false ? <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
         <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
             <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div>
@@ -264,7 +265,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
             <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Contact Us</a>
           </div>
         </div>
-      </footer>
+      </footer> : <Footer />}
     </div>
   );
 }
