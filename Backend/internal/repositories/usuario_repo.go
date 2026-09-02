@@ -115,12 +115,16 @@ func (r *UsuarioRepository) GetUsuarioByEmailWithPassword(ctx context.Context, e
 }
 
 func (r *UsuarioRepository) CreateUsuario(ctx context.Context, usuario *domain.Usuario, passwordHash string) (*domain.Usuario, error) {
+	params := []db.UsuariosSetParam{db.Usuarios.Role.Set(usuario.Role)}
+	if usuario.Identificacion != nil && *usuario.Identificacion != "" {
+		params = append(params, db.Usuarios.Identificacion.Set(*usuario.Identificacion))
+	}
 	created, err := r.client.Usuarios.CreateOne(
 		db.Usuarios.Email.Set(usuario.Email),
 		db.Usuarios.PasswordHash.Set(passwordHash),
 		db.Usuarios.Tipo.Set(db.TipoUsuario(usuario.Tipo)),
 		db.Usuarios.Nombre.Set(usuario.Nombre),
-		db.Usuarios.Role.Set(usuario.Role),
+		params...,
 	).Exec(ctx)
 	if err != nil {
 		return nil, err

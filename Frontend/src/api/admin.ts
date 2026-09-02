@@ -29,7 +29,7 @@ export async function listAdmins(): Promise<AdminUser[]> {
 }
 
 export async function createAdmin(payload: CreateAdminPayload): Promise<void> {
-  await apiRequest('/api/admins', {
+  await apiRequest('/api/admin/create', {
     method: 'POST',
     auth: true,
     body: JSON.stringify(payload),
@@ -37,7 +37,7 @@ export async function createAdmin(payload: CreateAdminPayload): Promise<void> {
 }
 
 export async function deleteUser(id: string): Promise<void> {
-  await apiRequest(`/api/users/${encodeURIComponent(id)}`, {
+  await apiRequest(`/api/admin/delete/${encodeURIComponent(id)}`, {
     method: 'DELETE',
     auth: true,
   });

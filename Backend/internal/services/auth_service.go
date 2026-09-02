@@ -5,8 +5,8 @@ import (
 	"Backend/internal/utils"
 	"context"
 	"errors"
+	"strings"
 )
-
 
 type AuthService struct {
 	usuarioRepo UsuarioRepository
@@ -75,6 +75,9 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*Login
 	if req.Email == "" {
 		return nil, errors.New("email es requerido")
 	}
+	if isReservedAdminEmail(req.Email) {
+		return nil, errors.New("no se puede usar un correo reservado para administradores")
+	}
 
 	// Validar contraseña
 	if len(req.Password) < 6 {
@@ -127,6 +130,56 @@ func (s *AuthService) Register(ctx context.Context, req RegisterRequest) (*Login
 		Token: token,
 		User:  *created,
 	}, nil
+}
+
+func isReservedAdminEmail(email string) bool {
+	email = strings.ToLower(strings.TrimSpace(email))
+	return strings.HasSuffix(email, "@admin") || strings.HasSuffix(email, "@admin.com")
+}
+
+func (s *AuthService) CreateAdmin(ctx context.Context, email, password, nombre, identificacion string) (*domain.Usuario, error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return nil, errors.New("email es requerido")
+	}
+	if !isReservedAdminEmail(email) {
+		return nil, errors.New("el correo del administrador debe terminar en @admin.com")
+	}
+	if len(password) < 6 {
+		return nil, errors.New("la contraseña debe tener al menos 6 caracteres")
+	}
+	if _, err := s.usuarioRepo.GetUsuarioByEmail(ctx, email); err == nil {
+		return nil, errors.New("el email ya está registrado")
+	} else if err != domain.ErrNotFound {
+		return nil, err
+	}
+
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
+	return s.usuarioRepo.CreateUsuario(ctx, &domain.Usuario{
+		Email: email, Nombre: strings.TrimSpace(nombre), Tipo: domain.TipoAdmin,
+		Role: domain.RoleAdmin, Identificacion: &identificacion,
+	}, hashedPassword)
+}
+
+func (s *AuthService) ListAdmins(ctx context.Context) ([]domain.Usuario, error) {
+	usuarios, err := s.usuarioRepo.GetUsuarios(ctx)
+	if err != nil {
+		return nil, err
+	}
+	admins := make([]domain.Usuario, 0)
+	for _, usuario := range usuarios {
+		if usuario.Role == domain.RoleAdmin || usuario.Tipo == domain.TipoAdmin {
+			admins = append(admins, usuario)
+		}
+	}
+	return admins, nil
+}
+
+func (s *AuthService) DeleteUser(ctx context.Context, id string) error {
+	return s.usuarioRepo.DeleteUsuario(ctx, id)
 }
 
 // UpdateProfile - Actualizar perfil de usuario

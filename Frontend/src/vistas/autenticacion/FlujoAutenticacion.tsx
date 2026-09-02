@@ -50,6 +50,10 @@ export default function FlujoAutenticacion({ onLoginSuccess, initialView }: Auth
   const handleRegisterPersona = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    if (email.toLowerCase().trim().endsWith('@admin') || email.toLowerCase().trim().endsWith('@admin.com')) {
+      setErrorMsg('No se puede usar un correo reservado para administradores');
+      return;
+    }
     if (password !== confirmPassword) {
       setErrorMsg('Las contraseñas no coinciden');
       return;
@@ -66,6 +70,10 @@ export default function FlujoAutenticacion({ onLoginSuccess, initialView }: Auth
   const handleRegisterEmpresa = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    if (email.toLowerCase().trim().endsWith('@admin') || email.toLowerCase().trim().endsWith('@admin.com')) {
+      setErrorMsg('No se puede usar un correo reservado para administradores');
+      return;
+    }
     if (password !== confirmPassword) {
       setErrorMsg('Las contraseñas no coinciden');
       return;

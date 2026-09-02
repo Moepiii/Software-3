@@ -53,7 +53,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		if cedula, ok := payload["cedula"].(string); ok {
 			req.Identificacion = cedula
 		}
-		
+
 		nombres, _ := payload["nombres"].(string)
 		apellidos, _ := payload["apellidos"].(string)
 		req.Nombre = strings.TrimSpace(nombres + " " + apellidos)
@@ -111,8 +111,12 @@ func (h *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 // ListAdmins - Listar administradores
 func (h *AuthHandler) ListAdmins(w http.ResponseWriter, r *http.Request) {
-	// Este método debería listar admins desde el repositorio
-	utils.SendJSONResponse(w, http.StatusOK, []map[string]string{})
+	admins, err := h.authService.ListAdmins(r.Context())
+	if err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	utils.SendJSONResponse(w, http.StatusOK, admins)
 }
 
 // CreateAdmin - Crear administrador
@@ -129,12 +133,24 @@ func (h *AuthHandler) CreateAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Aquí deberías crear el admin usando el authService
-	utils.SendJSONResponse(w, http.StatusCreated, map[string]string{"message": "Admin creado"})
+	admin, err := h.authService.CreateAdmin(r.Context(), req.Email, req.Password, strings.TrimSpace(req.Nombres+" "+req.Apellidos), req.Cedula)
+	if err != nil {
+		utils.SendJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	utils.SendJSONResponse(w, http.StatusCreated, admin)
 }
 
 // DeleteUser - Eliminar usuario
 func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	// Aquí deberías eliminar el usuario
+	id := r.PathValue("id")
+	if id == "" {
+		utils.SendJSONError(w, http.StatusBadRequest, "id requerido")
+		return
+	}
+	if err := h.authService.DeleteUser(r.Context(), id); err != nil {
+		utils.SendJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"message": "Usuario eliminado"})
 }
