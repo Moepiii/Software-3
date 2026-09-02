@@ -25,7 +25,7 @@ interface ExperienciaResponse {
   maximoNivel: number;
 }
 
-export function Estadisticas({ user, onBack }: EstadisticasProps) {
+export function Estadisticas({ onBack }: EstadisticasProps) {
   const [data, setData] = useState<EstadisticasResponse | null>(null);
   const [experiencia, setExperiencia] = useState<ExperienciaResponse | null>(null);
   const [loading, setLoading] = useState(true);

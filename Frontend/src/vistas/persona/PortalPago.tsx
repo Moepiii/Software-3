@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { realizarPago, getDeudaActual, type DeudaResponse } from '../../api/usuario';
+import { realizarPago, getDeudaActual, type AccountType, type DeudaResponse } from '../../api/usuario';
 
 interface PaymentPortalProps {
     totalAPagar: number;
@@ -8,6 +8,7 @@ interface PaymentPortalProps {
     isDarkMode?: boolean;
     onClose: () => void;
     onPaymentSuccess: (nuevaDeuda: DeudaResponse) => void;
+    tipo?: AccountType;
 }
 
 type PayStep = 'method' | 'details' | 'confirm' | 'processing' | 'success' | 'error';
@@ -94,6 +95,7 @@ export default function PaymentPortal({
     isDarkMode = false,
     onClose,
     onPaymentSuccess,
+    tipo = 'NATURAL',
 }: PaymentPortalProps) {
     const [step, setStep] = useState<PayStep>('method');
     const [method, setMethod] = useState<PayMethod>('card');
@@ -179,10 +181,10 @@ export default function PaymentPortal({
     const handlePay = async () => {
         setStep('processing');
         try {
-            await realizarPago({ monto: parseFloat(montoPago) });
+            await realizarPago({ monto: parseFloat(montoPago) }, tipo);
             setProgress(100);
             setTimeout(async () => {
-                const nuevaDeuda = await getDeudaActual();
+                const nuevaDeuda = await getDeudaActual(tipo);
                 onPaymentSuccess(nuevaDeuda);
                 setStep('success');
             }, 600);

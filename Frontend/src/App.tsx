@@ -2,7 +2,6 @@ import { useState } from 'react';
 import DisenoInicio from './vistas/inicio/DisenoInicio';
 import { VistaInicio } from './vistas/inicio/VistaInicio';
 import PanelPersona from './vistas/persona/PanelPersona';
-import PanelEmpresa from './vistas/empresa/PanelEmpresa';
 import FlujoAutenticacion from './vistas/autenticacion/FlujoAutenticacion';
 import DisenoPersona from './vistas/persona/DisenoPersona';
 import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
@@ -96,9 +95,11 @@ function App() {
     }
 
     // 🔧 Corregido: user.tipo en lugar de user.userType
-    if (user.tipo === 'NATURAL') {
+    if (user.tipo === 'NATURAL' || user.tipo === 'JURIDICO') {
+      const esEmpresa = user.tipo === 'JURIDICO';
+      const Layout = esEmpresa ? DisenoEmpresa : DisenoPersona;
       return (
-        <DisenoPersona 
+        <Layout
           onLogout={handleLogout} 
           onNavigateSettings={handleNavegarConfiguracion}
           onNavigateStats={handleNavegarEstadisticas}
@@ -111,18 +112,9 @@ function App() {
           ) : vistaActual === 'cursos' ? (
             <CursosDisponibles />
           ) : (
-            <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} />
+            <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} tipo={user.tipo} />
           )}
-        </DisenoPersona>
-      );
-    }
-
-    // 🔧 Corregido: user.tipo en lugar de user.userType
-    if (user.tipo === 'JURIDICO') {
-      return (
-        <DisenoEmpresa onLogout={handleLogout} onNavigateSettings={handleNavegarConfiguracion}>
-          <PanelEmpresa onLogout={handleLogout} />
-        </DisenoEmpresa>
+        </Layout>
       );
     }
   }

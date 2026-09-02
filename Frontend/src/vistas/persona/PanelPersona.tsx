@@ -7,6 +7,7 @@ import {
     type DeudaResponse,
     type EstadoResponse,
 } from '../../api/usuario';
+import type { AccountType } from '../../api/usuario';
 import type { LoginUser } from '../../api/auth';
 import { useMisCursos } from '../../hooks/useMisCursos';
 import { useExperiencia } from '../../hooks/useExperiencia';
@@ -21,6 +22,7 @@ interface LobbyPersonaProps {
     isDarkMode?: boolean;
     user?: LoginUser | null;
     onUpdateUser?: (u: LoginUser) => void;
+    tipo?: AccountType;
 }
 
 type Status = 'idle' | 'loading' | 'error' | 'success';
@@ -463,6 +465,7 @@ export default function LobbyPersona({
     isDarkMode = false,
     user,
     onUpdateUser,
+    tipo = 'NATURAL',
 }: LobbyPersonaProps) {
     const [deuda, setDeuda] = useState<DeudaResponse | null>(null);
     const [estados, setEstados] = useState<EstadoResponse[]>([]);
@@ -505,7 +508,7 @@ export default function LobbyPersona({
         setErrorMsg('');
         try {
             const [deudaData, estadosData] = await Promise.all([
-                getDeudaActual(),
+                getDeudaActual(tipo),
                 getEstados(),
             ]);
             setDeuda(deudaData);
@@ -521,7 +524,7 @@ export default function LobbyPersona({
         } finally {
             setLoadingData(false);
         }
-    }, [user]);
+    }, [user, tipo]);
 
     useEffect(() => {
         const t = setTimeout(() => {
@@ -543,7 +546,7 @@ export default function LobbyPersona({
         setStatusKind('loading');
         setStatusMsg('');
         try {
-            await updateEstado({ estado_id: estadoSeleccionado });
+            await updateEstado({ estado_id: estadoSeleccionado }, tipo);
             setStatusKind('success');
             setStatusMsg('Estado actualizado correctamente.');
             if (onUpdateUser && user) {
@@ -656,19 +659,19 @@ export default function LobbyPersona({
         <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '1.8rem', color: colors.textPrimary }}>Panel de Persona</h1>
+                    <h1 style={{ margin: 0, fontSize: '1.8rem', color: colors.textPrimary }}>{tipo === 'JURIDICO' ? 'Panel de Empresa' : 'Panel de Persona'}</h1>
                     <p style={{ margin: '5px 0 0 0', color: colors.textSecondary }}>Gestiona tu deuda ambiental, estado y pago en un solo lugar.</p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', alignItems: 'start' }}>
                     <div style={cardStyle}>
-                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.textPrimary }}>Datos de persona</h3>
+                        <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: colors.textPrimary }}>Datos de {tipo === 'JURIDICO' ? 'empresa' : 'persona'}</h3>
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={labelStyle}>Nombre</label>
                             <input
                                 type="text"
-                                value={user?.nombre || 'Usuario'}
+                                value={user?.nombre || (tipo === 'JURIDICO' ? 'Empresa' : 'Usuario')}
                                 readOnly
                                 style={inputStyle}
                             />
@@ -815,6 +818,7 @@ export default function LobbyPersona({
                     montoDeuda={montoDeuda}
                     estadoNombre={estadoActual?.nombre ?? ''}
                     isDarkMode={isDarkMode}
+                    tipo={tipo}
                     onClose={() => setShowPortal(false)}
                     onPaymentSuccess={handlePaymentSuccess}
                 />

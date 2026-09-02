@@ -76,7 +76,7 @@ export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) 
         setStatusKind('loading');
         setStatusMsg('');
         try {
-            await realizarPago(); // Call sin monto o con monto 0 asumiendo el mismo comportamiento
+            await realizarPago({ monto: montoDeuda }, 'JURIDICO');
             await fetchData();
             setStatusKind('success');
             setStatusMsg('Pago registrado. Deuda actualizada.');
@@ -184,9 +184,9 @@ export default function LobbyEmpresa({ isDarkMode = false }: LobbyEmpresaProps) 
                             fullWidth
                             variant="dark"
                             onClick={() => void handlePagar()}
-                            disabled={!deuda?.has_deuda || statusKind === 'loading'}
+                            disabled={!deuda?.vigente || statusKind === 'loading'}
                         >
-                            {deuda?.has_deuda ? 'Pagar deuda' : 'Sin deuda'}
+                            {deuda?.vigente ? 'Pagar deuda' : 'Sin deuda'}
                         </Button>
 
                         {statusMsg && (

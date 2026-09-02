@@ -21,6 +21,8 @@ export interface PaymentRequest {
   monto: number;
 }
 
+export type AccountType = 'NATURAL' | 'JURIDICO';
+
 export interface EstadisticasResponse {
   total_abonado: number;
   maximo_abono: number;
@@ -31,24 +33,27 @@ export interface EstadisticasResponse {
   }>;
 }
 
-export async function getDeudaActual(): Promise<DeudaResponse> {
-  return apiRequest<DeudaResponse>('/api/persona/deuda', { auth: true });
+export async function getDeudaActual(tipo: AccountType = 'NATURAL'): Promise<DeudaResponse> {
+  const segmento = tipo === 'JURIDICO' ? 'empresa' : 'persona';
+  return apiRequest<DeudaResponse>(`/api/${segmento}/deuda`, { auth: true });
 }
 
 export async function getEstados(): Promise<EstadoResponse[]> {
   return apiRequest<EstadoResponse[]>('/api/estados', { auth: true });
 }
 
-export async function updateEstado(data: UpdateEstadoRequest): Promise<void> {
-  await apiRequest('/api/persona/estado', {
+export async function updateEstado(data: UpdateEstadoRequest, tipo: AccountType = 'NATURAL'): Promise<void> {
+  const segmento = tipo === 'JURIDICO' ? 'empresa' : 'persona';
+  await apiRequest(`/api/${segmento}/estado`, {
     method: 'PUT',
     auth: true,
     body: JSON.stringify(data),
   });
 }
 
-export async function realizarPago(data: PaymentRequest): Promise<DeudaResponse> {
-  return apiRequest<DeudaResponse>('/api/persona/pagar', {
+export async function realizarPago(data: PaymentRequest, tipo: AccountType = 'NATURAL'): Promise<DeudaResponse> {
+  const segmento = tipo === 'JURIDICO' ? 'empresa' : 'persona';
+  return apiRequest<DeudaResponse>(`/api/${segmento}/pagar`, {
     method: 'POST',
     auth: true,
     body: JSON.stringify(data),

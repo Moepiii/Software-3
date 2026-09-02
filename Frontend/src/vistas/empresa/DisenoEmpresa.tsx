@@ -5,11 +5,14 @@ interface LayoutEmpresaProps {
     children: ReactNode;
     onLogout?: () => void;
     onNavigateSettings?: () => void;
+    onNavigateStats?: () => void;
+    onNavigateCursos?: () => void;
+    onNavigatePanel?: () => void;
 }
 
 type WithDarkModeProp = { isDarkMode?: boolean };
 
-export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }: LayoutEmpresaProps) {
+export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel }: LayoutEmpresaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -165,9 +168,9 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings }
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Estadísticas</button>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Facturación</button>
-                    <button style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Empleados</button>
+                    <button onClick={() => { setIsMenuOpen(false); onNavigatePanel?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Inicio</button>
+                    <button onClick={() => { setIsMenuOpen(false); onNavigateCursos?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Cursos</button>
+                    <button onClick={() => { setIsMenuOpen(false); onNavigateStats?.(); }} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Estadísticas</button>
                     <button
                         onClick={() => {
                             setIsMenuOpen(false);
