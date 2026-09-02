@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import type { LoginUser } from '../../api';
 import { updatePersona, updateEmpresa } from '../../api';
 import Footer from '../../componentes/Footer';
+import logo from '../../assets/logo.png';
 
 interface SettingsViewProps {
   user: LoginUser;
@@ -82,15 +83,15 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
   return (
     <div className="bg-background text-on-background selection:bg-tertiary-fixed selection:text-on-tertiary-fixed font-sans min-h-screen flex flex-col">
       {/* TopNavBar */}
-      <header className="bg-surface-container-lowest dark:bg-surface-dim border-b border-outline-variant dark:border-outline w-full h-20 sticky top-0 z-50">
-        <div className="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full">
-          <div className="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed flex items-center gap-2 cursor-pointer" onClick={onCancel}>
-            <span className="material-symbols-outlined text-primary dark:text-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-            <span>EcoLogic</span>
+      <header style={{ backgroundColor: '#065a46', padding: '1rem 2rem', position: 'sticky', top: 0, zIndex: 50, borderBottom: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minHeight: '52px', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={onCancel}>
+            <img src={logo} alt="Logo" style={{ height: '45px', width: 'auto', borderRadius: '12px', filter: 'brightness(0) invert(1)' }} />
+            <span style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', letterSpacing: '0.02em' }}>EcoLogic</span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <button className="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-bold hover:opacity-90 active:scale-95 duration-100 transition-all cursor-pointer" onClick={onCancel}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button style={{ backgroundColor: '#ffffff', color: '#065a46', border: 'none', padding: '8px 20px', borderRadius: '9999px', fontWeight: 'bold', cursor: 'pointer' }} onClick={onCancel}>
               Volver al Lobby
             </button>
           </div>
@@ -249,23 +250,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
         </div>
       </main>
 
-      {/* Footer */}
-      {false ? <footer className="bg-primary dark:bg-primary-container w-full mt-stack-lg">
-        <div className="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-          <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-            <div className="text-headline-sm font-headline-sm text-on-primary dark:text-on-primary-container">EcoLogic</div>
-            <p className="text-body-sm font-body-sm text-on-primary dark:text-on-primary-container opacity-80 mt-2">
-              © 2026 EcoLogic. Stewardship through fiscal responsibility.
-            </p>
-          </div>
-          <div className="flex space-x-8">
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Annual Reports</a>
-            <a className="text-on-primary dark:text-on-primary-container opacity-80 hover:opacity-100 hover:text-tertiary-fixed transition-colors text-body-sm font-body-sm" href="#" onClick={(e) => e.preventDefault()}>Contact Us</a>
-          </div>
-        </div>
-      </footer> : <Footer />}
+      <Footer />
     </div>
   );
 }

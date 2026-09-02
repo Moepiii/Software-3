@@ -179,25 +179,6 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
   return (
     <div className="bg-background text-on-background selection:bg-tertiary-fixed selection:text-on-tertiary-fixed font-sans min-h-screen flex flex-col">
 
-      {/* TopNavBar */}
-      <header className="bg-surface-container-lowest dark:bg-surface-dim border-b border-outline-variant dark:border-outline w-full h-20 sticky top-0 z-50">
-        <div className="flex justify-between items-center max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop h-full">
-          <div className="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed flex items-center gap-2 cursor-pointer" onClick={onBack}>
-            <span className="material-symbols-outlined text-primary dark:text-primary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-            <span>EcoLogic</span>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <button
-              className="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-bold hover:opacity-90 active:scale-95 duration-100 transition-all cursor-pointer"
-              onClick={onBack}
-            >
-              Volver al Lobby
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content Area */}
       <main className="flex-grow max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop w-full py-stack-lg">
 
