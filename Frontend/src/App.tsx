@@ -2,6 +2,7 @@ import { useState } from 'react';
 import DisenoInicio from './vistas/inicio/DisenoInicio';
 import { VistaInicio } from './vistas/inicio/VistaInicio';
 import PanelPersona from './vistas/persona/PanelPersona';
+import PanelEmpresa from './vistas/empresa/PanelEmpresa';
 import FlujoAutenticacion from './vistas/autenticacion/FlujoAutenticacion';
 import DisenoPersona from './vistas/persona/DisenoPersona';
 import DisenoEmpresa from './vistas/empresa/DisenoEmpresa';
@@ -111,6 +112,8 @@ function App() {
             <Estadisticas user={user} onBack={handleNavegarPanel} />
           ) : vistaActual === 'cursos' ? (
             <CursosDisponibles />
+          ) : esEmpresa ? (
+            <PanelEmpresa user={user} onUpdateUser={handleActualizarUsuario} />
           ) : (
             <PanelPersona onLogout={handleLogout} user={user} onUpdateUser={handleActualizarUsuario} tipo={user.tipo} />
           )}

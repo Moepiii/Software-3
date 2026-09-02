@@ -3,6 +3,7 @@ package services
 import (
 	"Backend/internal/domain"
 	"context"
+	"sort"
 )
 
 type UsuarioRepository interface {
@@ -19,6 +20,7 @@ type DeudaRepository interface {
 	GetDeudaActual(ctx context.Context, usuarioID string) (*domain.Deuda, error)
 	PayDeuda(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error)
 	UpdateUserDebt(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error)
+	GetAllAbonosByUsuario(ctx context.Context, usuarioID string) ([]domain.Abono, error)
 }
 
 type EstadoRepository interface {
@@ -70,12 +72,38 @@ func (s *UsuarioService) UpdateEstadoUsuario(ctx context.Context, usuarioID, est
 }
 
 func (s *UsuarioService) GetEstadisticas(ctx context.Context, usuarioID string) (map[string]interface{}, error) {
-	deuda, _ := s.deudaRepo.GetDeudaActual(ctx, usuarioID)
-	usuario, _ := s.usuarioRepo.GetUsuarioByID(ctx, usuarioID)
+	deuda, err := s.deudaRepo.GetDeudaActual(ctx, usuarioID)
+	if err != nil {
+		return nil, err
+	}
+	abonos, err := s.deudaRepo.GetAllAbonosByUsuario(ctx, usuarioID)
+	if err != nil {
+		return nil, err
+	}
+	if abonos == nil {
+		abonos = []domain.Abono{}
+	}
+	sort.SliceStable(abonos, func(i, j int) bool { return abonos[i].Fecha < abonos[j].Fecha })
+
+	totalAbonado := 0.0
+	maximoAbono := 0.0
+	historial := make([]map[string]interface{}, 0, len(abonos))
+	for _, abono := range abonos {
+		totalAbonado += abono.Monto
+		if abono.Monto > maximoAbono {
+			maximoAbono = abono.Monto
+		}
+		historial = append(historial, map[string]interface{}{
+			"fecha": abono.Fecha,
+			"monto": abono.Monto,
+		})
+	}
 
 	stats := map[string]interface{}{
-		"deuda":   deuda,
-		"usuario": usuario,
+		"total_abonado":   totalAbonado,
+		"maximo_abono":    maximoAbono,
+		"deuda_pendiente": deuda.Monto,
+		"historial":       historial,
 	}
 	return stats, nil
 }
@@ -113,4 +141,3 @@ func (s *UsuarioService) GetUsuariosConDeuda(ctx context.Context) ([]map[string]
 func (s *UsuarioService) UpdateUserDebt(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
 	return s.deudaRepo.UpdateUserDebt(ctx, usuarioID, monto)
 }
-

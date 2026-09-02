@@ -1,18 +1,19 @@
-import PanelEmpresaCompartido from './PanelEmpresaCompartido';
+import PanelPersona from '../persona/PanelPersona';
 import type { LoginUser } from '../../api/auth';
 
-interface PanelEmpresaProps {
+interface PanelEmpresaCompartidoProps {
     isDarkMode?: boolean;
     user: LoginUser;
     onUpdateUser: (user: LoginUser) => void;
 }
 
-export default function PanelEmpresa({ isDarkMode = false, user, onUpdateUser }: PanelEmpresaProps) {
+export default function PanelEmpresaCompartido({ isDarkMode = false, user, onUpdateUser }: PanelEmpresaCompartidoProps) {
     return (
-        <PanelEmpresaCompartido
+        <PanelPersona
             isDarkMode={isDarkMode}
             user={user}
             onUpdateUser={onUpdateUser}
+            tipo="JURIDICO"
         />
     );
 }

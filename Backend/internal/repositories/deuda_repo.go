@@ -4,6 +4,7 @@ import (
 	"Backend/internal/domain"
 	"Backend/prisma/db"
 	"context"
+	"fmt"
 )
 
 type DeudaRepository struct {
@@ -35,6 +36,28 @@ func (r *DeudaRepository) GetDeudaActual(ctx context.Context, usuarioID string) 
 		Monto:     deuda.Monto,
 		Vigente:   deuda.Vigente,
 	}, nil
+}
+
+func (r *DeudaRepository) GetAllAbonosByUsuario(ctx context.Context, usuarioID string) ([]domain.Abono, error) {
+	abonos, err := r.client.Abono.FindMany(
+		db.Abono.Deuda.Where(db.Deuda.UsuarioID.Equals(usuarioID)),
+	).OrderBy(
+		db.Abono.Fecha.Order(db.ASC),
+	).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.Abono, 0, len(abonos))
+	for _, abono := range abonos {
+		result = append(result, domain.Abono{
+			ID:      abono.ID,
+			DeudaID: abono.DeudaID,
+			Monto:   abono.Monto,
+			Fecha:   fmt.Sprint(abono.Fecha),
+		})
+	}
+	return result, nil
 }
 
 func (r *DeudaRepository) PayDeuda(ctx context.Context, usuarioID string, monto float64) (*domain.Deuda, error) {
@@ -149,4 +172,3 @@ func (r *DeudaRepository) UpdateUserDebt(ctx context.Context, usuarioID string, 
 		Vigente:   updated.Vigente,
 	}, nil
 }
-

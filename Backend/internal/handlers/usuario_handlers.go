@@ -181,4 +181,3 @@ func (h *UsuarioHandler) UpdateUserDebt(w http.ResponseWriter, r *http.Request) 
 
 	utils.SendJSONResponse(w, http.StatusOK, deuda)
 }
-

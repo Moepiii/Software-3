@@ -13,4 +13,3 @@ type Abono struct {
 	Monto   float64 `json:"monto"`
 	Fecha   string  `json:"fecha"`
 }
-

@@ -539,7 +539,8 @@ export default function LobbyPersona({
     );
     const tasaActual = Number(estadoActual?.tasa_actual ?? 0);
     const montoDeuda = Number(deuda?.monto ?? 0);
-    const totalAPagar = isNaN(montoDeuda) || isNaN(tasaActual) ? 0 : montoDeuda * (1 + tasaActual / 100);
+    const totalCalculado = isNaN(montoDeuda) || isNaN(tasaActual) ? 0 : montoDeuda * (1 + tasaActual / 100);
+    const totalAPagar = Math.round((totalCalculado + Number.EPSILON) * 100) / 100;
 
     const handleCambiarEstado = async () => {
         if (!estadoSeleccionado) return;

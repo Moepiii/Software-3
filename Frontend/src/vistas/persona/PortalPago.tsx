@@ -148,7 +148,7 @@ export default function PaymentPortal({
             setMontoError('Ingrese un monto válido mayor a 0.');
             return false;
         }
-        if (val > totalAPagar) {
+        if (val > totalAPagar + 0.005) {
             setMontoError(`El monto no puede superar ${totalAPagar.toFixed(2)} Bs.`);
             return false;
         }
