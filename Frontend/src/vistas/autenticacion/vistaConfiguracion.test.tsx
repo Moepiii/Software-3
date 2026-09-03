@@ -55,15 +55,15 @@ describe('SettingsView Component', () => {
         />
       );
 
-      const nameInput = await screen.findByLabelText(/Full Name/i);
+      const nameInput = await screen.findByLabelText(/Nombre Completo/i);
       expect(nameInput).toHaveValue('Leonardo Pérez');
-      expect(screen.getByLabelText(/Email Address/i)).toHaveValue('leonardo@ecologic.com');
-      
-      const dniInput = screen.getByLabelText(/ID \/ DNI Number/i);
+      expect(screen.getByLabelText(/Correo Electrónico/i)).toHaveValue('leonardo@ecologic.com');
+
+      const dniInput = screen.getByLabelText(/Número de Cédula/i);
       expect(dniInput).toHaveValue('V-12345678');
       expect(dniInput).toBeDisabled();
 
-      expect(screen.getByText('Environmental Steward • Individual Profile')).toBeInTheDocument();
+      expect(screen.getByText('Persona Natural · Perfil Individual')).toBeInTheDocument();
     });
 
     it('debe mostrar los datos correctamente para un perfil de tipo "empresa"', async () => {
@@ -76,16 +76,16 @@ describe('SettingsView Component', () => {
         />
       );
 
-      // CORREGIDO: Buscamos 'Company Name' porque el tipo es 'empresa'
-      const companyInput = await screen.findByLabelText(/Company Name/i);
+      // Buscamos 'Nombre de la Empresa' porque el tipo es 'empresa'
+      const companyInput = await screen.findByLabelText(/Nombre de la Empresa/i);
       expect(companyInput).toHaveValue('Planeta Limpio C.A.');
-      expect(screen.getByLabelText(/Email Address/i)).toHaveValue('contacto@planetalimpio.com');
-      
-      const rifInput = screen.getByLabelText(/RIF Number/i);
+      expect(screen.getByLabelText(/Correo Electrónico/i)).toHaveValue('contacto@planetalimpio.com');
+
+      const rifInput = screen.getByLabelText(/Número de RIF/i);
       expect(rifInput).toHaveValue('J-12345678-9');
       expect(rifInput).toBeDisabled();
 
-      expect(screen.getByText('Corporate Partner • Business Profile')).toBeInTheDocument();
+      expect(screen.getByText('Empresa · Perfil Corporativo')).toBeInTheDocument();
     });
   });
 
@@ -98,15 +98,15 @@ describe('SettingsView Component', () => {
         <SettingsView user={mockPersonaUser} onSave={mockOnSave} onCancel={mockOnCancel} onLogout={mockOnLogout} />
       );
 
-      const nameInput = await screen.findByLabelText(/Full Name/i);
+      const nameInput = await screen.findByLabelText(/Nombre Completo/i);
       fireEvent.change(nameInput, { target: { value: 'Leonardo Alejandro Silva' } });
-      fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'leosilva@ecologic.com' } });
+      fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'leosilva@ecologic.com' } });
 
-      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Guardar Cambios/i }));
 
       {/* CORREGIDO: Usamos waitFor para atrapar el estado asíncrono ultra veloz del botón */}
       await waitFor(() => {
-        const savingElement = screen.queryByText(/Saving.../i) || screen.queryByText(/Saved!/i);
+        const savingElement = screen.queryByText(/Guardando.../i) || screen.queryByText(/¡Guardado!/i);
         expect(savingElement).toBeInTheDocument();
       });
 
@@ -136,10 +136,10 @@ describe('SettingsView Component', () => {
         <SettingsView user={mockEmpresaUser} onSave={mockOnSave} onCancel={mockOnCancel} onLogout={mockOnLogout} />
       );
 
-      // CORREGIDO: Buscamos 'Company Name'
-      const companyInput = await screen.findByLabelText(/Company Name/i);
+      // Buscamos 'Nombre de la Empresa'
+      const companyInput = await screen.findByLabelText(/Nombre de la Empresa/i);
       fireEvent.change(companyInput, { target: { value: 'Planeta Limpio Editado' } });
-      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Guardar Cambios/i }));
 
       await waitFor(() => {
         expect(updateEmpresa).toHaveBeenCalledWith({
@@ -162,9 +162,9 @@ describe('SettingsView Component', () => {
         <SettingsView user={mockPersonaUser} onSave={mockOnSave} onCancel={mockOnCancel} onLogout={mockOnLogout} />
       );
 
-      await screen.findByLabelText(/Full Name/i);
+      await screen.findByLabelText(/Nombre Completo/i);
 
-      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Guardar Cambios/i }));
 
       await waitFor(() => {
         expect(screen.getByText(mensajeError)).toBeInTheDocument();
@@ -178,23 +178,23 @@ describe('SettingsView Component', () => {
         <SettingsView user={mockPersonaUser} onSave={mockOnSave} onCancel={mockOnCancel} onLogout={mockOnLogout} />
       );
 
-      await screen.findByLabelText(/Full Name/i);
+      await screen.findByLabelText(/Nombre Completo/i);
 
-      fireEvent.click(screen.getByRole('button', { name: /Cancel Changes/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Cancelar/i }));
       expect(mockOnCancel).toHaveBeenCalledTimes(1);
 
       fireEvent.click(screen.getByRole('button', { name: /Volver al Lobby/i }));
       expect(mockOnCancel).toHaveBeenCalledTimes(2);
     });
 
-    it('debe disparar la función onLogout al hacer click en Log Out', async () => {
+    it('debe disparar la función onLogout al hacer click en Cerrar Sesión', async () => {
       render(
         <SettingsView user={mockPersonaUser} onSave={mockOnSave} onCancel={mockOnCancel} onLogout={mockOnLogout} />
       );
 
-      await screen.findByLabelText(/Full Name/i);
+      await screen.findByLabelText(/Nombre Completo/i);
 
-      fireEvent.click(screen.getByRole('button', { name: /Log Out/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Cerrar Sesión/i }));
       expect(mockOnLogout).toHaveBeenCalled();
     });
   });

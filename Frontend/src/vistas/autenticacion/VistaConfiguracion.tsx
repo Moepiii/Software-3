@@ -106,7 +106,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
             <div className="bg-surface-container-lowest rounded-xl p-stack-md settings-card-shadow flex flex-col space-y-2">
               <button className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary-container text-on-primary-container font-label-bold transition-all w-full text-left cursor-pointer" id="nav-personal">
                 <span className="material-symbols-outlined">person</span>
-                <span className="text-body-md">Personal Info</span>
+                <span className="text-body-md">Información Personal</span>
               </button>
               <div className="pt-stack-lg mt-4 border-t border-outline-variant">
                 <button
@@ -114,7 +114,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                   className="flex items-center space-x-3 px-4 py-3 rounded-lg text-error hover:bg-error-container transition-all w-full text-left cursor-pointer"
                 >
                   <span className="material-symbols-outlined">logout</span>
-                  <span className="text-body-md font-body-md">Log Out</span>
+                  <span className="text-body-md font-body-md">Cerrar Sesión</span>
                 </button>
               </div>
             </div>
@@ -128,14 +128,14 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
               <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-90"></div>
               <img
                 className="w-full h-full object-cover mix-blend-overlay"
-                alt="A lush, forest canopy during sunrise"
+                alt="Dosel forestal al amanecer"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgq8eNf_fFP1PTP6E7pYd9obKyka5QPKDbI6eB_yHFBz0OTgwTDNYj0JOvHG1fzciUWpNoebvbT0Ya2cum7zEG_40rvUbt1a4ZlfWdRba9GFyNLPL5m4SPtrjQ5_WjlDYp_Ny_2dZqtRr4erArYiT-m6MQZetlVLcNaum7TevbWMc4wRY4K1VgEYq3DX6g3Vx0Mc_HQyfIrc5kZ0eXIVNX-_QX7gFYBBrGoSHik7tG_3M9AAgkLDvLUB8vx5ziRvH6ohHepyTKR8TP"
               />
               <div className="absolute bottom-6 left-8 flex items-center space-x-6">
                 <div className="w-24 h-24 rounded-full border-4 border-surface-container-lowest overflow-hidden bg-surface-container-highest">
                   <img
                     className="w-full h-full object-cover"
-                    alt="User headshot"
+                    alt="Foto de perfil del usuario"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzY1vNDEKpuKArvmq4dZWLxRZJGUiE4Yfso8Wgbg3xq6gP-kxw_dj9UbR8pPjwyI7jMrV40VSa0gXvOuloZDU_EzC_nCf_1wnSGwt5LXecav2M2cVylZ7_loV8taoUBcU-UR2QazxGUCoWmhA-rigt_Ks9vg5-G9hfP3ho_oxzmbxJO-_sMBhciZ401omC-SKdKJdpsxvMJa35hzvrijVYeTOqCEQZUFOxS3_gBLj5UX1xM3zUFUmSGCtGXuzvuq1aoXgEntdGlL8Q"
                   />
                 </div>
@@ -144,7 +144,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                     {fullName || 'Usuario EcoLogic'}
                   </h1>
                   <p className="text-on-primary opacity-80 text-body-md font-body-md">
-                    {user.tipo === 'NATURAL' ? 'Environmental Steward • Individual Profile' : 'Corporate Partner • Business Profile'}
+                    {user.tipo === 'NATURAL' ? 'Persona Natural · Perfil Individual' : 'Empresa · Perfil Corporativo'}
                   </p>
                 </div>
               </div>
@@ -155,10 +155,10 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
               <div className="flex justify-between items-center mb-stack-lg">
                 <h2 className="text-headline-sm font-headline-sm text-primary flex items-center gap-2">
                   <span className="material-symbols-outlined">badge</span>
-                  Personal Information
+                  Información Personal
                 </h2>
                 <span className="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-label-caps font-label-caps">
-                  Verified Account
+                  Cuenta Verificada
                 </span>
               </div>
 
@@ -173,7 +173,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 {/* CAMPO 1: NOMBRE COMPLETÓ / EMPRESA */}
                 <div className="flex flex-col space-y-1">
                   <label htmlFor="fullNameInput" className="text-label-bold font-label-bold text-on-surface-variant">
-                    {user.tipo === 'NATURAL' ? 'Full Name' : 'Company Name'}
+                    {user.tipo === 'NATURAL' ? 'Nombre Completo' : 'Nombre de la Empresa'}
                   </label>
                   <input
                     id="fullNameInput"
@@ -188,7 +188,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 {/* CAMPO 2: EMAIL */}
                 <div className="flex flex-col space-y-1">
                   <label htmlFor="emailInput" className="text-label-bold font-label-bold text-on-surface-variant">
-                    Email Address
+                    Correo Electrónico
                   </label>
                   <input
                     id="emailInput"
@@ -203,7 +203,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                 {/* CAMPO 3: IDENTIFICACIÓN (DNI O RIF) */}
                 <div className="flex flex-col space-y-1">
                   <label htmlFor="dniInput" className="text-label-bold font-label-bold text-on-surface-variant opacity-60">
-                    {user.tipo === 'NATURAL' ? 'ID / DNI Number' : 'RIF Number'}
+                    {user.tipo === 'NATURAL' ? 'Número de Cédula' : 'Número de RIF'}
                   </label>
                   <input
                     id="dniInput"
@@ -223,7 +223,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                     onClick={onCancel}
                     className="px-8 py-3 rounded-lg border border-outline text-on-surface-variant font-label-bold hover:bg-surface-container-high transition-all active:scale-95 cursor-pointer"
                   >
-                    Cancel Changes
+                    Cancelar
                   </button>
                   <button
                     type="submit"
@@ -240,7 +240,7 @@ export function SettingsView({ user, onSave, onCancel, onLogout }: SettingsViewP
                     
                     {/* Envolvemos el texto en un span propio para que Jest lo encuentre sin interferencias */}
                     <span>
-                      {isSaving ? 'Saving...' : isSaved ? 'Saved!' : 'Save Changes'}
+                      {isSaving ? 'Guardando...' : isSaved ? '¡Guardado!' : 'Guardar Cambios'}
                     </span>
                   </button>
                 </div>
