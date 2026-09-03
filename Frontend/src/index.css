@@ -9,7 +9,7 @@
 
 :root {
   /* Typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   --font-display: 'Qontra', var(--font-sans);
 
   /* Surfaces */
@@ -40,6 +40,12 @@
   --focus-ring: 0 0 0 3px rgba(34, 197, 94, 0.28);
 }
 
+html {
+  /* Base más grande: todo el texto del sitio usa rem, así que esto escala
+     proporcionalmente títulos, subtítulos y textos pequeños a la vez. */
+  font-size: 18px;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -57,6 +63,11 @@ body {
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Titulos con la tipografia de marca; subtitulos y cuerpo con la tipografia base */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
 }
 
 /* Base Utility Classes */

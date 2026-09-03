@@ -271,7 +271,7 @@ function CursoCarrusel({ cursos, isDarkMode, colors }: CursoCarruselProps) {
                                         display: 'inline-block',
                                         padding: '2px 8px',
                                         borderRadius: '999px',
-                                        fontSize: '0.6rem',
+                                        fontSize: '0.8rem',
                                         fontWeight: '600',
                                         backgroundColor: cursoActual.estado === 'activo' || cursoActual.estado === 'activa' ? '#d3f9d8' : '#fff3bf',
                                         color: cursoActual.estado === 'activo' || cursoActual.estado === 'activa' ? '#2b8a3e' : '#e67700'
@@ -437,7 +437,7 @@ function ExperienceBar({ isDarkMode, colors, nivel = 0, experiencia = 0, experie
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: '0.65rem',
+                fontSize: '0.85rem',
                 color: colors.textMuted
             }}>
                 <span>{experiencia} EXP</span>
@@ -450,7 +450,7 @@ function ExperienceBar({ isDarkMode, colors, nivel = 0, experiencia = 0, experie
                 marginTop: '4px'
             }}>
                 <span style={{
-                    fontSize: '0.55rem',
+                    fontSize: '0.75rem',
                     color: colors.textMuted,
                     fontWeight: '500'
                 }}>
