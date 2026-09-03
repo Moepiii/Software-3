@@ -157,7 +157,7 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
                     <div style={{ width: '44px', height: '44px', borderRadius: '9999px', backgroundColor: 'var(--primary-900)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: '#ffffff', fontWeight: 800 }}>E</div>
                     <div>
                         <div style={{ fontWeight: 800, fontSize: '0.9rem', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}>Empresa</div>
-                        <div style={{ fontSize: '0.75rem', color: isDarkMode ? 'rgba(255,255,255,0.70)' : 'var(--text-muted)' }}>empresa@ecotax.local</div>
+                        <div style={{ fontSize: '0.75rem', color: isDarkMode ? 'rgba(255,255,255,0.70)' : 'var(--text-muted)' }}>empresa@ecologic.com</div>
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -170,7 +170,7 @@ export default function LayoutEmpresa({ children, onLogout, onNavigateSettings, 
                             if (onNavigateSettings) onNavigateSettings();
                         }}
                         style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', color: isDarkMode ? '#f8fafc' : 'var(--text-main)' }}
-                    >Configuración</button>
+                    >⚙️ Configuración</button>
                     <button onClick={handleLogoutClick} style={{ width: '100%', padding: '12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', color: '#ef4444' }}>Cerrar sesión</button>
                 </div>
                 <div style={{ fontSize: '0.7rem', textAlign: 'center', color: isDarkMode ? 'rgba(255,255,255,0.60)' : 'var(--text-muted)', paddingTop: '16px', borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.10)' : 'var(--border-color)'}` }}>Empresa · v1.0.0</div>

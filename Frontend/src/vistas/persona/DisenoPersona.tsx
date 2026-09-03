@@ -285,15 +285,6 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
                     >
                         ⚙️ Configuración
                     </button>
-                    <button 
-                        onClick={() => {
-                            setIsMenuOpen(false);
-                            if (onNavigateStats) onNavigateStats();
-                        }}
-                        style={menuOptionStyle(isDarkMode)}
-                    >
-                        📊 Mis estadísticas
-                    </button>
                     <button onClick={handleLogoutClick} style={{ ...menuOptionStyle(isDarkMode), color: '#ef4444' }}>
                         🚪 Cerrar sesión
                     </button>
@@ -479,7 +470,7 @@ const menuOptionStyle = (isDark: boolean): React.CSSProperties => ({
 });
 
 const versionStyle = (isDark: boolean): React.CSSProperties => ({
-    fontSize: '0.6rem',
+    fontSize: '0.8rem',
     textAlign: 'center',
     color: isDark ? '#64748b' : '#9ca3af',
     paddingTop: '16px',

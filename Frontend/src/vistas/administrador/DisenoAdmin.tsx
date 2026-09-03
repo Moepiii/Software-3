@@ -275,7 +275,7 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
     };
 
     const versionStyle = {
-        fontSize: '0.6rem',
+        fontSize: '0.8rem',
         textAlign: 'center' as const,
         color: isDarkMode ? '#64748b' : '#9ca3af',
         paddingTop: '16px',
@@ -357,35 +357,6 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
                     </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <button
-                        onClick={() => {
-                            setIsMenuOpen(false);
-                            setVistaActual('admins');
-                        }}
-                        style={menuOptionStyle}
-                    >
-                        👥 Administradores
-                    </button>
-                    <button
-                        onClick={() => {
-                            setIsMenuOpen(false);
-                            setVistaActual('cursos');
-                        }}
-                        style={menuOptionStyle}
-                    >
-                        📚 Cursos
-                    </button>
-                    <button
-                        onClick={() => {
-                            setIsMenuOpen(false);
-                            setVistaActual('deudas');
-                        }}
-                        style={menuOptionStyle}
-                    >
-                        💰 Deudas
-                    </button>
-                    <button style={menuOptionStyle}>📊 Estadísticas</button>
-                    <button style={menuOptionStyle}>⚙️ Configuración</button>
                     <button onClick={handleLogoutClick} style={{ ...menuOptionStyle, color: '#ef4444' }}>
                         🚪 Cerrar sesión
                     </button>

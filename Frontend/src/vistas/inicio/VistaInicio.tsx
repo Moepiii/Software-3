@@ -61,7 +61,7 @@ export function VistaInicio({ isDarkMode = false }: VistaInicioProps) {
               maxWidth: '500px',
               lineHeight: 1.6
             }}>
-              EcoTax convierte tus acciones de reciclaje en beneficios fiscales medibles en bolívares.
+              EcoLogic convierte tus acciones de reciclaje en beneficios fiscales medibles en bolívares.
               Simple, transparente y adaptado a tu estado.
             </p>
 
@@ -137,7 +137,7 @@ export function VistaInicio({ isDarkMode = false }: VistaInicioProps) {
                   border: `1px solid ${isDarkMode ? '#334155' : '#e5e7eb'}`,
                   padding: '0.75rem'
                 }}>
-                  <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: isDarkMode ? '#94a3b8' : '#6b7280' }}>Estados con mayor adopción</p>
+                  <p style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: isDarkMode ? '#94a3b8' : '#6b7280' }}>Estados con mayor adopción</p>
                   <p style={{ fontSize: '0.9rem', fontWeight: '600', color: isDarkMode ? '#34d399' : '#065a46' }}>Miranda, Carabobo, Distrito Capital</p>
                 </div>
                 <div style={{
@@ -146,7 +146,7 @@ export function VistaInicio({ isDarkMode = false }: VistaInicioProps) {
                   border: `1px solid ${isDarkMode ? '#334155' : '#e5e7eb'}`,
                   padding: '0.75rem'
                 }}>
-                  <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: isDarkMode ? '#94a3b8' : '#6b7280' }}>Meta 2026</p>
+                  <p style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: isDarkMode ? '#94a3b8' : '#6b7280' }}>Meta 2026</p>
                   <p style={{ fontSize: '0.9rem', fontWeight: '600', color: isDarkMode ? '#34d399' : '#065a46' }}>+40.000 hogares afiliados</p>
                 </div>
               </div>
