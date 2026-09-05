@@ -1,5 +1,5 @@
 // Frontend/src/vistas/administrador/CursosAdmin.tsx
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Button from '../../componentes/Boton';
 import type { Curso } from '../../api/cursos';
 import { listarCursos, crearCurso, actualizarCurso, eliminarCurso, finalizarCurso } from '../../api/cursos';
@@ -7,7 +7,6 @@ import { listarCursos, crearCurso, actualizarCurso, eliminarCurso, finalizarCurs
 // Función para obtener todas las imágenes de la carpeta
 const importarImagenes = () => {
     const imagenes: { nombre: string; url: string }[] = [];
-    // @ts-ignore
     const modules = import.meta.glob('./imagenescursos/*.{jpg,jpeg,png,gif,webp}', { eager: true });
 
     for (const path in modules) {
@@ -19,8 +18,10 @@ const importarImagenes = () => {
     return imagenes;
 };
 
+const imagenesIniciales = importarImagenes();
+
 export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boolean }) {
-    const [imagenesDisponibles, setImagenesDisponibles] = useState<{ nombre: string; url: string }[]>([]);
+    const [imagenesDisponibles] = useState(imagenesIniciales);
     const [cursos, setCursos] = useState<Curso[]>([]);
 
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -31,28 +32,23 @@ export default function CursosAdmin({ isDarkMode = false }: { isDarkMode?: boole
         fechaInicio: '',
         fechaFin: '',
         categoria: '',
-        imagen: ''
+        imagen: imagenesIniciales[0]?.nombre ?? ''
     });
-    const [imagenPreview, setImagenPreview] = useState('');
+    const [imagenPreview, setImagenPreview] = useState(imagenesIniciales[0]?.url ?? '');
 
-    const cargarCursos = async () => {
+    const cargarCursos = useCallback(async () => {
         try {
             const data = await listarCursos();
             setCursos(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error al cargar cursos:', error);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        const imagenes = importarImagenes();
-        setImagenesDisponibles(imagenes);
-        if (imagenes.length > 0 && !formData.imagen) {
-            setFormData(prev => ({ ...prev, imagen: imagenes[0].nombre }));
-            setImagenPreview(imagenes[0].url);
-        }
-        cargarCursos();
-    }, []);
+        const timeoutId = window.setTimeout(() => void cargarCursos(), 0);
+        return () => window.clearTimeout(timeoutId);
+    }, [cargarCursos]);
 
     const resetFormulario = () => {
         setMostrarFormulario(false);

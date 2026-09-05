@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { login, registerEmpresa, registerPersona, type LoginUser } from '../../api';
 import { ChoiceView } from './VistaEleccion';
 import { FormPersonaView } from './FormularioPersona';
@@ -36,6 +36,12 @@ export default function FlujoAutenticacion({ onLoginSuccess, initialView }: Auth
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (step === 'LANDING') {
+      window.location.assign('/');
+    }
+  }, [step]);
 
   const handleBack = () => {
     setErrorMsg('');
@@ -102,7 +108,6 @@ export default function FlujoAutenticacion({ onLoginSuccess, initialView }: Auth
   // LANDING - Redirige a la página de inicio
   // ============================================
   if (step === 'LANDING') {
-    window.location.href = '/';
     return null;
   }
 

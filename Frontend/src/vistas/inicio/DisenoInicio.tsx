@@ -10,6 +10,8 @@ interface DisenoInicioProps {
   onLogin?: () => void;
 }
 
+type WithDarkModeProp = { isDarkMode?: boolean };
+
 export default function DisenoInicio({ children, onRegister, onLogin }: DisenoInicioProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -111,8 +113,8 @@ export default function DisenoInicio({ children, onRegister, onLogin }: DisenoIn
 
   // Pasar isDarkMode a los hijos
   const childrenWithProps = React.Children.map(children, (child) => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, { isDarkMode: isDarkMode } as any);
+    if (React.isValidElement<WithDarkModeProp>(child)) {
+      return React.cloneElement(child, { isDarkMode });
     }
     return child;
   });

@@ -32,20 +32,23 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
   }, [cargar]);
 
   const colors = {
-    page: isDarkMode ? '#0f172a' : '#f3f4f6',
-    card: isDarkMode ? '#1e293b' : '#ffffff',
-    border: isDarkMode ? '#334155' : '#dbe5df',
-    text: isDarkMode ? '#f8fafc' : '#15352d',
-    muted: isDarkMode ? '#a5b4c6' : '#60756d',
+    page: isDarkMode ? '#0f172a' : 'var(--bg-main)',
+    card: isDarkMode ? '#1e293b' : 'var(--surface)',
+    border: isDarkMode ? '#334155' : 'var(--border-color)',
+    text: isDarkMode ? '#f8fafc' : 'var(--text-main)',
+    muted: isDarkMode ? '#a5b4c6' : 'var(--text-muted)',
+    accent: isDarkMode ? '#4ade80' : 'var(--primary-700)',
     soft: isDarkMode ? '#12372f' : '#ecf8f2',
   };
 
   const card: React.CSSProperties = {
     background: colors.card,
     border: `1px solid ${colors.border}`,
-    borderRadius: '18px',
-    padding: '24px',
-    boxShadow: isDarkMode ? 'none' : '0 10px 30px rgba(21, 53, 45, 0.07)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 'clamp(16px, 2vw, 24px)',
+    minWidth: 0,
+    overflowWrap: 'anywhere',
+    boxShadow: isDarkMode ? 'none' : 'var(--shadow-md)',
   };
 
   if (loading) {
@@ -79,7 +82,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
   return (
     <section style={{ color: colors.text, background: colors.page, borderRadius: '22px', padding: 'clamp(16px, 3vw, 32px)' }}>
       <header style={{ marginBottom: '24px' }}>
-        <span style={{ color: '#0f8a63', fontWeight: 800, letterSpacing: '.08em', fontSize: '.75rem' }}>
+        <span style={{ color: colors.accent, fontWeight: 800, letterSpacing: '.08em', fontSize: '.75rem' }}>
           RECOMPENSAS ECOLÓGICAS
         </span>
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', margin: '6px 0 8px', lineHeight: 1.05 }}>Mis Puntos</h1>
@@ -88,7 +91,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
         </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))', gap: '16px', marginBottom: '16px' }}>
         <article style={{ ...card, background: 'linear-gradient(135deg, #075f49, #0f8a63)', color: '#fff' }}>
           <div style={{ opacity: .8, fontSize: '.8rem', fontWeight: 700 }}>PUNTOS ACUMULADOS</div>
           <strong style={{ display: 'block', fontSize: '3rem', lineHeight: 1.1, marginTop: '10px' }}>{resumen.puntos_totales}</strong>
@@ -103,7 +106,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
 
         <article style={{ ...card, background: colors.soft }}>
           <div style={{ color: colors.muted, fontSize: '.8rem', fontWeight: 700 }}>DESCUENTO APLICABLE</div>
-          <strong style={{ display: 'block', color: '#0f8a63', fontSize: '3rem', lineHeight: 1.1, marginTop: '10px' }}>
+          <strong style={{ display: 'block', color: colors.accent, fontSize: '3rem', lineHeight: 1.1, marginTop: '10px' }}>
             {resumen.descuento_porcentaje}%
           </strong>
           <span style={{ color: colors.muted }}>en el impuesto de basura</span>
@@ -113,7 +116,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
       <article style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'baseline', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{resumen.nivel_maximo ? 'Beneficio máximo' : 'Progreso al siguiente nivel'}</h2>
-          <strong style={{ color: '#0f8a63' }}>{resumen.progreso_porcentaje}%</strong>
+          <strong style={{ color: colors.accent }}>{resumen.progreso_porcentaje}%</strong>
         </div>
         <progress
           aria-label="Progreso hacia el siguiente nivel"
@@ -132,7 +135,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
         <p style={{ margin: '16px 0 0', fontSize: '.85rem', color: colors.muted }}>{resumen.beneficio}</p>
       </article>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px', marginTop: '16px' }}>
         <section style={card} aria-labelledby="cursos-activos-titulo">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h2 id="cursos-activos-titulo" style={{ margin: 0, fontSize: '1.2rem' }}>Cursos activos</h2>
@@ -141,7 +144,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
           {cursosActivos.length === 0 ? (
             <p style={{ color: colors.muted, margin: 0 }}>No tienes cursos activos actualmente.</p>
           ) : cursosActivos.map((curso) => (
-            <CursoProgreso key={curso.curso_id} curso={curso} mutedColor={colors.muted} softColor={colors.soft} />
+            <CursoProgreso key={curso.curso_id} curso={curso} mutedColor={colors.muted} softColor={colors.soft} accentColor={colors.accent} />
           ))}
         </section>
 
@@ -153,7 +156,7 @@ export default function MisPuntos({ isDarkMode = false }: MisPuntosProps) {
           {cursosCompletados.length === 0 ? (
             <p style={{ color: colors.muted, margin: 0 }}>Cuando completes un curso aparecerá aquí.</p>
           ) : cursosCompletados.map((curso) => (
-            <CursoProgreso key={curso.curso_id} curso={curso} mutedColor={colors.muted} softColor={colors.soft} completado />
+            <CursoProgreso key={curso.curso_id} curso={curso} mutedColor={colors.muted} softColor={colors.soft} accentColor={colors.accent} completado />
           ))}
         </section>
       </div>
@@ -165,18 +168,20 @@ function CursoProgreso({
   curso,
   mutedColor,
   softColor,
+  accentColor,
   completado = false,
 }: {
   curso: CursoPuntosResumen;
   mutedColor: string;
   softColor: string;
+  accentColor: string;
   completado?: boolean;
 }) {
   return (
     <article style={{ padding: '14px', borderRadius: '12px', background: softColor, marginTop: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-        <strong>{curso.titulo}</strong>
-        <span style={{ color: completado ? '#0f8a63' : mutedColor, fontWeight: 700 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <strong style={{ flex: '1 1 140px', minWidth: 0 }}>{curso.titulo}</strong>
+        <span style={{ color: completado ? accentColor : mutedColor, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>
           {completado ? 'Completado' : `${curso.progreso_pct}%`}
         </span>
       </div>
@@ -197,13 +202,14 @@ const buttonStyle: React.CSSProperties = {
   border: 0,
   borderRadius: '10px',
   padding: '11px 18px',
-  background: '#0f8a63',
+  background: 'var(--primary-700)',
   color: '#fff',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const countStyle: React.CSSProperties = {
+  flexShrink: 0,
   minWidth: '28px',
   height: '28px',
   padding: '0 8px',
@@ -211,7 +217,7 @@ const countStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: '#0f8a63',
+  background: 'var(--primary-700)',
   color: '#fff',
   fontWeight: 800,
   fontSize: '.8rem',

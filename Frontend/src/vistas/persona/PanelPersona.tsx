@@ -9,6 +9,7 @@ import {
 } from '../../api/usuario';
 import type { AccountType } from '../../api/usuario';
 import type { LoginUser } from '../../api/auth';
+import type { Curso } from '../../api/cursos';
 import { useMisCursos } from '../../hooks/useMisCursos';
 import { useExperiencia } from '../../hooks/useExperiencia';
 
@@ -26,6 +27,29 @@ interface LobbyPersonaProps {
 }
 
 type Status = 'idle' | 'loading' | 'error' | 'success';
+
+type CursoCarruselItem = Pick<Curso, 'titulo' | 'fechaFin' | 'estado' | 'categoria' | 'imagen'>;
+
+type DashboardColors = {
+    bgPage: string;
+    cardBg: string;
+    cardBorder: string;
+    textPrimary: string;
+    textSecondary: string;
+    textMuted: string;
+    inputBg: string;
+    inputBorder: string;
+    inputText: string;
+    highlightBg: string;
+    highlightBorder: string;
+    success: string;
+    error: string;
+    buttonPrimary: string;
+    buttonPrimaryHover: string;
+    buttonSecondaryBg: string;
+    buttonSecondaryText: string;
+    buttonSecondaryBorder: string;
+};
 
 // Datos de cursos hardcodeados para fallback (si la API falla)
 const cursosFallback = [
@@ -64,13 +88,13 @@ function parseFecha(fechaStr: string): Date | null {
 
     const partsDDMMYYYY = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (partsDDMMYYYY) {
-        const [_, day, month, year] = partsDDMMYYYY;
+        const [, day, month, year] = partsDDMMYYYY;
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }
 
     const partsYYYYMMDD = fechaStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (partsYYYYMMDD) {
-        const [_, year, month, day] = partsYYYYMMDD;
+        const [, year, month, day] = partsYYYYMMDD;
         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }
 
@@ -114,9 +138,9 @@ function getImagenUrl(imagen?: string): string | undefined {
 
 // ============ COMPONENTE DE CARRUSEL ============
 interface CursoCarruselProps {
-    cursos: any[];
+    cursos: CursoCarruselItem[];
     isDarkMode: boolean;
-    colors: any;
+    colors: DashboardColors;
 }
 
 function CursoCarrusel({ cursos, isDarkMode, colors }: CursoCarruselProps) {
@@ -327,9 +351,9 @@ function CursoCarrusel({ cursos, isDarkMode, colors }: CursoCarruselProps) {
                     justifyContent: 'center',
                     gap: '6px'
                 }}>
-                    {cursos.map((_, index) => (
+                    {cursos.map((curso, index) => (
                         <button
-                            key={index}
+                            key={`${curso.titulo}-${index}`}
                             onClick={() => goToSlide(index)}
                             style={{
                                 width: index === currentIndex ? '20px' : '8px',
@@ -351,7 +375,7 @@ function CursoCarrusel({ cursos, isDarkMode, colors }: CursoCarruselProps) {
 // ============ COMPONENTE DE EXPERIENCIA ============
 interface ExperienceBarProps {
     isDarkMode: boolean;
-    colors: any;
+    colors: DashboardColors;
     nivel?: number;
     experiencia?: number;
     experienciaMaxima?: number;

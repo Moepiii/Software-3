@@ -21,6 +21,7 @@ type WithDarkModeProp = { isDarkMode?: boolean };
 export default function DisenoPersona({ children, onLogout, onNavigateSettings, onNavigateStats, onNavigateCursos, onNavigatePanel, onNavigatePuntos }: LayoutPersonaProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const useLegacyFooter = false;
 
     useEffect(() => {
         if (isDarkMode) {
@@ -98,6 +99,7 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
 
     const navStyle: React.CSSProperties = {
         display: 'flex',
+        flexWrap: 'wrap',
         gap: '2rem'
     };
 
@@ -320,7 +322,7 @@ export default function DisenoPersona({ children, onLogout, onNavigateSettings, 
             </main>
 
             {/* FOOTER VERDE OSCURO CON REDES SOCIALES */}
-            {false ? <footer style={footerStyle}>
+            {useLegacyFooter ? <footer style={footerStyle}>
                 <div style={footerContentStyle}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <a

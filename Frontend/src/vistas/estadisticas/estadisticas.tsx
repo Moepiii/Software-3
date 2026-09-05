@@ -55,9 +55,9 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
         });
 
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error al cargar datos:', err);
-        setError(err.message || 'Error al cargar estadísticas');
+        setError(err instanceof Error ? err.message : 'Error al cargar estadísticas');
         // Establecer datos vacíos para evitar errores
         setData({
           total_abonado: 0,
@@ -161,7 +161,7 @@ export function Estadisticas({ onBack }: EstadisticasProps) {
   const paymentsHistory = [];
   const hoy = new Date();
   for (let i = 6; i >= 0; i--) {
-    let d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
     const mesNom = meses[d.getMonth()];
     const val = pagosPorMes[mesNom] || 0;
     const height = maxPagoMes > 0 ? Math.max((val / maxPagoMes) * 100, 5) + '%' : '5%';

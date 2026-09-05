@@ -25,7 +25,8 @@ export function useExperiencia() {
     }, []);
 
     useEffect(() => {
-        refetch();
+        const timeoutId = window.setTimeout(() => void refetch(), 0);
+        return () => window.clearTimeout(timeoutId);
     }, [refetch]);
 
     return { nivel, experiencia, maximoNivel, loading, error, refetch };

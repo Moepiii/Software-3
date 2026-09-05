@@ -22,7 +22,8 @@ export function useMisCursos() {
     }, []);
 
     useEffect(() => {
-        refetch();
+        const timeoutId = window.setTimeout(() => void refetch(), 0);
+        return () => window.clearTimeout(timeoutId);
     }, [refetch]);
 
     return { cursos, loading, error, refetch };

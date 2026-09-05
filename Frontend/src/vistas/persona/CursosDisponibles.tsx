@@ -12,14 +12,14 @@ function formatFecha(fechaStr: string): string {
     // Intentar parsear como DD/MM/YYYY
     const partsDDMMYYYY = fechaStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (partsDDMMYYYY) {
-        const [_, day, month, year] = partsDDMMYYYY;
+        const [, day, month, year] = partsDDMMYYYY;
         return `${day}/${month}/${year}`;
     }
 
     // Intentar parsear como YYYY-MM-DD
     const partsYYYYMMDD = fechaStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (partsYYYYMMDD) {
-        const [_, year, month, day] = partsYYYYMMDD;
+        const [, year, month, day] = partsYYYYMMDD;
         return `${day}/${month}/${year}`;
     }
 
@@ -38,7 +38,6 @@ function formatFecha(fechaStr: string): string {
 
 const importarImagenes = () => {
     const imagenes: { nombre: string; url: string }[] = [];
-    // @ts-ignore
     const modules = import.meta.glob('../administrador/imagenescursos/*.{jpg,jpeg,png,gif,webp}', { eager: true });
 
     for (const path in modules) {
@@ -84,15 +83,16 @@ export default function CursosDisponibles({ isDarkMode = false }: CursosDisponib
             ]);
             setCursos(Array.isArray(data) ? data : []);
             setReservedIds(Array.isArray(reservasData) ? reservasData : []);
-        } catch (e: any) {
-            setErrorMsg(e.message || 'Error al cargar los cursos disponibles.');
+        } catch (error: unknown) {
+            setErrorMsg(error instanceof Error ? error.message : 'Error al cargar los cursos disponibles.');
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchCursos();
+        const timeoutId = window.setTimeout(() => void fetchCursos(), 0);
+        return () => window.clearTimeout(timeoutId);
     }, [fetchCursos]);
 
     const getImagenUrl = (nombre?: string) => {
@@ -109,8 +109,8 @@ export default function CursosDisponibles({ isDarkMode = false }: CursosDisponib
             await reservarCurso(cursoId);
             setSuccessMsg('¡Curso reservado con éxito!');
             setReservedIds(prev => [...prev, cursoId]);
-        } catch (e: any) {
-            setErrorMsg(e.message || 'No se pudo reservar el curso.');
+        } catch (error: unknown) {
+            setErrorMsg(error instanceof Error ? error.message : 'No se pudo reservar el curso.');
         } finally {
             setReservingId(null);
             setTimeout(() => setSuccessMsg(''), 5000);

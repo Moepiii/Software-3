@@ -18,6 +18,7 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [vistaActual, setVistaActual] = useState<'admins' | 'cursos' | 'deudas'>('admins');
+    const useLegacyFooter = false;
 
     useEffect(() => {
         if (isDarkMode) {
@@ -372,7 +373,7 @@ export default function DisenoAdmin({ children, onLogout }: LayoutAdminProps) {
             </main>
 
             {/* FOOTER VERDE OSCURO CON REDES SOCIALES */}
-            {false ? <footer style={footerStyle}>
+            {useLegacyFooter ? <footer style={footerStyle}>
                 <div style={footerContentStyle}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <a

@@ -183,6 +183,9 @@ func (s *UsuarioService) GetResumenPuntos(ctx context.Context, usuarioID string)
 	resumen.CursosActivos = make([]domain.CursoPuntosResumen, 0)
 	resumen.CursosCompletados = make([]domain.CursoPuntosResumen, 0)
 	for _, curso := range cursos {
+		if curso.Estado == "cancelada" {
+			continue
+		}
 		if curso.Estado == "completada" || curso.ProgresoPct >= 100 {
 			resumen.CursosCompletados = append(resumen.CursosCompletados, curso)
 			continue

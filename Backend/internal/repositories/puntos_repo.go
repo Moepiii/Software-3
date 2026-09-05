@@ -39,60 +39,54 @@ func (r *puntosRepo) CursosByUsuario(ctx context.Context, usuarioID string) ([]d
 }
 
 func (r *puntosRepo) AcreditarProgreso(ctx context.Context, usuarioID, cursoID string, progreso int) (int, error) {
-	inscripcion, err := r.client.Inscripcion.FindUnique(
-		db.Inscripcion.UsuarioIDCursoID(
-			db.Inscripcion.UsuarioID.Equals(usuarioID),
-			db.Inscripcion.CursoID.Equals(cursoID),
-		),
-	).Exec(ctx)
+	if usuarioID == "" || cursoID == "" || progreso < 0 || progreso > 100 {
+		return 0, errors.New("usuario, curso y progreso entre 0 y 100 son requeridos")
+	}
+	// Bloquear la inscripción antes de calcular el delta serializa solicitudes
+	// concurrentes, incluso entre distintas instancias del backend. Actualización
+	// e historial forman una sola sentencia: ambas se confirman o se revierten.
+	// Los hitos ya acreditados no se recalculan si cambia el valor del curso.
+	var resultado []struct {
+		Estado  string `json:"estado"`
+		Ganados int    `json:"ganados"`
+	}
+	err := r.client.Prisma.QueryRaw(`
+ WITH bloqueada AS MATERIALIZED (
+  SELECT i.id, i.estado, i.progreso_pct, i.puntos_acreditados, c.puntos_base
+  FROM inscripciones i JOIN cursos c ON c.id = i.curso_id
+  WHERE i.usuario_id = $1 AND i.curso_id = $2
+  FOR UPDATE OF i
+ ), objetivo AS (
+  SELECT *, CASE WHEN $4::int > (progreso_pct / 25) * 25
+   THEN GREATEST(puntos_acreditados, (puntos_base::bigint * $4::int / 100)::int)
+   ELSE puntos_acreditados END AS total
+  FROM bloqueada
+ ), actualizada AS (
+  UPDATE inscripciones i
+  SET progreso_pct = $3::int, puntos_acreditados = o.total, updated_at = CURRENT_TIMESTAMP
+  FROM objetivo o
+  WHERE i.id = o.id AND o.estado <> 'cancelada' AND $3::int > o.progreso_pct
+  RETURNING i.id, o.total, o.total - o.puntos_acreditados AS ganados
+ ), movimiento AS (
+  INSERT INTO historial_puntos
+   (id, usuario_id, curso_id, inscripcion_id, progreso_pct, puntos_ganados, total_acreditado)
+  SELECT gen_random_uuid()::text, $1, $2, id, $4::int, ganados, total
+  FROM actualizada WHERE ganados > 0
+  RETURNING puntos_ganados
+ )
+ SELECT estado, COALESCE((SELECT SUM(puntos_ganados)::int FROM movimiento), 0) AS ganados
+ FROM bloqueada`, usuarioID, cursoID, progreso, factorDeAvance(progreso)).Exec(ctx, &resultado)
 	if err != nil {
 		return 0, err
 	}
-
-	if inscripcion.Estado == "cancelada" {
+	if len(resultado) == 0 {
+		return 0, db.ErrNotFound
+	}
+	if resultado[0].Estado == "cancelada" {
 		return 0, errors.New("no se puede acreditar progreso a una inscripción cancelada")
 	}
-
-	if progreso <= inscripcion.ProgresoPct {
-		return 0, nil
-	}
-
-	curso, err := r.client.Curso.FindUnique(db.Curso.ID.Equals(cursoID)).Exec(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	factor := factorDeAvance(progreso)
-	totalObjetivo := curso.PuntosBase * factor / 100
-	puntosGanados := totalObjetivo - inscripcion.PuntosAcreditados
-	// La finalización del curso conserva el control del estado y de la EXP.
-	// Mis Puntos clasifica también como completado el progreso del 100 %.
-
-	actualizacion := r.client.Inscripcion.FindUnique(
-		db.Inscripcion.ID.Equals(inscripcion.ID),
-	).Update(
-		db.Inscripcion.ProgresoPct.Set(progreso),
-		db.Inscripcion.PuntosAcreditados.Set(totalObjetivo),
-	)
-
-	if puntosGanados <= 0 {
-		_, err = actualizacion.Exec(ctx)
-		return 0, err
-	}
-
-	movimiento := r.client.HistorialPuntos.CreateOne(
-		db.HistorialPuntos.ProgresoPct.Set(factor),
-		db.HistorialPuntos.PuntosGanados.Set(puntosGanados),
-		db.HistorialPuntos.TotalAcreditado.Set(totalObjetivo),
-		db.HistorialPuntos.Usuario.Link(db.Usuarios.ID.Equals(usuarioID)),
-		db.HistorialPuntos.Curso.Link(db.Curso.ID.Equals(cursoID)),
-		db.HistorialPuntos.Inscripcion.Link(db.Inscripcion.ID.Equals(inscripcion.ID)),
-	)
-
-	if err := r.client.Prisma.Transaction(actualizacion.Tx(), movimiento.Tx()).Exec(ctx); err != nil {
-		return 0, err
-	}
-	return puntosGanados, nil
+	// La finalización existente conserva el control del estado y de la EXP.
+	return resultado[0].Ganados, nil
 }
 
 func factorDeAvance(progreso int) int {
