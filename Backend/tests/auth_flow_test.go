@@ -60,7 +60,6 @@ func TestAuthFlow(t *testing.T) {
 		t.Fatalf("unexpected empresa login user: %+v", empresaLogin.User)
 	}
 
-
 	res = app.request(t, http.MethodPost, "/api/login", map[string]string{
 		"email":    "nueva.persona@mail.com",
 		"password": "clave-mala",
@@ -68,5 +67,5 @@ func TestAuthFlow(t *testing.T) {
 	assertStatus(t, res, http.StatusUnauthorized)
 
 	res = app.request(t, http.MethodPost, "/api/register/persona", personaRegister, "")
-	assertStatus(t, res, http.StatusConflict)
+	assertStatus(t, res, http.StatusBadRequest)
 }

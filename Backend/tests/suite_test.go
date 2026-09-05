@@ -100,12 +100,12 @@ func (a *testApp) tokenFor(t testing.TB, email string, tipo string, id string, r
 
 func (a *testApp) personaToken(t testing.TB) string {
 	t.Helper()
-	return a.tokenFor(t, "persona@mail.com", domain.TipoNatural, "V123", domain.RoleUser)
+	return a.tokenFor(t, "persona@mail.com", domain.TipoNatural, "u2", domain.RoleUser)
 }
 
 func (a *testApp) empresaToken(t testing.TB) string {
 	t.Helper()
-	return a.tokenFor(t, "empresa@mail.com", domain.TipoJuridico, "J123", domain.RoleUser)
+	return a.tokenFor(t, "empresa@mail.com", domain.TipoJuridico, "u3", domain.RoleUser)
 }
 
 func (a *testApp) adminToken(t testing.TB) string {

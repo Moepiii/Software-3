@@ -29,7 +29,7 @@ func TestRequireAdmin(t *testing.T) {
 		t.Fatalf("expected unauthorized without token, got %d", res.Code)
 	}
 
-	userToken, err := utils.GenerateJWT("user@mail.com", "persona", "V1", domain.RoleUser, "secret")
+	userToken, err := utils.GenerateJWT("V1", "user@mail.com", domain.RoleUser, domain.TipoNatural, "secret")
 	if err != nil {
 		t.Fatalf("GenerateJWT returned error: %v", err)
 	}
@@ -41,7 +41,7 @@ func TestRequireAdmin(t *testing.T) {
 		t.Fatalf("expected forbidden for user role, got %d", res.Code)
 	}
 
-	adminToken, err := utils.GenerateJWT("admin@mail.com", "persona", "A1", domain.RoleAdmin, "secret")
+	adminToken, err := utils.GenerateJWT("A1", "admin@mail.com", domain.RoleAdmin, domain.TipoAdmin, "secret")
 	if err != nil {
 		t.Fatalf("GenerateJWT returned error: %v", err)
 	}

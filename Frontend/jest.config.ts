@@ -15,6 +15,7 @@ const config: Config = {
   moduleNameMapper: {
     // Evita que Jest choque si importas archivos CSS en tus componentes
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
+    '\\.(png|jpe?g|gif|webp|svg)$': '<rootDir>/src/test/fileMock.ts',
   },
   transform: {
     // Esto procesa los archivos .ts y .tsx inyectando directamente las reglas que Jest necesita
@@ -24,6 +25,7 @@ const config: Config = {
         tsconfig: {
           jsx: 'react-jsx',
           esModuleInterop: true, // Esto quita la advertencia de TS151001 sobre los imports
+          types: ['jest', 'vite/client'],
         },
       },
     ],

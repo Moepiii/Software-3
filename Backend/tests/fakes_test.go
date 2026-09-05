@@ -90,10 +90,10 @@ func newBackendFakes(t testing.TB) *backendFakes {
 			"u3": testPasswordHash(t, "123456"),
 		},
 		deudas: []domain.Deuda{
-			{ID: "deuda-persona-1", UsuarioID: "V123", Monto: 4000.0, Vigente: true},
-			{ID: "deuda-persona-2", UsuarioID: "V123", Monto: 6000.0, Vigente: true},
-			{ID: "deuda-persona-pagada", UsuarioID: "V123", Monto: 5000.0, Vigente: false},
-			{ID: "deuda-empresa-1", UsuarioID: "J123", Monto: 25000.0, Vigente: true},
+			{ID: "deuda-persona-1", UsuarioID: "u2", Monto: 4000.0, Vigente: true},
+			{ID: "deuda-persona-2", UsuarioID: "u2", Monto: 6000.0, Vigente: true},
+			{ID: "deuda-persona-pagada", UsuarioID: "u2", Monto: 5000.0, Vigente: false},
+			{ID: "deuda-empresa-1", UsuarioID: "u3", Monto: 25000.0, Vigente: true},
 		},
 		abonos: []domain.Abono{},
 		estados: []domain.EstadoConTasa{
@@ -104,7 +104,6 @@ func newBackendFakes(t testing.TB) *backendFakes {
 		nextEstadoID: 3,
 		nextAbonoID:  1,
 	}
-
 
 	return &backendFakes{
 		store:       store,
@@ -295,11 +294,26 @@ func (r *fakeUsuarioRepo) Update(ctx context.Context, id string, nombre string, 
 }
 
 func (r *fakeUsuarioRepo) GetUsuarioByID(ctx context.Context, id string) (*domain.Usuario, error) {
-	return r.FindByIdentificacion(ctx, id)
+	r.store.mu.Lock()
+	defer r.store.mu.Unlock()
+
+	for _, u := range r.store.usuarios {
+		if u.ID == id {
+			return cloneUsuario(u), nil
+		}
+	}
+	return nil, domain.ErrNotFound
 }
 
 func (r *fakeUsuarioRepo) GetUsuarioByEmail(ctx context.Context, email string) (*domain.Usuario, error) {
-	return r.FindByEmail(ctx, email)
+	usuario, err := r.FindByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if usuario == nil {
+		return nil, domain.ErrNotFound
+	}
+	return usuario, nil
 }
 
 func (r *fakeUsuarioRepo) GetUsuarioByEmailWithPassword(ctx context.Context, email string) (*domain.Usuario, string, error) {
@@ -568,7 +582,6 @@ func (r *fakeDeudaRepo) UpdateUserDebt(ctx context.Context, usuarioID string, mo
 	}, nil
 }
 
-
 // MOCK: EstadoRepository
 
 func (r *fakeEstadoRepo) GetEstadosWithTasa(ctx context.Context) ([]domain.Estado, error) {
@@ -694,4 +707,3 @@ func cloneStringPtr(value *string) *string {
 	}
 	return stringPtr(*value)
 }
-

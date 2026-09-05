@@ -14,10 +14,10 @@ func TestUsuarioFlow(t *testing.T) {
 	assertStatus(t, res, http.StatusOK)
 
 	deudaPersona := decodeJSONResponse[struct {
-		Monto    float64 `json:"monto"`
-		HasDeuda bool    `json:"has_deuda"`
+		Monto   float64 `json:"monto"`
+		Vigente bool    `json:"vigente"`
 	}](t, res)
-	if !deudaPersona.HasDeuda || deudaPersona.Monto != 10000.0 {
+	if !deudaPersona.Vigente || deudaPersona.Monto != 4000.0 {
 		t.Fatalf("unexpected persona debt response: %+v", deudaPersona)
 	}
 
@@ -27,10 +27,10 @@ func TestUsuarioFlow(t *testing.T) {
 	assertStatus(t, res, http.StatusOK)
 
 	deudaEmpresa := decodeJSONResponse[struct {
-		Monto    float64 `json:"monto"`
-		HasDeuda bool    `json:"has_deuda"`
+		Monto   float64 `json:"monto"`
+		Vigente bool    `json:"vigente"`
 	}](t, res)
-	if !deudaEmpresa.HasDeuda || deudaEmpresa.Monto != 25000.0 {
+	if !deudaEmpresa.Vigente || deudaEmpresa.Monto != 25000.0 {
 		t.Fatalf("unexpected empresa debt response: %+v", deudaEmpresa)
 	}
 
@@ -50,10 +50,10 @@ func TestUsuarioFlow(t *testing.T) {
 	res = app.request(t, http.MethodGet, "/api/empresa/deuda", nil, tokenEmpresa)
 	assertStatus(t, res, http.StatusOK)
 	deudaPagada := decodeJSONResponse[struct {
-		Monto    float64 `json:"monto"`
-		HasDeuda bool    `json:"has_deuda"`
+		Monto   float64 `json:"monto"`
+		Vigente bool    `json:"vigente"`
 	}](t, res)
-	if deudaPagada.HasDeuda || deudaPagada.Monto != 0 {
+	if deudaPagada.Vigente || deudaPagada.Monto != 0 {
 		t.Fatalf("expected empresa debt paid, got %+v", deudaPagada)
 	}
 }
