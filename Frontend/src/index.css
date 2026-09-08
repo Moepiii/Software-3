@@ -38,6 +38,16 @@
 
   /* Focus */
   --focus-ring: 0 0 0 3px rgba(34, 197, 94, 0.28);
+  
+  /* Welcome page palette */
+  --welcome-bg: #f8fafc;
+  --welcome-surface: #ffffff;
+  --welcome-surface-muted: #f8fafc;
+  --welcome-border: #e5e7eb;
+  --welcome-text: #065a46;
+  --welcome-text-muted: #4b5563;
+  --welcome-accent: #059669;
+  --welcome-accent-soft: #dcfce7;
 }
 
 html {
@@ -59,7 +69,7 @@ html, body, #root {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-main);
+  background-color: var(--welcome-bg);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
